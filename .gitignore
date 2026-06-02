@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Downloaded HAProxy binaries (see scripts/install-haproxy-binary.sh)
+haproxy_schema/bin/
