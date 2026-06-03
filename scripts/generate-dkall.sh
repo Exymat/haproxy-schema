@@ -44,6 +44,9 @@ VER_LINE="$("${HAPROXY}" -v 2>&1 | head -n 1 || true)"
 if [[ "${VER_LINE}" == *"version is"* ]]; then
   INSTALLED="${VER_LINE#*version is }"
   INSTALLED="${INSTALLED%% *}"
+elif [[ "${VER_LINE}" == *"HAProxy version"* ]]; then
+  INSTALLED="${VER_LINE#*HAProxy version }"
+  INSTALLED="${INSTALLED%% *}"
 else
   INSTALLED="unknown"
 fi
@@ -55,9 +58,21 @@ fi
 TMP="$(mktemp)"
 trap 'rm -f "${TMP}"' EXIT
 
-# Dump keywords; ignore exit code (no listener with /dev/null is normal).
-if ! "${HAPROXY}" -dKall -q -c -f "${CFG}" >"${TMP}" 2>/dev/null; then
-  "${HAPROXY}" -dKall -q -c -f "${CFG}" >"${TMP}" 2>/dev/null || true
+dump_keywords() {
+  local cfg="$1"
+  : >"${TMP}"
+  if ! "${HAPROXY}" -dKall -q -c -f "${cfg}" >"${TMP}" 2>/dev/null; then
+    "${HAPROXY}" -dKall -q -c -f "${cfg}" >"${TMP}" 2>/dev/null || true
+  fi
+}
+
+dump_keywords "${CFG}"
+if [[ ! -s "${TMP}" ]] || head -n 1 "${TMP}" | grep -qE '^HAProxy version|Usage :'; then
+  if [[ "${CFG}" != "/dev/null" ]]; then
+    echo "warning: -dKall with ${CFG} produced no dump; retrying with /dev/null" >&2
+    CFG="/dev/null"
+    dump_keywords "${CFG}"
+  fi
 fi
 
 if [[ ! -s "${TMP}" ]] || head -n 1 "${TMP}" | grep -qE '^HAProxy version|Usage :'; then

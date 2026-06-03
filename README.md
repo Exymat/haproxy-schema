@@ -1,6 +1,6 @@
 # haproxy-schema
 
-Python package that builds HAProxy **3.0** / **3.2** schemas, language data, and TextMate grammars from `configuration.txt` and `haproxy -dKall` keyword dumps.
+Python package that builds HAProxy **3.0** / **3.2** / **3.4** schemas, language data, and TextMate grammars from `configuration.txt` and `haproxy -dKall` keyword dumps.
 
 ## Repository layout
 
@@ -9,8 +9,10 @@ haproxy-schema/
   haproxy_schema/          # importable package (CLI: python -m haproxy_schema)
     dkall-3.0.txt          # checked-in -dKall dumps
     dkall-3.2.txt
+    dkall-3.4.txt
     coverage-3.0.json      # doc vs dkall gap reports (written by build)
     coverage-3.2.json
+    coverage-3.4.json
     tests/
   scripts/                 # dkall generation, optional binary install, test runner
 ```
@@ -40,13 +42,14 @@ python -m pytest haproxy_schema\tests -q
 Requires a DEBUG-enabled `haproxy` binary (Debian/Ubuntu packages usually work, or `scripts/install-haproxy-binary.sh`).
 
 ```bash
+./scripts/generate-dkall.sh 3.4
 ./scripts/generate-dkall.sh 3.2
 ./scripts/generate-dkall.sh 3.0
 ```
 
 On Windows, the same script runs inside WSL via `scripts/generate-dkall.ps1` (used by `npm run generate:dkall:*` in **haproxy-vscode**).
 
-If a parent directory also contains `haproxy_git/haproxy-<version>/`, the script uses that tree’s `tests/conf/basic-check.cfg`; otherwise it uses `/dev/null` (non-zero exit is normal). If `-dKall` prints only usage text, the binary lacks DEBUG.
+If a parent directory also contains `haproxy_git/haproxy-<version>/`, the script uses that tree’s `tests/conf/basic-check.cfg` when it produces a dump; otherwise it falls back to `/dev/null` (non-zero exit is normal). Version-specific binaries in `haproxy_schema/bin/haproxy-<ver>` are used when present (`install-haproxy-binary.sh` for 3.0/3.2; build 3.4 from source in WSL).
 
 ## VS Code extension
 
@@ -56,7 +59,7 @@ The **haproxy-vscode** extension consumes generated `schema.json`, `language.jso
 parent/
   haproxy-schema/
   haproxy-vscode/
-  haproxy_git/             # optional: haproxy-3.0/, haproxy-3.2/ for doc + integration tests
+  haproxy_git/             # optional: haproxy-3.0/, haproxy-3.2/, haproxy-3.4/ for doc + integration tests
 ```
 
 Schema build and full test instructions live in [haproxy-vscode/README.md](../haproxy-vscode/README.md). From the parent directory:

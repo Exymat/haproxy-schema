@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Download and extract a versioned haproxy binary from haproxy.debian.net (no apt swap).
-# Usage: install-haproxy-binary.sh 3.0|3.2 [install-dir]
+# Usage: install-haproxy-binary.sh 3.0|3.2|3.4 [install-dir]
 set -euo pipefail
 
 VERSION="${1:?version required (e.g. 3.0 or 3.2)}"
@@ -16,11 +16,11 @@ mkdir -p "${INSTALL_DIR}"
 TMP="$(mktemp -d -p /tmp 2>/dev/null || mktemp -d)"
 trap 'rm -rf "${TMP}"' EXIT
 
-FILENAME="$(curl -fsSL "${PKG_URL}" | awk -v ver="${VERSION}" '
+FILENAME="$(curl -fsSL "${PKG_URL}" -o "${TMP}/Packages" && awk -v ver="${VERSION}" '
   /^Package: haproxy$/ { pkg=1; next }
   pkg && /^Version:/ { v=$2; sub(/~.*/, "", v); if (index(v, ver ".") == 1) ver_match=1; else ver_match=0 }
   pkg && ver_match && /^Filename:/ { print $2; exit }
-')"
+' "${TMP}/Packages")"
 if [[ -z "${FILENAME}" ]]; then
   echo "error: could not find haproxy package for version ${VERSION} in ${DIST}" >&2
   exit 1

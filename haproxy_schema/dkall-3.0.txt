@@ -1,7 +1,7 @@
 # HAProxy keyword dump for schema tooling (dkall)
-# Generated: 2026-06-02T22:49:13Z
+# Generated: 2026-06-03T17:22:41Z
 # Binary: HAProxy version 3.0.23-1~bpo12+1 2026/05/12 - https://haproxy.org/
-# Command: haproxy-3.0 -dKall -q -c -f haproxy_git/haproxy-3.0/tests/conf/basic-check.cfg
+# Command: haproxy_schema/bin/haproxy-3.0 -dKall -q -c -f /mnt/c/Users/albin/Documents/projects/haproxy/haproxy_git/haproxy-3.0/tests/conf/basic-check.cfg
 # Target schema version label: 3.0
 # List of registered ACL keywords:
 base = base -m str
