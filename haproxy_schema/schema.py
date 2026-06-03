@@ -85,6 +85,7 @@ class HaproxySchema:
             "modifiers": ["no", "default"],
             "conditionals": ["if", "unless"],
             "macros": [".if", ".elif", ".else", ".endif"],
+            "no_prefix_keywords": [],
         }
     )
 

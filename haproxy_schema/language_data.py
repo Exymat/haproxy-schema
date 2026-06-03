@@ -9,6 +9,7 @@ import json
 from .action_parser import ActionDoc, parse_actions
 from .dkall_parser import DkallParseResult, parse_dkall
 from .doc_parser import DocParseResult, SECTIONS_MATRIX, parse_configuration
+from .merge import build_action_groups
 
 
 @dataclass
@@ -66,6 +67,17 @@ def docs_url(version: str, keyword: str, chapter: str = "") -> str:
     return f"{base}#{anchor}"
 
 
+def _acl_group_items(mapping: dict[str, str], signature_fmt: str = "") -> list[GroupItem]:
+    return [
+        GroupItem(
+            name=name,
+            description=desc,
+            signature=signature_fmt.format(name=name) if signature_fmt else name,
+        )
+        for name, desc in sorted(mapping.items())
+    ]
+
+
 def build_language_data(
     version: str,
     doc: DocParseResult,
@@ -114,35 +126,32 @@ def build_language_data(
 
     action_desc = {name: a.description for name, a in actions.items()}
     action_sigs = {name: a.signature for name, a in actions.items()}
+    action_groups = build_action_groups(doc, dkall)
 
     data.groups = {
         "options": group_items(sorted(set(dkall.options) | _collect_doc_options(doc)), {}, {}),
         "bind_options": group_items(sorted(dkall.bind_options), {}, {}),
         "server_options": group_items(sorted(dkall.server_options), {}, {}),
-        "http_request_actions": group_items(
-            sorted(dkall.http_request_actions), action_desc, action_sigs
-        ),
-        "http_response_actions": group_items(
-            sorted(dkall.http_response_actions), action_desc, action_sigs
-        ),
+        "http_request_actions": group_items(action_groups["http_request_actions"], action_desc, action_sigs),
+        "http_response_actions": group_items(action_groups["http_response_actions"], action_desc, action_sigs),
         "http_after_response_actions": group_items(
-            sorted(dkall.http_after_response_actions), action_desc, action_sigs
+            action_groups["http_after_response_actions"], action_desc, action_sigs
         ),
         "services": group_items(sorted(dkall.services), {}, {}),
-        "tcp_request_actions": group_items(
-            sorted(set(dkall.tcp_request_actions) | {"accept", "reject", "inspect-delay", "expect-proxy"}),
-            action_desc,
-            action_sigs,
-        ),
-        "tcp_response_actions": group_items(
-            sorted(set(dkall.tcp_response_actions) | {"accept", "reject"}),
-            action_desc,
-            action_sigs,
-        ),
+        "tcp_request_actions": group_items(action_groups["tcp_request_actions"], action_desc, action_sigs),
+        "tcp_response_actions": group_items(action_groups["tcp_response_actions"], action_desc, action_sigs),
+        "quic_initial_actions": group_items(action_groups["quic_initial_actions"], action_desc, action_sigs),
         "acl_criteria": group_items(sorted(dkall.acl_criteria), {}, {}),
         "sample_fetches": group_items(sorted(dkall.sample_fetches), {}, {}),
         "sample_converters": group_items(sorted(dkall.sample_converters), {}, {}),
         "filters": group_items(sorted(dkall.filters), {}, {}),
+        "acl_flags": _acl_group_items(doc.acl_reference.flags, "-{name}"),
+        "acl_match_methods": _acl_group_items(doc.acl_reference.match_methods, '-m {name}'),
+        "acl_int_operators": _acl_group_items(doc.acl_reference.int_operators),
+        "acl_string_match_methods": _acl_group_items(
+            doc.acl_reference.string_match_methods, "-m {name}"
+        ),
+        "acl_predefined": _acl_group_items(doc.acl_reference.predefined_acls),
     }
 
     return data

@@ -24,6 +24,11 @@ def haproxy_vscode_root() -> Path:
     return sibling
 
 
+def hapee_root() -> Path | None:
+    path = _SCHEMA_REPO.parent / "HAPEE"
+    return path if path.is_dir() else None
+
+
 def dkall_dump(version: str) -> Path:
     return _SCHEMA_REPO / "haproxy_schema" / f"dkall-{version}.txt"
 

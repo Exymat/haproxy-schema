@@ -8,10 +8,35 @@ from .action_parser import parse_actions
 from .coverage import build_coverage_report
 from .dkall_parser import parse_dkall
 from .doc_parser import parse_configuration
+from .grammar_coverage import report_from_paths
 from .grammar_emitter import write_tm_language
 from .language_data import build_language_data
 from .merge import merge_schema
 from .schema import HaproxySchema
+
+
+def _check_grammar_cmd(args: argparse.Namespace) -> int:
+    schema_path = Path(args.schema)
+    grammar_path = Path(args.grammar) if args.grammar else None
+    template = Path(args.grammar_template) if args.grammar_template else None
+    report = report_from_paths(schema_path, grammar_path or schema_path, template_path=template)
+    if args.report_out:
+        Path(args.report_out).write_text(json.dumps(report.to_dict(), indent=2) + "\n", encoding="utf-8")
+    if not report.ok:
+        for word in report.missing_in_grammar[:20]:
+            print(f"missing directive in grammar: {word}")
+        for word in report.missing_cache_in_grammar:
+            print(f"missing cache keyword in grammar: {word}")
+        for short, long in report.prefix_conflicts_in_grammar[:10]:
+            print(f"prefix conflict: {short} vs {long}")
+        for word in report.legacy_hyphen_when_schema_underscore[:20]:
+            print(f"legacy hyphen stale (schema uses underscore): {word}")
+        return 1
+    print(
+        f"Grammar OK: {report.grammar_schema_directive_count} directives, "
+        f"{report.grammar_cache_keyword_count} cache keywords"
+    )
+    return 0
 
 
 def _emit_grammar_cmd(args: argparse.Namespace) -> int:
@@ -96,6 +121,21 @@ def make_parser() -> argparse.ArgumentParser:
         help="Base TextMate grammar to patch (default: haproxy.tmLanguage.json beside output)",
     )
     emit.set_defaults(func=_emit_grammar_cmd)
+
+    check = sub.add_parser("check-grammar", help="Verify emitted TextMate grammar matches schema directives")
+    check.add_argument("--schema", required=True, help="Path to haproxy-X.Y.schema.json")
+    check.add_argument(
+        "--grammar",
+        default="",
+        help="Existing grammar JSON (optional; default: emit from template + schema)",
+    )
+    check.add_argument(
+        "--grammar-template",
+        default="",
+        help="Base TextMate grammar template (required when --grammar omitted)",
+    )
+    check.add_argument("--report-out", default="", help="Write JSON report path")
+    check.set_defaults(func=_check_grammar_cmd)
     return parser
 
 

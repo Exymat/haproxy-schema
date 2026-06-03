@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .dkall_parser import DkallParseResult
 from .doc_parser import DocParseResult
+from .hapee_extensions import HAPEE_SECTION_KEYWORDS
 from .schema import HaproxySchema, Keyword, SampleFunction, Section, StatementRule
 from .signature_model import attach_argument_models
 from .slot_model import enrich_statement_rules
@@ -31,6 +32,29 @@ def _mark_source(schema: HaproxySchema, keyword: str, source: str) -> None:
 
 # Documented tcp rule actions not enumerated in dkall's action registry.
 _TCP_RULE_ACTIONS = {"accept", "reject", "inspect-delay", "expect-proxy"}
+
+
+def build_action_groups(doc: DocParseResult, dkall: DkallParseResult) -> dict[str, list[str]]:
+    """Merge section 4.3 action matrix (doc) with dkall action registries."""
+    am = doc.action_matrix
+
+    def doc_actions(key: str) -> set[str]:
+        return set(am.get(key, set()))
+
+    return {
+        "http_request_actions": sorted(dkall.http_request_actions | doc_actions("http_request_actions")),
+        "http_response_actions": sorted(dkall.http_response_actions | doc_actions("http_response_actions")),
+        "http_after_response_actions": sorted(
+            dkall.http_after_response_actions | doc_actions("http_after_response_actions")
+        ),
+        "tcp_request_actions": sorted(
+            dkall.tcp_request_actions | doc_actions("tcp_request_actions") | _TCP_RULE_ACTIONS
+        ),
+        "tcp_response_actions": sorted(
+            dkall.tcp_response_actions | doc_actions("tcp_response_actions") | {"accept", "reject"}
+        ),
+        "quic_initial_actions": sorted(doc_actions("quic_initial_actions")),
+    }
 
 
 def _collect_doc_options(doc: DocParseResult) -> set[str]:
@@ -68,6 +92,16 @@ def merge_schema(version: str, doc: DocParseResult, dkall: DkallParseResult) -> 
             kw.arguments = list(kdoc.arguments)
         _mark_source(schema, keyword, "doc")
 
+    for section, keywords in doc.section_keywords.items():
+        for keyword in keywords:
+            _add_keyword_to_section(schema, section, keyword)
+            _mark_source(schema, keyword, "doc")
+            kdoc = doc.keyword_docs.get(keyword)
+            if kdoc:
+                kw = _ensure_keyword(schema, keyword)
+                if section not in kw.sections:
+                    kw.sections.append(section)
+
     # Dkall complements top-level sections not fully covered by doc.
     for section, keywords in dkall.section_keywords.items():
         for keyword in keywords:
@@ -79,20 +113,17 @@ def merge_schema(version: str, doc: DocParseResult, dkall: DkallParseResult) -> 
             _mark_source(schema, keyword, "dkall")
 
     doc_options = _collect_doc_options(doc)
+    action_groups = build_action_groups(doc, dkall)
     schema.keyword_groups = {
         "bind_options": sorted(dkall.bind_options),
         "server_options": sorted(dkall.server_options),
         "options": sorted(set(dkall.options) | doc_options),
-        "http_request_actions": sorted(dkall.http_request_actions),
-        "http_response_actions": sorted(dkall.http_response_actions),
-        "http_after_response_actions": sorted(dkall.http_after_response_actions),
-        "tcp_request_actions": sorted(set(dkall.tcp_request_actions) | _TCP_RULE_ACTIONS),
-        "tcp_response_actions": sorted(set(dkall.tcp_response_actions) | _TCP_RULE_ACTIONS),
         "acl_criteria": sorted(dkall.acl_criteria),
         "sample_fetches": sorted(dkall.sample_fetches),
         "sample_converters": sorted(dkall.sample_converters),
         "filters": sorted(dkall.filters),
         "services": sorted(dkall.services),
+        **action_groups,
     }
 
     for section in schema.sections.values():
@@ -132,4 +163,22 @@ def merge_schema(version: str, doc: DocParseResult, dkall: DkallParseResult) -> 
         for name, info in dkall.sample_converters_structured.items()
     }
 
+    apply_hapee_extensions(schema)
+
+    schema.tokens["no_prefix_keywords"] = sorted(doc.no_prefix_keywords)
+
+    acl = doc.acl_reference
+    schema.tokens["acl_flags"] = sorted(acl.flags.keys())
+    schema.tokens["acl_match_methods"] = sorted(acl.match_methods.keys())
+    schema.tokens["acl_int_operators"] = sorted(acl.int_operators.keys())
+    schema.tokens["acl_string_match_methods"] = sorted(acl.string_match_methods.keys())
+    schema.tokens["acl_predefined"] = sorted(acl.predefined_acls.keys())
+
     return schema
+
+
+def apply_hapee_extensions(schema: HaproxySchema) -> None:
+    for section, keywords in HAPEE_SECTION_KEYWORDS.items():
+        for keyword in keywords:
+            _add_keyword_to_section(schema, section, keyword)
+            _mark_source(schema, keyword, "hapee")

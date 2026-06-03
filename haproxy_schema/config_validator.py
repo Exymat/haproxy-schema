@@ -26,7 +26,15 @@ SECTION_HEADERS = {
     "acme",
 }
 
-PREFIX_FAMILIES = ["stats", "timeout", "tcp-check", "http-check", "capture", "tcp-request", "tcp-response"]
+PREFIX_FAMILIES = [
+    "stats",
+    "timeout",
+    "tcp-check",
+    "http-check",
+    "capture",
+    "tcp-request",
+    "tcp-response",
+]
 
 
 @dataclass
@@ -71,7 +79,9 @@ def _tokenize_line(line: str) -> list[ParsedToken]:
     def flush(end: int) -> None:
         nonlocal token_start
         if token_start >= 0 and end > token_start:
-            tokens.append(ParsedToken(text=line[token_start:end], start=token_start, end=end))
+            tokens.append(
+                ParsedToken(text=line[token_start:end], start=token_start, end=end)
+            )
             token_start = -1
 
     while i < len(line):
@@ -163,7 +173,9 @@ def _section_allowed(schema: HaproxySchema, section: str | None) -> set[str]:
     return allowed
 
 
-def _resolve_longest_match(line: ParsedLine, allowed: set[str], max_parts: int = 4) -> tuple[str, bool]:
+def _resolve_longest_match(
+    line: ParsedLine, allowed: set[str], max_parts: int = 4
+) -> tuple[str, bool]:
     tokens = line.tokens
     if not tokens:
         return "", False
@@ -201,9 +213,33 @@ def _option_allowed(allowed: set[str]) -> bool:
     return any(k.startswith("option ") or k.startswith("no option") for k in allowed)
 
 
+def _no_prefix_keywords(schema: HaproxySchema) -> set[str]:
+    return {k.lower() for k in schema.tokens.get("no_prefix_keywords", [])}
+
+
+def _is_no_prefix_line(
+    line: ParsedLine, allowed: set[str], no_prefix: set[str]
+) -> bool:
+    if len(line.tokens) < 2:
+        return False
+    if line.tokens[0].text.lower() not in {"no", "default"}:
+        return False
+    keyword, matched = _resolve_longest_match(
+        ParsedLine(
+            line=line.line,
+            section=line.section,
+            tokens=line.tokens[1:],
+            is_section_header=False,
+        ),
+        allowed,
+    )
+    return matched and keyword.lower() in no_prefix
+
+
 def validate_config(content: str, schema: HaproxySchema) -> ValidationResult:
     result = ValidationResult()
     macros = {m.lower() for m in schema.tokens.get("macros", [])}
+    no_prefix = _no_prefix_keywords(schema)
 
     for line in parse_config_text(content):
         if not line.tokens or line.is_section_header:
@@ -213,6 +249,8 @@ def validate_config(content: str, schema: HaproxySchema) -> ValidationResult:
 
         allowed = _section_allowed(schema, line.section)
         if _is_option_line(line) and _option_allowed(allowed):
+            continue
+        if _is_no_prefix_line(line, allowed, no_prefix):
             continue
 
         keyword, matched = _resolve_longest_match(line, allowed)

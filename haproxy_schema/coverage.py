@@ -33,6 +33,10 @@ def build_coverage_report(
     doc_keywords: set[str] = set(doc.global_keywords)
     for keywords in doc.matrix_keywords.values():
         doc_keywords.update(keywords)
+    for keywords in doc.section_keywords.values():
+        doc_keywords.update(keywords)
+    for keywords in doc.action_matrix.values():
+        doc_keywords.update(keywords)
     doc_keywords.update(doc.signatures.keys())
 
     dkall_keywords: set[str] = set()
@@ -50,7 +54,7 @@ def build_coverage_report(
         if kw.signatures and kw.argument_model is None
     )
 
-    doc_sections = set(doc.matrix_keywords.keys()) | {"global"}
+    doc_sections = set(doc.matrix_keywords.keys()) | {"global"} | set(doc.section_keywords.keys())
     dkall_sections = set(dkall.section_keywords.keys())
 
     return CoverageReport(
