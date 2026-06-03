@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from .dkall_parser import DkallParseResult
+from .dkall_supplement import supplement_missing_tls_options
 from .doc_parser import DocParseResult
 from .hapee_extensions import HAPEE_SECTION_KEYWORDS
 from .schema import HaproxySchema, Keyword, SampleFunction, Section, StatementRule
@@ -69,7 +72,16 @@ def _collect_doc_options(doc: DocParseResult) -> set[str]:
     return options
 
 
-def merge_schema(version: str, doc: DocParseResult, dkall: DkallParseResult) -> HaproxySchema:
+def merge_schema(
+    version: str,
+    doc: DocParseResult,
+    dkall: DkallParseResult,
+    *,
+    dkall_package_dir: Path | None = None,
+) -> HaproxySchema:
+    if dkall_package_dir is not None:
+        supplement_missing_tls_options(dkall, dkall_package_dir)
+
     schema = HaproxySchema(version=version)
 
     # Doc is authoritative for top-level section applicability.

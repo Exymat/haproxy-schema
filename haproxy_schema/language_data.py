@@ -8,6 +8,7 @@ import json
 
 from .action_parser import ActionDoc, parse_actions
 from .dkall_parser import DkallParseResult, parse_dkall
+from .dkall_supplement import supplement_missing_tls_options
 from .doc_parser import DocParseResult, SECTIONS_MATRIX, parse_configuration
 from .merge import build_action_groups
 
@@ -176,5 +177,6 @@ def build_from_paths(
 ) -> HaproxyLanguageData:
     doc = parse_configuration(doc_path)
     dkall = parse_dkall(dkall_path)
+    supplement_missing_tls_options(dkall, dkall_path.parent)
     actions = parse_actions(doc_path)
     return build_language_data(version, doc, dkall, actions)

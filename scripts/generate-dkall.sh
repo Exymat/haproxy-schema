@@ -16,10 +16,12 @@ TOOLS_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 MONOREPO_ROOT="$(cd "${TOOLS_ROOT}/.." && pwd)"
 OUT="${2:-${TOOLS_ROOT}/haproxy_schema/dkall-${VERSION}.txt}"
 BIN_CANDIDATE="${TOOLS_ROOT}/haproxy_schema/bin/haproxy-${VERSION}"
-if [[ -z "${HAPROXY:-}" && -x "${BIN_CANDIDATE}" ]]; then
-  HAPROXY="${BIN_CANDIDATE}"
-else
-  HAPROXY="${HAPROXY:-haproxy}"
+if [[ -z "${HAPROXY:-}" ]]; then
+  if [[ -x "${BIN_CANDIDATE}" ]] || [[ -f "${BIN_CANDIDATE}" ]]; then
+    HAPROXY="${BIN_CANDIDATE}"
+  else
+    HAPROXY="haproxy"
+  fi
 fi
 
 CFG="/dev/null"

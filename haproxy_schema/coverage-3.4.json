@@ -80,15 +80,31 @@
     "wait-for-handshake"
   ],
   "dkall_only_keywords": [
+    "allow-0rtt",
+    "alpn",
+    "ca-file",
+    "ca-verify-file",
+    "ciphers",
+    "ciphersuites",
+    "client-sigalgs",
     "clitimeout",
     "contimeout",
+    "crl-file",
     "declare",
+    "ecdhe",
     "harden.reject-privileged-ports.quic",
     "http-check",
+    "ktls",
     "nbproc",
+    "no-alpn",
+    "no-ca-names",
+    "npn",
     "option",
     "rate-limit",
+    "sigalgs",
     "srvtimeout",
+    "ssl-max-ver",
+    "ssl-min-ver",
     "stats",
     "tcp-check",
     "tcp-request",
@@ -99,11 +115,15 @@
     "tune.rcvbuf.server",
     "tune.sndbuf.frontend",
     "tune.sndbuf.server",
+    "tune.ssl.capture-cipherlist-size",
+    "tune.ssl.ocsp-update.maxdelay",
+    "tune.ssl.ocsp-update.mindelay",
     "tune.vars.check-max-size",
     "tune.vars.proc-max-size",
     "tune.vars.reqres-max-size",
     "tune.vars.sess-max-size",
-    "tune.vars.txn-max-size"
+    "tune.vars.txn-max-size",
+    "verify"
   ],
   "keywords_without_argument_model": [
     "compression",
@@ -137,7 +157,7 @@
     "ring"
   ],
   "sections_dkall_only": [],
-  "sample_fetches_count": 455,
-  "sample_converters_count": 191,
+  "sample_fetches_count": 557,
+  "sample_converters_count": 207,
   "statement_rules_count": 15
 }

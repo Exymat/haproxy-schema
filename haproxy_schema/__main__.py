@@ -51,8 +51,10 @@ def _emit_grammar_cmd(args: argparse.Namespace) -> int:
 def _build_cmd(args: argparse.Namespace) -> int:
     doc_path = Path(args.doc)
     doc = parse_configuration(doc_path)
-    dkall = parse_dkall(Path(args.dkall))
-    schema = merge_schema(args.version, doc, dkall)
+    dkall_path = Path(args.dkall)
+    dkall = parse_dkall(dkall_path)
+    dkall_dir = dkall_path.parent
+    schema = merge_schema(args.version, doc, dkall, dkall_package_dir=dkall_dir)
     schema.write(Path(args.out))
 
     if args.language_data_out:

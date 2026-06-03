@@ -49,7 +49,14 @@ Requires a DEBUG-enabled `haproxy` binary (Debian/Ubuntu packages usually work, 
 
 On Windows, the same script runs inside WSL via `scripts/generate-dkall.ps1` (used by `npm run generate:dkall:*` in **haproxy-vscode**).
 
-If a parent directory also contains `haproxy_git/haproxy-<version>/`, the script uses that tree’s `tests/conf/basic-check.cfg` when it produces a dump; otherwise it falls back to `/dev/null` (non-zero exit is normal). Version-specific binaries in `haproxy_schema/bin/haproxy-<ver>` are used when present (`install-haproxy-binary.sh` for 3.0/3.2; build 3.4 from source in WSL).
+**HAProxy 3.4** must be built with OpenSSL so `server`/`bind` TLS keywords appear in the dkall dump (Debian packages for 3.0/3.2 are fine as-is):
+
+```bash
+./scripts/build-haproxy-3.4.sh   # USE_OPENSSL=1 → haproxy_schema/bin/haproxy-3.4
+./scripts/generate-dkall.sh 3.4
+```
+
+If a parent directory also contains `haproxy_git/haproxy-<version>/`, the script uses that tree’s `tests/conf/basic-check.cfg` when it produces a dump; otherwise it falls back to `/dev/null` (non-zero exit is normal). Version-specific binaries in `haproxy_schema/bin/haproxy-<ver>` are used when present (`install-haproxy-binary.sh` for 3.0/3.2; `build-haproxy-3.4.sh` for 3.4).
 
 ## VS Code extension
 
