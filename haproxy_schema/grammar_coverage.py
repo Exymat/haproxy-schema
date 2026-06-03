@@ -13,7 +13,7 @@ from .schema import HaproxySchema
 _DIRECTIVE_SCOPE = "keyword.other.directive.haproxy"
 _OPTION_SCOPE = "keyword.other.option.haproxy"
 _SECTION_SCOPE = "entity.name.type.section.haproxy"
-_PROXY_SCOPE = "entity.name.label.haproxy"
+_PROXY_SCOPE = "entity.name.type.proxy.haproxy"
 
 # Legacy hand-maintained rules that may duplicate schema-directives (audit only).
 # Optional hand-maintained overrides (empty when grammar is fully generated).
