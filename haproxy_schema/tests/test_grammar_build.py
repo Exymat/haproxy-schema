@@ -43,3 +43,19 @@ def test_directives_exclude_log_prefix_ambiguity() -> None:
     directives = collect_directive_keywords(schema)
     assert "log-format-sd" in directives or "log_format_sd" in directives
     assert "log" not in directives
+
+
+def test_distinct_name_scopes_for_theme_highlighting() -> None:
+    schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
+    grammar = build_tm_language(schema)
+    sections = grammar["repository"]["sections"]["patterns"]
+    defaults_rule = next(p for p in sections if "(defaults)" in p.get("match", ""))
+    proxy_rule = next(p for p in sections if "frontend" in p.get("match", ""))
+    label_scope = "entity.name.type.class.proxy.haproxy"
+    assert defaults_rule["captures"]["2"]["name"] == label_scope
+    assert proxy_rule["captures"]["2"]["name"] == label_scope
+
+    directives = grammar["repository"]["directives-with-values"]["patterns"]
+    acl_rule = next(p for p in directives if r"\b(acl)\s+" in p.get("match", ""))
+    assert acl_rule["captures"]["2"]["name"] == "entity.other.attribute-name.acl.haproxy"
+    assert acl_rule["captures"]["2"]["name"] != label_scope

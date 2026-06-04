@@ -18,7 +18,13 @@ _DIRECTIVE = "keyword.other.directive.haproxy"
 _MODIFIER = "keyword.other.modifier.haproxy"
 _OPTION = "keyword.other.option.haproxy"
 _SECTION = "entity.name.type.section.haproxy"
+# frontend/backend/listen/defaults profile and named section labels (Cursor Dark:
+# entity.name.type.class → #87c3ff).
+_PROXY_LABEL = "entity.name.type.class.proxy.haproxy"
+# server / cookie / from target / other identifier-like names (Cursor Dark: entity.name.type → #efb080).
 _PROXY = "entity.name.type.proxy.haproxy"
+# ACL names (Cursor Dark: entity.other.attribute-name → #aaa0fa).
+_ACL_NAME = "entity.other.attribute-name.acl.haproxy"
 _STRING = "string.unquoted.haproxy"
 _NUMBER = "constant.numeric.haproxy"
 _STORAGE = "storage.type"
@@ -317,19 +323,23 @@ def _collect_enum_words(schema: HaproxySchema) -> list[str]:
 def _build_sections(schema: HaproxySchema) -> dict[str, Any]:
     sections = sorted(schema.sections.keys())
     sec_alt = alt_pattern(sections)
-    inherit = alt_pattern([s for s in sections if s in {"defaults", "frontend", "backend", "listen"}])
+    proxy_kinds = alt_pattern(["frontend", "backend", "listen"])
     named = alt_pattern(
         [s for s in sections if s not in {"global", "defaults", "frontend", "backend", "listen"}]
     )
     return {
         "patterns": [
             {
-                "match": rf"(?m)^(?:\t| )*({inherit})\s+(\S+)(?:\s+(from)\s+(\S+))?",
-                "captures": _captures(_SECTION, _PROXY, _DIRECTIVE, _PROXY),
+                "match": rf"(?m)^(?:\t| )*(defaults)\s+(\S+)(?:\s+(from)\s+(\S+))?",
+                "captures": _captures(_SECTION, _PROXY_LABEL, _DIRECTIVE, _PROXY),
+            },
+            {
+                "match": rf"(?m)^(?:\t| )*({proxy_kinds})\s+(\S+)(?:\s+(from)\s+(\S+))?",
+                "captures": _captures(_SECTION, _PROXY_LABEL, _DIRECTIVE, _PROXY),
             },
             {
                 "match": rf"(?m)^(?:\t| )*({named})\s+(\S+)",
-                "captures": _captures(_SECTION, _PROXY),
+                "captures": _captures(_SECTION, _PROXY_LABEL),
             },
             {
                 "name": _SECTION,
@@ -359,7 +369,7 @@ def _build_directives_with_values(schema: HaproxySchema) -> dict[str, Any]:
         },
         {
             "match": r"\b(acl)\s+(\S+)\s+([\w.-]+)",
-            "captures": _captures(_DIRECTIVE, _PROXY, _STORAGE),
+            "captures": _captures(_DIRECTIVE, _ACL_NAME, _STORAGE),
         },
         {
             "match": r"\b(cookie)\s+(\S+)",
@@ -697,7 +707,14 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
         "punctuation": {
             "patterns": [{"name": _MODIFIER, "match": r"[=,:+\-!|&()\[\]{}^]"}]
         },
-        "identifiers": {"patterns": [{"name": _PROXY, "match": r"\b[A-Za-z_][\w.-]*\b"}]},
+        "identifiers": {
+            "patterns": [
+                {
+                    "name": "variable.other.readwrite.haproxy",
+                    "match": r"\b[A-Za-z_][\w.-]*\b",
+                }
+            ]
+        },
     }
 
 
