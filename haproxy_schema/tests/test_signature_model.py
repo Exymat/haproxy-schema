@@ -36,3 +36,25 @@ def test_optional_enum_slot() -> None:
     assert model is not None
     assert model.max_args == 1
     assert "never" in model.slots[0].enum
+
+
+def test_trailing_ellipsis_makes_variadic() -> None:
+    model = build_argument_model(
+        "ssl-default-bind-options",
+        ["ssl-default-bind-options [<option>]..."],
+    )
+    assert model is not None
+    assert model.max_args is None
+    assert model.slots[-1].variadic
+
+
+def test_compression_algo_variadic() -> None:
+    model = build_argument_model("compression algo", ["compression algo <algorithm> ..."])
+    assert model is not None
+    assert model.max_args is None
+
+
+def test_trace_args_ellipsis() -> None:
+    model = build_argument_model("trace", ["trace <source> <args...>"])
+    assert model is not None
+    assert model.max_args is None

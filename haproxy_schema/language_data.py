@@ -19,6 +19,7 @@ class GroupItem:
     description: str = ""
     signature: str = ""
     rulesets: list[str] = field(default_factory=list)
+    docsUrl: str = ""
 
 
 @dataclass
@@ -111,16 +112,24 @@ def build_language_data(
             ],
         )
 
-    def group_items(names: list[str], descriptions: dict[str, str], signatures: dict[str, str]) -> list[GroupItem]:
+    def group_items(
+        names: list[str],
+        descriptions: dict[str, str],
+        signatures: dict[str, str],
+        *,
+        docs_chapter: str = "",
+    ) -> list[GroupItem]:
         items: list[GroupItem] = []
         for name in names:
             action = actions.get(name)
+            doc_url = docs_url(version, name, docs_chapter) if docs_chapter else ""
             items.append(
                 GroupItem(
                     name=name,
                     description=descriptions.get(name, action.description if action else ""),
                     signature=signatures.get(name, action.signature if action else ""),
                     rulesets=list(action.rulesets) if action else [],
+                    docsUrl=doc_url,
                 )
             )
         return items
@@ -133,15 +142,25 @@ def build_language_data(
         "options": group_items(sorted(set(dkall.options) | _collect_doc_options(doc)), {}, {}),
         "bind_options": group_items(sorted(dkall.bind_options), {}, {}),
         "server_options": group_items(sorted(dkall.server_options), {}, {}),
-        "http_request_actions": group_items(action_groups["http_request_actions"], action_desc, action_sigs),
-        "http_response_actions": group_items(action_groups["http_response_actions"], action_desc, action_sigs),
+        "http_request_actions": group_items(
+            action_groups["http_request_actions"], action_desc, action_sigs, docs_chapter="4.4"
+        ),
+        "http_response_actions": group_items(
+            action_groups["http_response_actions"], action_desc, action_sigs, docs_chapter="4.4"
+        ),
         "http_after_response_actions": group_items(
-            action_groups["http_after_response_actions"], action_desc, action_sigs
+            action_groups["http_after_response_actions"], action_desc, action_sigs, docs_chapter="4.4"
         ),
         "services": group_items(sorted(dkall.services), {}, {}),
-        "tcp_request_actions": group_items(action_groups["tcp_request_actions"], action_desc, action_sigs),
-        "tcp_response_actions": group_items(action_groups["tcp_response_actions"], action_desc, action_sigs),
-        "quic_initial_actions": group_items(action_groups["quic_initial_actions"], action_desc, action_sigs),
+        "tcp_request_actions": group_items(
+            action_groups["tcp_request_actions"], action_desc, action_sigs, docs_chapter="4.4"
+        ),
+        "tcp_response_actions": group_items(
+            action_groups["tcp_response_actions"], action_desc, action_sigs, docs_chapter="4.4"
+        ),
+        "quic_initial_actions": group_items(
+            action_groups["quic_initial_actions"], action_desc, action_sigs, docs_chapter="4.4"
+        ),
         "acl_criteria": group_items(sorted(dkall.acl_criteria), {}, {}),
         "sample_fetches": group_items(sorted(dkall.sample_fetches), {}, {}),
         "sample_converters": group_items(sorted(dkall.sample_converters), {}, {}),

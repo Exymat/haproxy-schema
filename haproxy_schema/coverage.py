@@ -30,7 +30,7 @@ def build_coverage_report(
     dkall: DkallParseResult,
     schema: HaproxySchema,
 ) -> CoverageReport:
-    doc_keywords: set[str] = set(doc.global_keywords)
+    doc_keywords: set[str] = set(doc.global_keywords) | set(doc.proxy_keywords)
     for keywords in doc.matrix_keywords.values():
         doc_keywords.update(keywords)
     for keywords in doc.section_keywords.values():

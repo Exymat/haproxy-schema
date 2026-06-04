@@ -100,8 +100,11 @@ def merge_schema(
             if sig not in kw.signatures:
                 kw.signatures.append(sig)
         kdoc = doc.keyword_docs.get(keyword)
-        if kdoc and kdoc.arguments:
-            kw.arguments = list(kdoc.arguments)
+        if kdoc:
+            if kdoc.arguments:
+                kw.arguments = list(kdoc.arguments)
+            for section in kdoc.sections:
+                _add_keyword_to_section(schema, section, keyword)
         _mark_source(schema, keyword, "doc")
 
     for section, keywords in doc.section_keywords.items():

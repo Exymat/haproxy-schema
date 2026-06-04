@@ -18,6 +18,9 @@ def test_balance_argument_values_extracted() -> None:
     assert "roundrobin" in names
     assert "static-rr" in names
     assert "url_param" in names
+    assert "random" in names
+    assert "hdr(<name>)" in names
+    assert "rdp-cookie" in names
     roundrobin = next(v for v in algorithm.values if v.name == "roundrobin")
     assert "turns" in roundrobin.description.lower()
 

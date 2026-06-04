@@ -16,6 +16,9 @@ from .dconv_bridge import (
 _VALUE_LINE_RE = re.compile(
     r"^ {6}(\S+(?:\([^)]*\))?)\s{2,}(.*)$"
 )
+# Some balance algorithms (random, rdp-cookie, …) use a name-only line or a single space before the description.
+_VALUE_NAME_ONLY_RE = re.compile(r"^ {6}(\S+(?:\([^)]*\))?)\s*$")
+_VALUE_SINGLE_DESC_RE = re.compile(r"^ {6}(\S+(?:\([^)]*\))?)\s(\S.*)$")
 _PARAM_LINE_RE = re.compile(r"^ {4}<([^>]+)>\s")
 _LITERAL_VALUE_LINE_RE = re.compile(r"^ {4}([a-z][a-z0-9_.-]*)\s{2,}(.*)$", re.I)
 _ARGUMENTS_HEADER_RE = re.compile(r"^ {2}Arguments?\s*:\s*$", re.I)
@@ -109,6 +112,24 @@ def extract_argument_docs(lines: list[str], header_idx: int) -> list[ArgumentPar
             collecting_values = True
             idx += 1
             continue
+
+        if collecting_values:
+            name_only_match = _VALUE_NAME_ONLY_RE.match(line)
+            if name_only_match:
+                if current is None:
+                    current = ArgumentParamDoc(parameter="")
+                _append_value(current.values, name_only_match.group(1), "")
+                idx += 1
+                continue
+
+            single_desc_match = _VALUE_SINGLE_DESC_RE.match(line)
+            if single_desc_match:
+                name, desc = single_desc_match.group(1), single_desc_match.group(2).strip()
+                if current is None:
+                    current = ArgumentParamDoc(parameter="")
+                _append_value(current.values, name, desc)
+                idx += 1
+                continue
 
         param_match = _PARAM_LINE_RE.match(line)
         if param_match:

@@ -5,7 +5,13 @@ from pathlib import Path
 import re
 
 from .acl_doc_parser import AclReferenceDoc, parse_acl_reference
-from .dconv_bridge import KeywordDoc, merge_argument_docs, walk_keyword_docs
+from .action_parser import (
+    ActionDoc,
+    action_matrix_from_reference,
+    merge_action_matrices,
+    parse_actions_lines,
+)
+from .dconv_bridge import KeywordDoc, is_valid_keyword_name, merge_argument_docs, walk_keyword_docs
 
 SECTIONS_MATRIX = ["defaults", "frontend", "listen", "backend"]
 
@@ -64,6 +70,7 @@ _SECTION_DECLARATION_KEYWORDS = frozenset(
 @dataclass
 class DocParseResult:
     global_keywords: set[str] = field(default_factory=set)
+    proxy_keywords: set[str] = field(default_factory=set)
     matrix_keywords: dict[str, set[str]] = field(
         default_factory=lambda: {name: set() for name in SECTIONS_MATRIX}
     )
@@ -71,6 +78,7 @@ class DocParseResult:
     action_matrix: dict[str, set[str]] = field(
         default_factory=lambda: {name: set() for name in ACTION_MATRIX_GROUP_KEYS}
     )
+    action_reference: dict[str, ActionDoc] = field(default_factory=dict)
     no_prefix_keywords: set[str] = field(default_factory=set)
     signatures: dict[str, list[str]] = field(default_factory=dict)
     keyword_docs: dict[str, KeywordDoc] = field(default_factory=dict)
@@ -94,6 +102,23 @@ def _find_body_section(lines: list[str], section_id: str) -> int:
         if underline and set(underline.strip()) == {"-"}:
             return idx
     return -1
+
+
+def _find_subsection_end(lines: list[str], section_id: str, start_idx: int) -> int:
+    """End index for a doc subsection: next body heading that is not a child of section_id."""
+    header_re = re.compile(r"^(\d+(?:\.\d+)*)\.\s+\S")
+    idx = start_idx + 1
+    while idx < len(lines):
+        stripped = lines[idx].strip()
+        match = header_re.match(stripped)
+        if match:
+            other_id = match.group(1)
+            underline = _next_nonblank(lines, idx + 1)
+            if underline and set(underline.strip()) == {"-"}:
+                if other_id != section_id and not other_id.startswith(f"{section_id}."):
+                    return idx
+        idx += 1
+    return len(lines)
 
 
 def _extract_4_1_matrix(lines: list[str], start_idx: int, end_idx: int) -> tuple[dict[str, set[str]], set[str]]:
@@ -192,9 +217,13 @@ def _merge_keyword_docs(
                 signatures=list(doc.signatures),
                 description=doc.description,
                 chapter=doc.chapter,
+                sections=list(doc.sections),
                 arguments=list(doc.arguments),
             )
             continue
+        for section in doc.sections:
+            if section not in entry.sections:
+                entry.sections.append(section)
         for sig in doc.signatures:
             if sig not in entry.signatures:
                 entry.signatures.append(sig)
@@ -211,6 +240,36 @@ def _sections_for_keyword(matrix: dict[str, set[str]], name: str) -> list[str]:
     return [section for section in SECTIONS_MATRIX if name in matrix.get(section, set())]
 
 
+def _matrix_from_proxy_docs(keyword_docs: dict[str, KeywordDoc]) -> dict[str, set[str]]:
+    """Build section applicability from 4.2 keyword blocks (authoritative for proxy keywords)."""
+    out = {name: set() for name in SECTIONS_MATRIX}
+    for kw_name, doc in keyword_docs.items():
+        if not is_valid_keyword_name(kw_name):
+            continue
+        for section in doc.sections:
+            if section in out:
+                out[section].add(kw_name)
+    return out
+
+
+def _filter_keyword_docs(docs: dict[str, KeywordDoc]) -> dict[str, KeywordDoc]:
+    return {name: doc for name, doc in docs.items() if is_valid_keyword_name(name)}
+
+
+def _is_standalone_directive(name: str) -> bool:
+    """Keywords allowed inside named sections (cache, peers, …), not converter/filter catalogs."""
+    if not is_valid_keyword_name(name):
+        return False
+    lowered = name.lower()
+    if lowered.startswith("filter "):
+        return False
+    if " " in name:
+        first = name.split()[0]
+        if "." in first or first in {"req", "res", "srv", "be"}:
+            return False
+    return True
+
+
 def _parse_standalone_sections(
     lines: list[str],
 ) -> tuple[dict[str, set[str]], dict[str, KeywordDoc]]:
@@ -220,17 +279,17 @@ def _parse_standalone_sections(
     section_keywords: dict[str, set[str]] = {}
     merged_docs: dict[str, KeywordDoc] = {}
 
-    starts: list[tuple[int, str, str]] = []
     for section_id, config_section in STANDALONE_SECTION_SPECS:
-        idx = _find_body_section(lines, section_id)
-        if idx >= 0:
-            starts.append((idx, section_id, config_section))
-    starts.sort(key=lambda item: item[0])
-
-    for i, (start, section_id, config_section) in enumerate(starts):
-        end = starts[i + 1][0] if i + 1 < len(starts) else len(lines)
+        start = _find_body_section(lines, section_id)
+        if start < 0:
+            continue
+        end = _find_subsection_end(lines, section_id, start)
         docs = walk_keyword_docs(lines, start, end, section_id)
-        inner = {name: doc for name, doc in docs.items() if name not in _SECTION_DECLARATION_KEYWORDS}
+        inner = {
+            name: doc
+            for name, doc in docs.items()
+            if name not in _SECTION_DECLARATION_KEYWORDS and _is_standalone_directive(name)
+        }
         if inner:
             bucket = section_keywords.setdefault(config_section, set())
             bucket.update(inner.keys())
@@ -246,6 +305,11 @@ def _parse_standalone_sections(
         if crt_list_end < 0:
             crt_list_end = len(lines)
         load_docs = walk_keyword_docs(lines, crt_list_start, crt_list_end, "12.7.1")
+        load_docs = {
+            name: doc
+            for name, doc in load_docs.items()
+            if name not in _SECTION_DECLARATION_KEYWORDS and _is_standalone_directive(name)
+        }
         if load_docs:
             bucket = section_keywords.setdefault("crt-list", set())
             bucket.update(load_docs.keys())
@@ -262,6 +326,7 @@ def _sections_for_doc(
     global_keywords: set[str],
     matrix: dict[str, set[str]],
     section_keywords: dict[str, set[str]] | None = None,
+    doc_sections: list[str] | None = None,
 ) -> list[str]:
     sections: list[str] = []
     if name in global_keywords:
@@ -273,6 +338,9 @@ def _sections_for_doc(
         for section, keywords in section_keywords.items():
             if name in keywords and section not in sections:
                 sections.append(section)
+    for section in doc_sections or []:
+        if section not in sections:
+            sections.append(section)
     return sections
 
 
@@ -296,56 +364,93 @@ def parse_configuration(path: Path) -> DocParseResult:
 
     result = DocParseResult()
 
-    result.matrix_keywords, result.no_prefix_keywords = _extract_4_1_matrix(lines, section_41, section_42)
-    if section_43 < section_44:
-        result.action_matrix = _extract_4_3_actions_matrix(lines, section_43, section_44)
+    matrix_41, result.no_prefix_keywords = _extract_4_1_matrix(lines, section_41, section_42)
+    matrix_43 = (
+        _extract_4_3_actions_matrix(lines, section_43, section_44)
+        if section_43 < section_44
+        else {name: set() for name in ACTION_MATRIX_GROUP_KEYS}
+    )
 
     # Only 3.1–3.3 directives belong in the HAProxy "global" section (not peers, userlists, etc.).
-    global_docs = walk_keyword_docs(lines, section_31, section_34, "3.1")
-    other_chapter3_docs = walk_keyword_docs(lines, section_34, section_41, "3.4")
-    proxy_docs = walk_keyword_docs(lines, section_42, section_43, "4.2")
+    global_docs = _filter_keyword_docs(walk_keyword_docs(lines, section_31, section_34, "3.1"))
+    other_chapter3_docs = _filter_keyword_docs(walk_keyword_docs(lines, section_34, section_41, "3.4"))
+    proxy_docs = _filter_keyword_docs(walk_keyword_docs(lines, section_42, section_43, "4.2"))
+    result.proxy_keywords = set(proxy_docs.keys())
     _merge_keyword_docs(result.keyword_docs, global_docs)
     _merge_keyword_docs(result.keyword_docs, other_chapter3_docs)
     _merge_keyword_docs(result.keyword_docs, proxy_docs, prefer_source_description=True)
 
     result.section_keywords, standalone_docs = _parse_standalone_sections(lines)
+    standalone_docs = _filter_keyword_docs(standalone_docs)
     _merge_keyword_docs(result.keyword_docs, standalone_docs)
 
     result.global_keywords = set(global_docs.keys())
-    known = set(result.global_keywords)
+
+    for name, doc in result.keyword_docs.items():
+        if name in result.proxy_keywords:
+            doc.chapter = "4.2"
+        result.signatures[name] = list(doc.signatures)
+        doc.sections = _sections_for_doc(
+            name,
+            result.global_keywords,
+            matrix_41,
+            result.section_keywords,
+            doc_sections=doc.sections,
+        )
+        if not doc.sections and " " in name and name in result.proxy_keywords:
+            prefix = name.split()[0]
+            sibling_sections: list[str] = []
+            for sibling_name, sibling_doc in result.keyword_docs.items():
+                if sibling_name.startswith(f"{prefix} ") and sibling_doc.sections:
+                    sibling_sections = list(sibling_doc.sections)
+                    break
+            if sibling_sections:
+                doc.sections = _sections_for_doc(
+                    name,
+                    result.global_keywords,
+                    matrix_41,
+                    result.section_keywords,
+                    doc_sections=sibling_sections,
+                )
+
+    # Section 4.2 is authoritative for proxy keyword inventory and section applicability.
+    result.matrix_keywords = _matrix_from_proxy_docs(
+        {name: doc for name, doc in result.keyword_docs.items() if name in result.proxy_keywords}
+    )
+    for section, keywords in matrix_41.items():
+        for keyword in keywords:
+            if keyword in result.proxy_keywords and keyword not in result.matrix_keywords[section]:
+                if any(keyword in result.matrix_keywords[s] for s in SECTIONS_MATRIX):
+                    continue
+                if keyword in result.keyword_docs and result.keyword_docs[keyword].sections:
+                    continue
+                result.matrix_keywords[section].add(keyword)
+
+    if section_44 >= 0:
+        section_5 = _find_body_section(lines, "5")
+        action_end = section_5 if section_5 >= 0 else len(lines)
+        result.action_reference = parse_actions_lines(lines, section_44 + 1, action_end)
+    matrix_44 = action_matrix_from_reference(result.action_reference)
+    result.action_matrix = merge_action_matrices(matrix_43, matrix_44)
+
+    known = set(result.keyword_docs.keys())
     for keywords in result.matrix_keywords.values():
         known.update(keywords)
     for keywords in result.section_keywords.values():
         known.update(keywords)
 
-    for name, doc in result.keyword_docs.items():
-        result.signatures[name] = list(doc.signatures)
-        doc.sections = _sections_for_doc(
-            name, result.global_keywords, result.matrix_keywords, result.section_keywords
-        )
-        if not doc.sections and " " in name:
-            doc.sections = _sections_for_doc(
-                name.split()[0],
-                result.global_keywords,
-                result.matrix_keywords,
-                result.section_keywords,
-            )
-        if _sections_for_keyword(result.matrix_keywords, name) or (
-            " " in name
-            and _sections_for_keyword(result.matrix_keywords, name.split()[0])
-        ):
-            doc.chapter = "4.2"
-
     for name in known:
         if name not in result.keyword_docs:
-            matrix_sections = _sections_for_keyword(result.matrix_keywords, name)
             result.keyword_docs[name] = KeywordDoc(
                 name=name,
                 signatures=[name],
                 sections=_sections_for_doc(
-                    name, result.global_keywords, result.matrix_keywords, result.section_keywords
+                    name,
+                    result.global_keywords,
+                    result.matrix_keywords,
+                    result.section_keywords,
                 ),
-                chapter="4.2" if matrix_sections else "3.1",
+                chapter="4.2" if name in result.proxy_keywords else "3.1",
             )
             result.signatures.setdefault(name, [name])
 

@@ -95,7 +95,7 @@ def _tokenize_line(line: str) -> list[ParsedToken]:
                 quote = None
             i += 1
             continue
-        if ch == "#" and token_start < 0:
+        if token_start < 0 and ch == "#":
             break
         if ch in {"'", '"'}:
             if token_start < 0:

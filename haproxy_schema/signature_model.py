@@ -61,7 +61,10 @@ def _parse_slot(part: str) -> ArgSlot | None:
             return ArgSlot(enum=enum)
         return ArgSlot()
 
-    if part.startswith("<"):
+    if part.startswith("<") and part.endswith(">"):
+        inner = part[1:-1].strip()
+        if inner.endswith("...") or inner.endswith("*"):
+            return ArgSlot(variadic=True)
         return ArgSlot()
 
     if part.startswith("["):
@@ -104,6 +107,10 @@ def parse_signature_model(signature: str, keyword: str) -> ArgumentModel | None:
 
     slots: list[ArgSlot] = []
     for part in parts:
+        if part == "...":
+            if slots:
+                slots[-1].variadic = True
+            continue
         slot = _parse_slot(part)
         if slot is not None:
             slots.append(slot)
@@ -194,6 +201,8 @@ def attach_argument_models(keywords: dict[str, object]) -> None:
         doc_enums: list[str] = []
         arguments = getattr(kw, "arguments", None) or []
         for param in arguments:
+            if param.parameter not in ("", "<algorithm>"):
+                continue
             for value in getattr(param, "values", []) or []:
                 base = value.name.split("(", 1)[0]
                 if base:

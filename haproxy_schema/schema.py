@@ -84,7 +84,16 @@ class HaproxySchema:
         default_factory=lambda: {
             "modifiers": ["no", "default"],
             "conditionals": ["if", "unless"],
-            "macros": [".if", ".elif", ".else", ".endif"],
+            "macros": [
+                ".if",
+                ".elif",
+                ".else",
+                ".endif",
+                ".diag",
+                ".notice",
+                ".warning",
+                ".alert",
+            ],
             "no_prefix_keywords": [],
         }
     )

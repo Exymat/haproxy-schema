@@ -51,6 +51,18 @@ bind <addr> [param*]
 
 capture request header <len> <name>
   Description.
+
+maxconn <value>
+  Description.
+
+  May be used in sections :   defaults | frontend | listen | backend
+                                 yes   |    yes   |   yes  |   yes
+
+option mysql-check
+  Description.
+
+  May be used in sections :   defaults | frontend | listen | backend
+                                 -     |    -     |   yes  |   -
 """
     file_path = tmp_path / "configuration.txt"
     file_path.write_text(content, encoding="utf-8")
@@ -61,8 +73,7 @@ capture request header <len> <name>
     assert "global-two" in result.global_keywords
     assert "maxconn" in result.matrix_keywords["defaults"]
     assert "option mysql-check" in result.matrix_keywords["listen"]
-    assert "option redispatch" in result.matrix_keywords["defaults"]
-    assert "option redispatch" in result.no_prefix_keywords
+    assert "option redispatch" not in result.proxy_keywords
     assert "bind" in result.matrix_keywords["frontend"]
     assert "bind" not in result.matrix_keywords["backend"]
     assert "capture request header" in result.matrix_keywords["listen"]
@@ -74,6 +85,59 @@ capture request header <len> <name>
     assert result.keyword_docs["acl"].description == "Description."
     assert result.keyword_docs["global-one"].description == "Description."
     assert "peers-only-keyword" not in result.global_keywords
+
+
+def test_parse_configuration_uses_doc_block_sections_when_missing_from_matrix(tmp_path: Path) -> None:
+    content = """Summary
+3.1.      Process management and security
+4.1.      Proxy keywords matrix
+
+3.1. Process management and security
+------------------------------------
+
+global-one
+
+3.4. Userlists
+--------------
+
+3.4 placeholder
+
+4.1. Proxy keywords matrix
+--------------------------
+
+ keyword                              defaults   frontend   listen    backend
+------------------------------------+----------+----------+---------+---------
+stats uri                                 X          X         X         X
+------------------------------------+----------+----------+---------+---------
+
+4.2. Alphabetically sorted keywords reference
+---------------------------------------------
+
+stats show-modules
+  Enable display of extra statistics module on the statistics page
+
+  May be used in the following contexts: http
+
+  May be used in sections :   defaults | frontend | listen | backend
+                                 yes   |    yes   |   yes  |   yes
+
+  Arguments : none
+
+  New columns are added at the end of the line.
+"""
+    file_path = tmp_path / "configuration.txt"
+    file_path.write_text(content, encoding="utf-8")
+
+    result = parse_configuration(file_path)
+
+    assert result.keyword_docs["stats show-modules"].sections == [
+        "defaults",
+        "frontend",
+        "listen",
+        "backend",
+    ]
+    assert "stats show-modules" in result.proxy_keywords
+    assert "stats show-modules" in result.matrix_keywords["frontend"]
 
 
 def test_parse_configuration_extracts_cache_section_keywords(tmp_path: Path) -> None:
@@ -142,6 +206,8 @@ maxconn <value>
     assert "process-vary" in result.section_keywords["cache"]
     assert "cache" not in result.section_keywords["cache"]
     assert result.keyword_docs["total-max-size"].sections == ["cache"]
+    assert "add" not in result.section_keywords.get("cache", set())
+    assert "xor" not in result.section_keywords.get("cache", set())
 
 
 def test_parse_configuration_extracts_4_3_actions_matrix(tmp_path: Path) -> None:

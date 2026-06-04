@@ -14,8 +14,8 @@ deny [ { status | deny_status } <code> ]
   This stops the evaluation of the rules and immediately rejects.
 
 accept
-  Usable in:  TCP RqCon| RqSes| RqCnt| RsCnt |   HTTP Req| Res| Aft
-                    X  |   X  |   X  |   X   |         - |  - |  -
+  Usable in:  QUIC Ini|    TCP RqCon| RqSes| RqCnt| RsCnt|    HTTP Req| Res| Aft
+                    X |          X  |   X  |   X  |   X  |         - |  - |  -
 
   This stops the evaluation and lets the request pass.
 """
@@ -26,3 +26,7 @@ accept
     assert "accept" in actions
     assert "immediately rejects" in actions["deny"].description
     assert "lets the request pass" in actions["accept"].description
+    assert "http-request" in actions["deny"].rulesets
+    assert "http-response" in actions["deny"].rulesets
+    assert "quic-initial" in actions["accept"].rulesets
+    assert "tcp-request connection" in actions["accept"].rulesets

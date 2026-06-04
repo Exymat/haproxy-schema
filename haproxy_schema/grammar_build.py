@@ -23,6 +23,7 @@ _STRING = "string.unquoted.haproxy"
 _NUMBER = "constant.numeric.haproxy"
 _STORAGE = "storage.type"
 _COMMENT = "comment.line.number-sign.haproxy"
+_PREPROCESSOR = "keyword.control.preprocessor.haproxy"
 
 _TCP_PHASES = ("connection", "session", "content", "inspect-delay")
 
@@ -584,6 +585,14 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
 
     return {
         "comments": {"patterns": [{"name": _COMMENT, "match": "#.*$"}]},
+        "preprocessor-directives": {
+            "patterns": [
+                {
+                    "name": _PREPROCESSOR,
+                    "match": r"^\s*\.(?:if|elif|else|endif|diag|notice|warning|alert)\b",
+                }
+            ]
+        },
         "strings": {
             "patterns": [
                 {
@@ -699,6 +708,7 @@ def build_tm_language(schema: HaproxySchema) -> dict[str, Any]:
         "scopeName": "source.haproxy",
         "patterns": [
             {"include": "#comments"},
+            {"include": "#preprocessor-directives"},
             {"include": "#strings"},
             {"include": "#sections"},
             {"include": "#directives-with-values"},

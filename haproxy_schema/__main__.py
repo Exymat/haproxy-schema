@@ -58,7 +58,7 @@ def _build_cmd(args: argparse.Namespace) -> int:
     schema.write(Path(args.out))
 
     if args.language_data_out:
-        actions = parse_actions(doc_path)
+        actions = doc.action_reference or parse_actions(doc_path)
         language = build_language_data(args.version, doc, dkall, actions)
         language.write(Path(args.language_data_out))
 

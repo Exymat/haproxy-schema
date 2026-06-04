@@ -66,6 +66,23 @@ def get_indent(line: str) -> int:
     return indent
 
 
+_KEYWORD_NAME_RE = re.compile(r"^[a-z][a-z0-9_. +\-]*$", re.I)
+
+
+def is_valid_keyword_name(name: str) -> bool:
+    """Reject section underlines and other false positives from walk_keyword_docs."""
+    cleaned = name.strip()
+    if not cleaned or len(cleaned) > 120:
+        return False
+    if set(cleaned) <= {"-", "=", "_"}:
+        return False
+    if not _KEYWORD_NAME_RE.match(cleaned):
+        return False
+    if cleaned.lower().startswith(("this ", "the ", "see ", "note ", "using ")):
+        return False
+    return True
+
+
 def match_dconv_keyword_line(line: str) -> tuple[str, str] | None:
     """Return (keyword_name, full_signature_line) if line is a dconv keyword header."""
     if not line or line.startswith(" "):
@@ -92,6 +109,13 @@ def match_dconv_keyword_line(line: str) -> tuple[str, str] | None:
     return keyword, line.strip()
 
 
+def _strip_paren_suffix(token: str) -> str:
+    paren = token.find("(")
+    if paren >= 0:
+        return token[:paren]
+    return token
+
+
 def extract_keyword_name(signature: str) -> str:
     sig = re.sub(r"\s+\(deprecated\)$", "", signature.strip())
     tokens: list[str] = []
@@ -100,13 +124,39 @@ def extract_keyword_name(signature: str) -> str:
             break
         if part.endswith("*"):
             break
-        tokens.append(part)
-    return " ".join(tokens) if tokens else sig.split()[0]
+        tokens.append(_strip_paren_suffix(part))
+    return " ".join(tokens) if tokens else _strip_paren_suffix(sig.split()[0])
+
+
+_SECTIONS_MATRIX = ("defaults", "frontend", "listen", "backend")
+_SECTIONS_HEADER_RE = re.compile(r"^\s*May be used in sections\s*:\s*(.+)$", re.I)
 
 
 def is_skippable_metadata_line(line: str) -> bool:
     stripped = line.strip()
     return stripped.startswith("Usable in:") or stripped.startswith("May be used in sections")
+
+
+def extract_sections_from_keyword_block(lines: list[str], header_idx: int, end_idx: int) -> list[str]:
+    """Parse the 'May be used in sections' matrix inside a keyword doc block."""
+    idx = header_idx + 1
+    while idx < end_idx:
+        match = _SECTIONS_HEADER_RE.match(lines[idx])
+        if match:
+            header_parts = [part.strip().lower() for part in match.group(1).split("|")]
+            marks_idx = idx + 1
+            while marks_idx < end_idx and not lines[marks_idx].strip():
+                marks_idx += 1
+            if marks_idx >= end_idx:
+                break
+            marks = [part.strip().lower() for part in lines[marks_idx].split("|")]
+            sections: list[str] = []
+            for section, mark in zip(header_parts, marks):
+                if section in _SECTIONS_MATRIX and mark.startswith("yes"):
+                    sections.append(section)
+            return sections
+        idx += 1
+    return []
 
 
 def is_description_stop_line(line: str) -> bool:
@@ -170,13 +220,25 @@ def collect_signature_lines(lines: list[str], start_idx: int) -> tuple[list[str]
     return signatures, idx
 
 
+def _keyword_block_end(lines: list[str], header_idx: int) -> int:
+    signatures, next_idx = collect_signature_lines(lines, header_idx)
+    idx = next_idx
+    while idx < len(lines):
+        if match_dconv_keyword_line(lines[idx]):
+            return idx
+        if lines[idx].strip() and not lines[idx].startswith(" "):
+            return idx
+        idx += 1
+    return len(lines)
+
+
 def walk_keyword_docs(
     lines: list[str],
     start_idx: int,
     end_idx: int,
     chapter: str,
 ) -> dict[str, KeywordDoc]:
-    from .argument_docs import extract_argument_docs, flatten_argument_values
+    from .argument_docs import extract_argument_docs
 
     docs: dict[str, KeywordDoc] = {}
     idx = start_idx
@@ -187,21 +249,36 @@ def walk_keyword_docs(
             continue
 
         signatures, next_idx = collect_signature_lines(lines, idx)
-        name = extract_keyword_name(signatures[0])
+        names = list(
+            dict.fromkeys(
+                extract_keyword_name(sig)
+                for sig in signatures
+                if is_valid_keyword_name(extract_keyword_name(sig))
+            )
+        )
+        if not names:
+            idx = max(next_idx, idx + 1)
+            continue
+        block_end = min(_keyword_block_end(lines, idx), end_idx)
         description = extract_description_after_header(lines, idx)
         argument_docs = extract_argument_docs(lines, idx)
+        block_sections = extract_sections_from_keyword_block(lines, idx, block_end)
 
-        entry = docs.get(name)
-        if entry is None:
-            entry = KeywordDoc(name=name, chapter=chapter)
-            docs[name] = entry
-        for sig in signatures:
-            if sig not in entry.signatures:
-                entry.signatures.append(sig)
-        if description and not entry.description:
-            entry.description = description
-        if argument_docs:
-            merge_argument_docs(entry, argument_docs)
+        for name in names:
+            entry = docs.get(name)
+            if entry is None:
+                entry = KeywordDoc(name=name, chapter=chapter)
+                docs[name] = entry
+            for sig in signatures:
+                if extract_keyword_name(sig) == name and sig not in entry.signatures:
+                    entry.signatures.append(sig)
+            if description and not entry.description:
+                entry.description = description
+            if argument_docs:
+                merge_argument_docs(entry, argument_docs)
+            for section in block_sections:
+                if section not in entry.sections:
+                    entry.sections.append(section)
 
         idx = max(next_idx, idx + 1)
     return docs
