@@ -47,6 +47,12 @@ BASE_STATEMENT_RULES: list[StatementRule] = [
         fixed_slots=[FixedSlotSpec(role="address", port="required", address_policy="bind")],
     ),
     StatementRule(
+        keyword="default-server",
+        kind="server",
+        group="server_options",
+        nested_start_index=1,
+    ),
+    StatementRule(
         keyword="server",
         kind="server",
         group="server_options",

@@ -31,9 +31,12 @@ mode { tcp|http|log }
 
 balance <algorithm> [ <arguments> ]
   Define load balancing.
+
+  May be used in the following contexts: tcp, http, log
 """
     lines = content.splitlines()
     docs = walk_keyword_docs(lines, 2, len(lines), "4.2")
     assert "mode" in docs
     assert docs["mode"].description == "Define the operating mode."
     assert "balance" in docs
+    assert docs["balance"].contexts == ["tcp", "http", "log"]

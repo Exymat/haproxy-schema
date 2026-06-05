@@ -138,10 +138,37 @@ def build_language_data(
     action_sigs = {name: a.signature for name, a in actions.items()}
     action_groups = build_action_groups(doc, dkall)
 
+    option_desc = {
+        name: doc.description for name, doc in doc.bind_option_docs.items() if doc.description
+    }
+    option_sigs = {
+        name: doc.signatures[0]
+        for name, doc in doc.bind_option_docs.items()
+        if doc.signatures
+    }
+    server_desc = {
+        name: doc.description for name, doc in doc.server_option_docs.items() if doc.description
+    }
+    server_sigs = {
+        name: doc.signatures[0]
+        for name, doc in doc.server_option_docs.items()
+        if doc.signatures
+    }
+
     data.groups = {
         "options": group_items(sorted(set(dkall.options) | _collect_doc_options(doc)), {}, {}),
-        "bind_options": group_items(sorted(dkall.bind_options), {}, {}),
-        "server_options": group_items(sorted(dkall.server_options), {}, {}),
+        "bind_options": group_items(
+            sorted(dkall.bind_options),
+            option_desc,
+            option_sigs,
+            docs_chapter="5.1",
+        ),
+        "server_options": group_items(
+            sorted(dkall.server_options),
+            server_desc,
+            server_sigs,
+            docs_chapter="5.2",
+        ),
         "http_request_actions": group_items(
             action_groups["http_request_actions"], action_desc, action_sigs, docs_chapter="4.4"
         ),

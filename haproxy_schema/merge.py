@@ -105,6 +105,8 @@ def merge_schema(
         if kdoc:
             if kdoc.arguments:
                 kw.arguments = list(kdoc.arguments)
+            if kdoc.contexts:
+                kw.contexts = list(kdoc.contexts)
             for section in kdoc.sections:
                 _add_keyword_to_section(schema, section, keyword)
         _mark_source(schema, keyword, "doc")
@@ -143,11 +145,25 @@ def merge_schema(
         "services": sorted(dkall.services),
         **action_groups,
     }
+    schema.keyword_group_contexts = {
+        "options": {
+            name[len("option ") :]: list(kdoc.contexts)
+            for name, kdoc in doc.keyword_docs.items()
+            if name.startswith("option ") and kdoc.contexts
+        },
+        "bind_options": {
+            name: list(kdoc.contexts) for name, kdoc in doc.bind_option_docs.items() if kdoc.contexts
+        },
+        "server_options": {
+            name: list(kdoc.contexts) for name, kdoc in doc.server_option_docs.items() if kdoc.contexts
+        },
+    }
 
     for section in schema.sections.values():
         section.keywords.sort()
     for keyword in schema.keywords.values():
         keyword.sections.sort()
+        keyword.contexts.sort()
         keyword.signatures.sort()
         keyword.sources.sort()
 

@@ -30,6 +30,7 @@ class ArgumentParamDoc:
 class Keyword:
     name: str
     sections: list[str] = field(default_factory=list)
+    contexts: list[str] = field(default_factory=list)
     signatures: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
     argument_model: ArgumentModel | None = None
@@ -83,6 +84,7 @@ class HaproxySchema:
     sections: dict[str, Section] = field(default_factory=dict)
     keywords: dict[str, Keyword] = field(default_factory=dict)
     keyword_groups: dict[str, list[str]] = field(default_factory=dict)
+    keyword_group_contexts: dict[str, dict[str, list[str]]] = field(default_factory=dict)
     statement_rules: list[StatementRule] = field(default_factory=list)
     sample_fetches: dict[str, SampleFunction] = field(default_factory=dict)
     sample_converters: dict[str, SampleFunction] = field(default_factory=dict)
@@ -143,6 +145,7 @@ class HaproxySchema:
             keywords[name] = Keyword(
                 name=kw.get("name", name),
                 sections=kw.get("sections", []),
+                contexts=kw.get("contexts", []),
                 signatures=kw.get("signatures", []),
                 sources=kw.get("sources", []),
                 argument_model=argument_model,
@@ -196,6 +199,7 @@ class HaproxySchema:
             sections=sections,
             keywords=keywords,
             keyword_groups=data.get("keyword_groups", {}),
+            keyword_group_contexts=data.get("keyword_group_contexts", {}),
             statement_rules=statement_rules,
             sample_fetches=_load_sample_funcs(data.get("sample_fetches", {})),
             sample_converters=_load_sample_funcs(data.get("sample_converters", {})),

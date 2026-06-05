@@ -56,6 +56,7 @@ class KeywordDoc:
     description: str = ""
     chapter: str = ""
     sections: list[str] = field(default_factory=list)
+    contexts: list[str] = field(default_factory=list)
     arguments: list[ArgumentParamDoc] = field(default_factory=list)
 
 
@@ -130,6 +131,11 @@ def extract_keyword_name(signature: str) -> str:
 
 _SECTIONS_MATRIX = ("defaults", "frontend", "listen", "backend")
 _SECTIONS_HEADER_RE = re.compile(r"^\s*May be used in sections\s*:\s*(.+)$", re.I)
+_CONTEXTS_HEADER_RE = re.compile(r"^\s*May be used in the following contexts\s*:\s*(.+)$", re.I)
+
+
+def parse_contexts_blob(raw: str) -> list[str]:
+    return [part.strip().lower() for part in raw.split(",") if part.strip()]
 
 
 def is_skippable_metadata_line(line: str) -> bool:
@@ -155,6 +161,16 @@ def extract_sections_from_keyword_block(lines: list[str], header_idx: int, end_i
                 if section in _SECTIONS_MATRIX and mark.startswith("yes"):
                     sections.append(section)
             return sections
+        idx += 1
+    return []
+
+
+def extract_contexts_from_keyword_block(lines: list[str], header_idx: int, end_idx: int) -> list[str]:
+    idx = header_idx + 1
+    while idx < end_idx:
+        match = _CONTEXTS_HEADER_RE.match(lines[idx])
+        if match:
+            return parse_contexts_blob(match.group(1))
         idx += 1
     return []
 
@@ -263,6 +279,7 @@ def walk_keyword_docs(
         description = extract_description_after_header(lines, idx)
         argument_docs = extract_argument_docs(lines, idx)
         block_sections = extract_sections_from_keyword_block(lines, idx, block_end)
+        block_contexts = extract_contexts_from_keyword_block(lines, idx, block_end)
 
         for name in names:
             entry = docs.get(name)
@@ -279,6 +296,9 @@ def walk_keyword_docs(
             for section in block_sections:
                 if section not in entry.sections:
                     entry.sections.append(section)
+            for context in block_contexts:
+                if context not in entry.contexts:
+                    entry.contexts.append(context)
 
         idx = max(next_idx, idx + 1)
     return docs

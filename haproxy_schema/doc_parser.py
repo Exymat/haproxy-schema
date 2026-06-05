@@ -15,6 +15,7 @@ from .dconv_bridge import KeywordDoc, is_valid_keyword_name, merge_argument_docs
 
 from .doc_layout import DocLayout, detect_doc_layout
 from .legacy_action_parser import is_legacy_action_doc_keyword, parse_legacy_proxy_actions
+from .line_option_docs import walk_line_option_docs
 
 SECTIONS_MATRIX = ["defaults", "frontend", "listen", "backend"]
 
@@ -104,6 +105,8 @@ class DocParseResult:
     named_defaults_keywords: set[str] = field(default_factory=set)
     signatures: dict[str, list[str]] = field(default_factory=dict)
     keyword_docs: dict[str, KeywordDoc] = field(default_factory=dict)
+    bind_option_docs: dict[str, KeywordDoc] = field(default_factory=dict)
+    server_option_docs: dict[str, KeywordDoc] = field(default_factory=dict)
     acl_reference: AclReferenceDoc = field(default_factory=AclReferenceDoc)
 
 
@@ -245,6 +248,7 @@ def _merge_keyword_docs(
                 description=doc.description,
                 chapter=doc.chapter,
                 sections=list(doc.sections),
+                contexts=list(doc.contexts),
                 arguments=list(doc.arguments),
             )
             continue
@@ -254,6 +258,9 @@ def _merge_keyword_docs(
         for sig in doc.signatures:
             if sig not in entry.signatures:
                 entry.signatures.append(sig)
+        for context in doc.contexts:
+            if context not in entry.contexts:
+                entry.contexts.append(context)
         if doc.description:
             if prefer_source_description or not entry.description:
                 entry.description = doc.description
@@ -511,6 +518,18 @@ def parse_configuration(path: Path) -> DocParseResult:
                 chapter="4.2" if name in result.proxy_keywords else "3.1",
             )
             result.signatures.setdefault(name, [name])
+
+    section_51 = _find_body_section(lines, "5.1")
+    section_52 = _find_body_section(lines, "5.2")
+    if section_51 >= 0:
+        bind_end = section_52 if section_52 >= 0 else (section_5 if section_5 >= 0 else len(lines))
+        result.bind_option_docs = walk_line_option_docs(lines, section_51, bind_end, "5.1")
+    if section_52 >= 0:
+        server_end = section_5 if section_5 >= 0 else len(lines)
+        section_53 = _find_body_section(lines, "5.3")
+        if section_53 >= 0:
+            server_end = section_53
+        result.server_option_docs = walk_line_option_docs(lines, section_52, server_end, "5.2")
 
     result.acl_reference = parse_acl_reference(path)
 

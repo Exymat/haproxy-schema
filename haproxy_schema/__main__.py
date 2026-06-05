@@ -11,8 +11,25 @@ from .doc_parser import parse_configuration
 from .grammar_coverage import report_from_paths
 from .grammar_emitter import write_tm_language
 from .language_data import build_language_data
+from .doc_audit import build_doc_audit_report
 from .merge import merge_schema
 from .schema import HaproxySchema
+
+
+def _audit_docs_cmd(args: argparse.Namespace) -> int:
+    report = build_doc_audit_report(args.version, Path(args.doc), Path(args.dkall))
+    if args.out:
+        Path(args.out).write_text(json.dumps(report.to_dict(), indent=2) + "\n", encoding="utf-8")
+    print(f"Proxy options missing hover docs: {len(report.proxy_options_missing)}")
+    if report.proxy_options_missing:
+        print("  " + ", ".join(report.proxy_options_missing))
+    print(f"Bind options missing hover docs: {len(report.bind_options_missing)}")
+    if report.bind_options_missing:
+        print("  " + ", ".join(report.bind_options_missing))
+    print(f"Server options missing hover docs: {len(report.server_options_missing)}")
+    if report.server_options_missing:
+        print("  " + ", ".join(report.server_options_missing))
+    return 0
 
 
 def _check_grammar_cmd(args: argparse.Namespace) -> int:
@@ -138,6 +155,13 @@ def make_parser() -> argparse.ArgumentParser:
     )
     check.add_argument("--report-out", default="", help="Write JSON report path")
     check.set_defaults(func=_check_grammar_cmd)
+
+    audit = sub.add_parser("audit-docs", help="List proxy/bind/server options missing hover documentation")
+    audit.add_argument("--doc", required=True, help="Path to configuration.txt")
+    audit.add_argument("--dkall", required=True, help="Path to dkall.output")
+    audit.add_argument("--version", default="3.4", help="HAProxy version string")
+    audit.add_argument("--out", default="", help="Optional JSON report path")
+    audit.set_defaults(func=_audit_docs_cmd)
     return parser
 
 
