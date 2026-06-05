@@ -95,6 +95,7 @@ class HaproxySchema:
                 ".alert",
             ],
             "no_prefix_keywords": [],
+            "named_defaults_keywords": [],
         }
     )
 

@@ -181,6 +181,7 @@ def merge_schema(
     apply_hapee_extensions(schema)
 
     schema.tokens["no_prefix_keywords"] = sorted(doc.no_prefix_keywords)
+    schema.tokens["named_defaults_keywords"] = sorted(doc.named_defaults_keywords)
 
     acl = doc.acl_reference
     schema.tokens["acl_flags"] = sorted(acl.flags.keys())

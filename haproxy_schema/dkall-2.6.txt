@@ -1,0 +1,1086 @@
+# HAProxy keyword dump for schema tooling (dkall)
+# Generated: 2026-06-05T12:34:10Z
+# Binary: HAProxy version 2.6.29-a2e153-12 2026/05/21 - https://haproxy.org/
+# Command: /mnt/c/Users/albin/Documents/projects/haproxy/haproxy_git/haproxy-2.6/haproxy -dKall -q -c -f /dev/null
+# Target schema version label: 2.6
+# List of registered ACL keywords:
+base = base -m str
+base_beg = base -m beg
+base_dir = base -m dir
+base_dom = base -m dom
+base_end = base -m end
+base_len = base -m len
+base_reg = base -m reg
+base_sub = base -m sub
+cook = req.cook -m str
+cook_beg = req.cook -m beg
+cook_dir = req.cook -m dir
+cook_dom = req.cook -m dom
+cook_end = req.cook -m end
+cook_len = req.cook -m len
+cook_reg = req.cook -m reg
+cook_sub = req.cook -m sub
+hdr = req.hdr -m str
+hdr_beg = req.hdr -m beg
+hdr_dir = req.hdr -m dir
+hdr_dom = req.hdr -m dom
+hdr_end = req.hdr -m end
+hdr_len = req.hdr -m len
+hdr_reg = req.hdr -m reg
+hdr_sub = req.hdr -m sub
+http_auth_group = http_auth_group -m str
+method = method -m str
+path = path -m str
+path_beg = path -m beg
+path_dir = path -m dir
+path_dom = path -m dom
+path_end = path -m end
+path_len = path -m len
+path_reg = path -m reg
+path_sub = path -m sub
+payload = req.payload -m bin
+payload_lv = req.payload_lv -m bin
+req.ssl_ver = req.ssl_ver -m int
+req_rdp_cookie = req.rdp_cookie -m str
+req_rdp_cookie_cnt = req.rdp_cookie_cnt -m int
+req_ssl_sni = req.ssl_sni -m str
+req_ssl_ver = req.ssl_ver -m int
+req_ver = req.ver -m str
+resp_ver = res.ver -m str
+scook = res.cook -m str
+scook_beg = res.cook -m beg
+scook_dir = res.cook -m dir
+scook_dom = res.cook -m dom
+scook_end = res.cook -m end
+scook_len = res.cook -m len
+scook_reg = res.cook -m reg
+scook_sub = res.cook -m sub
+shdr = res.hdr -m str
+shdr_beg = res.hdr -m beg
+shdr_dir = res.hdr -m dir
+shdr_dom = res.hdr -m dom
+shdr_end = res.hdr -m end
+shdr_len = res.hdr -m len
+shdr_reg = res.hdr -m reg
+shdr_sub = res.hdr -m sub
+url = url -m str
+url_beg = url -m beg
+url_dir = url -m dir
+url_dom = url -m dom
+url_end = url -m end
+url_len = url -m len
+url_reg = url -m reg
+url_sub = url -m sub
+urlp = urlp -m str
+urlp_beg = urlp -m beg
+urlp_dir = urlp -m dir
+urlp_dom = urlp -m dom
+urlp_end = urlp -m end
+urlp_len = urlp -m len
+urlp_reg = urlp -m reg
+urlp_sub = urlp -m sub
+# List of registered configuration keywords:
+global
+	close-spread-time
+	default-path
+	grace
+	h1-accept-payload-with-any-method
+	h1-case-adjust
+	h1-case-adjust-file
+	hard-stop-after
+	harden.reject-privileged-ports.quic
+	harden.reject-privileged-ports.tcp
+	httpclient.resolvers.id
+	httpclient.resolvers.prefer
+	mworker-max-reloads
+	nbthread
+	no-memory-trimming
+	pp2-never-send-local
+	profiling.tasks
+	set-var
+	set-var-fmt
+	stats
+	thread-group
+	thread-groups
+	tune.fail-alloc
+	tune.fd.edge-triggered
+	tune.h2.header-table-size
+	tune.h2.initial-window-size
+	tune.h2.max-concurrent-streams
+	tune.h2.max-frame-size
+	tune.idle-pool.shared
+	tune.listener.multi-queue
+	tune.peers.max-updates-at-once
+	tune.pool-high-fd-ratio
+	tune.pool-low-fd-ratio
+	tune.sched.low-latency
+	tune.vars.check-max-size
+	tune.vars.global-max-size
+	tune.vars.proc-max-size
+	tune.vars.reqres-max-size
+	tune.vars.sess-max-size
+	tune.vars.txn-max-size
+listen
+	clitcpka-cnt
+	clitcpka-idle
+	clitcpka-intvl
+	clitimeout
+	compression
+	contimeout
+	declare
+	errorfile
+	errorfiles
+	errorloc
+	errorloc302
+	errorloc303
+	external-check
+	filter
+	http-check
+	http-error
+	max-keep-alive-queue
+	rate-limit
+	retry-on
+	srvtcpka-cnt
+	srvtcpka-idle
+	srvtcpka-intvl
+	srvtimeout
+	tcp-check
+	tcp-request
+	tcp-response
+	timeout
+	use-fcgi-app
+	bind <addr> accept-netscaler-cip +1
+	bind <addr> accept-proxy
+	bind <addr> backlog +1
+	bind <addr> defer-accept
+	bind <addr> expose-fd +1
+	bind <addr> gid +1
+	bind <addr> group +1
+	bind <addr> id +1
+	bind <addr> interface +1
+	bind <addr> level +1
+	bind <addr> maxconn +1
+	bind <addr> mode +1
+	bind <addr> mss +1
+	bind <addr> name +1
+	bind <addr> namespace +1
+	bind <addr> nice +1
+	bind <addr> process +1
+	bind <addr> proto +1
+	bind <addr> severity-output +1
+	bind <addr> shards +1
+	bind <addr> tcp-ut +1
+	bind <addr> tfo
+	bind <addr> thread +1
+	bind <addr> transparent
+	bind <addr> uid +1
+	bind <addr> user +1
+	bind <addr> v4v6
+	bind <addr> v6only
+	server <name> <addr> addr +1
+	server <name> <addr> agent-addr +1
+	server <name> <addr> agent-check
+	server <name> <addr> agent-inter +1
+	server <name> <addr> agent-port +1
+	server <name> <addr> agent-send +1
+	server <name> <addr> backup
+	server <name> <addr> check
+	server <name> <addr> check-proto +1
+	server <name> <addr> check-send-proxy
+	server <name> <addr> check-via-socks4
+	server <name> <addr> cookie +1
+	server <name> <addr> disabled
+	server <name> <addr> downinter +1
+	server <name> <addr> enabled
+	server <name> <addr> error-limit +1
+	server <name> <addr> fall +1
+	server <name> <addr> fastinter +1
+	server <name> <addr> id +1
+	server <name> <addr> init-addr +1
+	server <name> <addr> inter +1
+	server <name> <addr> log-proto +1
+	server <name> <addr> max-reuse +1
+	server <name> <addr> maxconn +1
+	server <name> <addr> maxqueue +1
+	server <name> <addr> minconn +1
+	server <name> <addr> namespace +1
+	server <name> <addr> no-agent-check
+	server <name> <addr> no-backup
+	server <name> <addr> no-check
+	server <name> <addr> no-check-send-proxy
+	server <name> <addr> no-send-proxy
+	server <name> <addr> no-send-proxy-v2
+	server <name> <addr> no-tfo
+	server <name> <addr> non-stick
+	server <name> <addr> observe +1
+	server <name> <addr> on-error +1
+	server <name> <addr> on-marked-down +1
+	server <name> <addr> on-marked-up +1
+	server <name> <addr> pool-low-conn +1
+	server <name> <addr> pool-max-conn +1
+	server <name> <addr> pool-purge-delay +1
+	server <name> <addr> port +1
+	server <name> <addr> proto +1
+	server <name> <addr> proxy-v2-options +1
+	server <name> <addr> redir +1
+	server <name> <addr> resolve-net +1
+	server <name> <addr> resolve-opts +1
+	server <name> <addr> resolve-prefer +1
+	server <name> <addr> resolvers +1
+	server <name> <addr> rise +1
+	server <name> <addr> send-proxy
+	server <name> <addr> send-proxy-v2
+	server <name> <addr> slowstart +1
+	server <name> <addr> socks4 +1
+	server <name> <addr> source +-1
+	server <name> <addr> stick
+	server <name> <addr> tcp-ut +1
+	server <name> <addr> tfo
+	server <name> <addr> track +1
+	server <name> <addr> usesrc
+	server <name> <addr> weight +1
+	server <name> <addr> ws +1
+	option abortonclose [ BE ]
+	option accept-invalid-http-request [ FE HTTP ]
+	option accept-invalid-http-response [ BE HTTP ]
+	option allbackups [ BE ]
+	option checkcache [ BE HTTP ]
+	option clitcpka [ FE ]
+	option contstats [ FE ]
+	option disable-h2-upgrade [ FE HTTP ]
+	option dontlog-normal [ FE ]
+	option dontlognull [ FE ]
+	option h1-case-adjust-bogus-client [ FE ]
+	option h1-case-adjust-bogus-server [ BE ]
+	option http-buffer-request [ FE BE HTTP ]
+	option http-ignore-probes [ FE HTTP ]
+	option http-no-delay [ FE BE HTTP ]
+	option http-pretend-keepalive [ BE HTTP ]
+	option http-use-proxy-header [ FE HTTP ]
+	option idle-close-on-response [ FE HTTP ]
+	option independent-streams [ FE BE ]
+	option log-health-checks [ BE ]
+	option log-separate-errors [ FE ]
+	option logasap [ FE ]
+	option nolinger [ FE BE ]
+	option persist [ BE ]
+	option prefer-last-server [ BE HTTP ]
+	option socket-stats [ FE ]
+	option splice-auto [ FE BE ]
+	option splice-request [ FE BE ]
+	option splice-response [ FE BE ]
+	option srvtcpka [ BE ]
+	option tcp-smart-accept [ FE ]
+	option tcp-smart-connect [ BE ]
+	option transparent [ BE ]
+	tcp-request connection sc-inc-gpc*
+	tcp-request connection sc-inc-gpc0*
+	tcp-request connection sc-inc-gpc1*
+	tcp-request connection sc-set-gpt*
+	tcp-request connection sc-set-gpt0*
+	tcp-request connection set-dst
+	tcp-request connection set-dst-port
+	tcp-request connection set-mark
+	tcp-request connection set-src
+	tcp-request connection set-src-port
+	tcp-request connection set-tos
+	tcp-request connection set-var*
+	tcp-request connection set-var-fmt*
+	tcp-request connection silent-drop
+	tcp-request connection unset-var*
+	tcp-request session sc-inc-gpc*
+	tcp-request session sc-inc-gpc0*
+	tcp-request session sc-inc-gpc1*
+	tcp-request session sc-set-gpt*
+	tcp-request session sc-set-gpt0*
+	tcp-request session set-dst
+	tcp-request session set-dst-port
+	tcp-request session set-mark
+	tcp-request session set-src
+	tcp-request session set-src-port
+	tcp-request session set-tos
+	tcp-request session set-var*
+	tcp-request session set-var-fmt*
+	tcp-request session silent-drop
+	tcp-request session unset-var*
+	tcp-request content do-resolve*
+	tcp-request content sc-inc-gpc*
+	tcp-request content sc-inc-gpc0*
+	tcp-request content sc-inc-gpc1*
+	tcp-request content sc-set-gpt*
+	tcp-request content sc-set-gpt0*
+	tcp-request content send-spoe-group
+	tcp-request content set-dst
+	tcp-request content set-dst-port
+	tcp-request content set-log-level
+	tcp-request content set-mark
+	tcp-request content set-nice
+	tcp-request content set-priority-class
+	tcp-request content set-priority-offset
+	tcp-request content set-src
+	tcp-request content set-src-port
+	tcp-request content set-tos
+	tcp-request content set-var*
+	tcp-request content set-var-fmt*
+	tcp-request content silent-drop
+	tcp-request content switch-mode
+	tcp-request content unset-var*
+	tcp-request content use-service
+	tcp-response content sc-inc-gpc*
+	tcp-response content sc-inc-gpc0*
+	tcp-response content sc-inc-gpc1*
+	tcp-response content sc-set-gpt*
+	tcp-response content sc-set-gpt0*
+	tcp-response content send-spoe-group
+	tcp-response content set-log-level
+	tcp-response content set-mark
+	tcp-response content set-nice
+	tcp-response content set-tos
+	tcp-response content set-var*
+	tcp-response content set-var-fmt*
+	tcp-response content silent-drop
+	tcp-response content unset-var*
+	http-request add-acl*
+	http-request add-header
+	http-request allow
+	http-request auth
+	http-request cache-use
+	http-request capture
+	http-request del-acl*
+	http-request del-header
+	http-request del-map*
+	http-request deny
+	http-request disable-l7-retry
+	http-request do-resolve*
+	http-request early-hint
+	http-request normalize-uri
+	http-request redirect
+	http-request reject
+	http-request replace-header
+	http-request replace-path
+	http-request replace-pathq
+	http-request replace-uri
+	http-request replace-value
+	http-request return
+	http-request sc-inc-gpc*
+	http-request sc-inc-gpc0*
+	http-request sc-inc-gpc1*
+	http-request sc-set-gpt*
+	http-request sc-set-gpt0*
+	http-request send-spoe-group
+	http-request set-dst
+	http-request set-dst-port
+	http-request set-header
+	http-request set-log-level
+	http-request set-map*
+	http-request set-mark
+	http-request set-method
+	http-request set-nice
+	http-request set-path
+	http-request set-pathq
+	http-request set-priority-class
+	http-request set-priority-offset
+	http-request set-query
+	http-request set-src
+	http-request set-src-port
+	http-request set-timeout
+	http-request set-tos
+	http-request set-uri
+	http-request set-var*
+	http-request set-var-fmt*
+	http-request silent-drop
+	http-request strict-mode
+	http-request tarpit
+	http-request track-sc*
+	http-request unset-var*
+	http-request use-service
+	http-request wait-for-body
+	http-response add-acl*
+	http-response add-header
+	http-response allow
+	http-response cache-store
+	http-response capture
+	http-response del-acl*
+	http-response del-header
+	http-response del-map*
+	http-response deny
+	http-response redirect
+	http-response replace-header
+	http-response replace-value
+	http-response return
+	http-response sc-inc-gpc*
+	http-response sc-inc-gpc0*
+	http-response sc-inc-gpc1*
+	http-response sc-set-gpt*
+	http-response sc-set-gpt0*
+	http-response send-spoe-group
+	http-response set-header
+	http-response set-log-level
+	http-response set-map*
+	http-response set-mark
+	http-response set-nice
+	http-response set-status
+	http-response set-tos
+	http-response set-var*
+	http-response set-var-fmt*
+	http-response silent-drop
+	http-response strict-mode
+	http-response track-sc*
+	http-response unset-var*
+	http-response wait-for-body
+	http-after-response add-header
+	http-after-response allow
+	http-after-response capture
+	http-after-response del-acl*
+	http-after-response del-header
+	http-after-response del-map*
+	http-after-response replace-header
+	http-after-response replace-value
+	http-after-response sc-inc-gpc*
+	http-after-response sc-inc-gpc0*
+	http-after-response sc-inc-gpc1*
+	http-after-response sc-set-gpt*
+	http-after-response sc-set-gpt0*
+	http-after-response set-header
+	http-after-response set-log-level
+	http-after-response set-map*
+	http-after-response set-status
+	http-after-response set-var*
+	http-after-response set-var-fmt*
+	http-after-response strict-mode
+	http-after-response unset-var*
+userlist
+peers
+crt-list
+# List of registered CLI keywords:
+@!<pid> [MASTER] 
+@<relative pid> [MASTER] 
+@master [MASTER] 
+_getsocks [WORKER] 
+add acl [WORKER] 
+add map [WORKER] 
+add server [WORKER] 
+clear acl [WORKER] 
+clear counters [WORKER] 
+clear map [WORKER] 
+clear table [WORKER] 
+commit acl [WORKER] 
+commit map [WORKER] 
+debug dev bug [WORKER] [EXPERT] 
+debug dev check [WORKER] [EXPERT] 
+debug dev close [WORKER] [EXPERT] 
+debug dev delay [WORKER] [EXPERT] 
+debug dev exit [WORKER] [EXPERT] 
+debug dev fd [WORKER] [EXPERT] 
+debug dev hex [WORKER] [EXPERT] 
+debug dev log [WORKER] [EXPERT] 
+debug dev loop [WORKER] [EXPERT] 
+debug dev panic [WORKER] [EXPERT] 
+debug dev sched [WORKER] [EXPERT] 
+debug dev stream [WORKER] [EXPERT] 
+debug dev sym [WORKER] [EXPERT] 
+debug dev tkill [WORKER] [EXPERT] 
+debug dev warn [WORKER] [EXPERT] 
+debug dev write [WORKER] [EXPERT] 
+del acl [WORKER] 
+del map [WORKER] 
+del server [WORKER] 
+disable agent [WORKER] 
+disable dynamic-cookie backend [WORKER] 
+disable frontend [WORKER] 
+disable health [WORKER] 
+disable server [WORKER] 
+enable agent [WORKER] 
+enable dynamic-cookie backend [WORKER] 
+enable frontend [WORKER] 
+enable health [WORKER] 
+enable server [WORKER] 
+experimental-mode [MASTER] [WORKER] 
+expert-mode [MASTER] [WORKER] 
+get acl [WORKER] 
+get map [WORKER] 
+get var [WORKER] 
+get weight [WORKER] 
+help [MASTER] [WORKER] 
+httpclient [WORKER] [EXPERT] 
+mcli-debug-mode [MASTER] 
+operator [MASTER] [WORKER] 
+prepare acl [WORKER] 
+prepare map [WORKER] 
+prompt [MASTER] [WORKER] 
+quit [MASTER] [WORKER] 
+reload [MASTER] 
+set dynamic-cookie-key backend [WORKER] 
+set map [WORKER] 
+set maxconn frontend [WORKER] 
+set maxconn global [WORKER] 
+set maxconn server [WORKER] 
+set profiling [WORKER] 
+set rate-limit [WORKER] 
+set server [WORKER] 
+set severity-output [WORKER] 
+set table [WORKER] 
+set timeout [WORKER] 
+set var [WORKER] [EXPERIM] 
+set weight [WORKER] 
+show acl [WORKER] 
+show activity [WORKER] 
+show backend [WORKER] 
+show cache [WORKER] 
+show cli level [MASTER] [WORKER] 
+show cli sockets [MASTER] [WORKER] 
+show env [WORKER] 
+show errors [WORKER] 
+show events [WORKER] 
+show fd [WORKER] 
+show info [WORKER] 
+show libs [WORKER] 
+show map [WORKER] 
+show peers [WORKER] 
+show pools [WORKER] 
+show proc [MASTER] 
+show profiling [WORKER] 
+show resolvers [WORKER] 
+show schema json [WORKER] 
+show servers conn [WORKER] 
+show servers state [WORKER] 
+show sess [WORKER] 
+show startup-logs [WORKER] 
+show stat [WORKER] 
+show table [WORKER] 
+show tasks [WORKER] 
+show threads [WORKER] 
+show trace [WORKER] 
+show version [MASTER] [WORKER] 
+shutdown frontend [WORKER] 
+shutdown session [WORKER] 
+shutdown sessions server [WORKER] 
+trace [WORKER] 
+user [MASTER] [WORKER] 
+# List of registered sample converter functions:
+add(string): sint => sint
+add_item(string,string[,string]): str => str
+and(string): sint => sint
+b64dec: bin => str
+base64: str => bin
+be2dec(string[,integer,integer]): str => bin
+be2hex(string[,integer,integer]): str => bin
+bool: bool => sint
+bytes(integer[,integer]): bin => bin
+capture-req(integer): str => str
+capture-res(integer): str => str
+concat(string[,string,string]): str => str
+cpl: sint => sint
+crc32([integer]): sint => bin
+crc32c([integer]): sint => bin
+cut_crlf: str => str
+debug([string,string]): any => any
+div(string): sint => sint
+djb2([integer]): sint => bin
+even: bool => sint
+field(integer,string[,integer]): str => str
+fix_is_valid: bool => bin
+fix_tag_value(string): bin => bin
+hex: str => bin
+hex2i: sint => str
+host_only: str => str
+htonl: bin => sint
+http_date([integer,string]): str => sint
+iif(string,string): str => bool
+in_table(table): bool => any
+ipmask(IPv4 mask[,IPv6 mask]): ipv4 => addr
+json(string): str => str
+json_query(string[,string]): any => str
+language(string[,string]): str => str
+length: sint => str
+lower: str => str
+ltime(string[,integer]): str => sint
+ltrim(string): str => str
+map(string[,string]): str => str
+map_beg(string[,string]): str => str
+map_beg_int(string[,integer]): sint => str
+map_beg_ip(string[,string]): addr => str
+map_dir(string[,string]): str => str
+map_dir_int(string[,integer]): sint => str
+map_dir_ip(string[,string]): addr => str
+map_dom(string[,string]): str => str
+map_dom_int(string[,integer]): sint => str
+map_dom_ip(string[,string]): addr => str
+map_end(string[,string]): str => str
+map_end_int(string[,integer]): sint => str
+map_end_ip(string[,string]): addr => str
+map_int(string[,string]): str => sint
+map_int_int(string[,integer]): sint => sint
+map_int_ip(string[,string]): addr => sint
+map_ip(string[,string]): str => addr
+map_ip_int(string[,integer]): sint => addr
+map_ip_ip(string[,string]): addr => addr
+map_reg(string[,string]): str => str
+map_reg_int(string[,integer]): sint => str
+map_reg_ip(string[,string]): addr => str
+map_regm(string[,string]): str => str
+map_str(string[,string]): str => str
+map_str_int(string[,integer]): sint => str
+map_str_ip(string[,string]): addr => str
+map_sub(string[,string]): str => str
+map_sub_int(string[,integer]): sint => str
+map_sub_ip(string[,string]): addr => str
+mod(string): sint => sint
+mqtt_field_value(string,string): str => bin
+mqtt_is_valid: bool => bin
+mul(string): sint => sint
+nbsrv: sint => str
+neg: sint => sint
+not: bool => sint
+odd: bool => sint
+or(string): sint => sint
+port_only: sint => str
+protobuf(Protocol buffers field number[,string]): bin => bin
+regsub(regex,string[,string]): str => str
+rtrim(string): str => str
+sdbm([integer]): sint => bin
+set-var(string[,string,string,string,string]): any => any
+sha1: bin => bin
+srv_queue: sint => str
+strcmp(string): sint => str
+sub(string): sint => sint
+table_bytes_in_rate(table): sint => any
+table_bytes_out_rate(table): sint => any
+table_conn_cnt(table): sint => any
+table_conn_cur(table): sint => any
+table_conn_rate(table): sint => any
+table_expire(table[,integer]): sint => any
+table_gpc(integer,table): sint => any
+table_gpc0(table): sint => any
+table_gpc0_rate(table): sint => any
+table_gpc1(table): sint => any
+table_gpc1_rate(table): sint => any
+table_gpc_rate(integer,table): sint => any
+table_gpt(integer,table): sint => any
+table_gpt0(table): sint => any
+table_http_err_cnt(table): sint => any
+table_http_err_rate(table): sint => any
+table_http_fail_cnt(table): sint => any
+table_http_fail_rate(table): sint => any
+table_http_req_cnt(table): sint => any
+table_http_req_rate(table): sint => any
+table_idle(table[,integer]): sint => any
+table_kbytes_in(table): sint => any
+table_kbytes_out(table): sint => any
+table_server_id(table): sint => any
+table_sess_cnt(table): sint => any
+table_sess_rate(table): sint => any
+table_trackers(table): sint => any
+ub64dec: bin => str
+ub64enc: str => bin
+ungrpc(Protocol buffers field number[,string]): bin => bin
+unset-var(string): any => any
+upper: str => str
+url_dec([integer]): str => str
+url_enc(string): str => str
+utime(string[,integer]): str => sint
+word(integer,string[,integer]): str => str
+wt6([integer]): sint => bin
+xor(string): sint => sint
+xxh3([integer]): sint => bin
+xxh32([integer]): sint => bin
+xxh64([integer]): sint => bin
+# List of registered filter names:
+cache [CACHE]
+compression [COMP]
+fcgi-app [FCGI]
+spoe [SPOE]
+trace [TRACE]
+# List of registered sample fetch functions:
+#                       _.---------------------- frontend tcp-request connection rule
+#                      / _.--------------------- frontend tcp-request session rule
+#                     / / _.-------------------- frontend tcp-request content rule
+#                    / / / _.------------------- frontend http-request header rule
+#                   / / / / _.------------------ frontend http-request body rule
+#                  / / / / / _.----------------- frontend use-backend rule
+#                 / / / / / / _.---------------- backend tcp-request content rule
+#                / / / / / / / _.--------------- backend http-request header rule
+#               / / / / / / / / _.-------------- backend http-request body rule
+#              / / / / / / / / / _.------------- backend use-server, balance or stick-match rule
+#             / / / / / / / / / / _.------------ server source selection
+#            / / / / / / / / / / / _.----------- backend tcp-response content rule
+#           / / / / / / / / / / / / _.---------- backend http-response header rule
+#          / / / / / / / / / / / / / _.--------- backend http-response body rule
+#         / / / / / / / / / / / / / / _.-------- backend stick-store rule
+#        / / / / / / / / / / / / / / / _.------- frontend tcp-response content rule
+#       / / / / / / / / / / / / / / / / _.------ frontend http-response header rule
+#      / / / / / / / / / / / / / / / / / _.----- frontend http-response body rule
+#     / / / / / / / / / / / / / / / / / / _.---- logs
+#    / / / / / / / / / / / / / / / / / / / _.--- backend tcp-check rule
+#   / / / / / / / / / / / / / / / / / / / / _.-- configuration parser
+#  / / / / / / / / / / / / / / / / / / / / / _.- CLI parser
+# / / / / / / / / / / / / / / / / / / / / / /  
+# | | | | | | | | | | | | | | | | | | | | | | 
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] always_false: bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] always_true: bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] avg_queue(backend): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] base: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] base32: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] base32+src: bin
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] baseq: str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] bc_dst: ipv4
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] bc_dst_port: sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] bc_err: sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] bc_err_str: str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] bc_http_major: sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] bc_src: ipv4
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] bc_src_port: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] be_conn(backend): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] be_conn_free(backend): sint
+[ . . . . . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] be_id: sint
+[ . . . . . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] be_name: str
+[ . . . . . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] be_server_timeout: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] be_sess_rate(backend): sint
+[ . . . . . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] be_tunnel_timeout: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] bin(string): bin
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] bool(string): bool
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] capture.req.hdr(integer): str
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] capture.req.method: str
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] capture.req.uri: str
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] capture.req.ver: str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] capture.res.hdr(integer): str
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] capture.res.ver: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] connslots(backend): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] cook([string]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] cook_cnt([string]): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] cook_val([string]): sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] cookie([string]): str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] cpu_calls: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] cpu_ns_avg: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] cpu_ns_tot: sint
+[ . . . . . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] cur_server_timeout: sint
+[ . . . . . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] cur_tunnel_timeout: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] date([integer,string]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] date_us: sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] distcc_body(string[,integer]): bin
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] distcc_param(string[,integer]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] dst: ipv4
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] dst_conn: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] dst_is_local: bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] dst_port: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] env(string): str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_dst: ipv4
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_dst_is_local: bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_dst_port: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_err: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_err_str: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_fackets([string]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_http_major: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_lost([string]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_pp_authority: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_pp_unique_id: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_rcvd_proxy: bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_reordering([string]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_retrans([string]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_rtt([string]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_rttvar([string]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_sacked([string]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_src: ipv4
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_src_is_local: bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_src_port: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] fc_unacked([string]): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] fcgi.docroot: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] fcgi.index: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] fe_client_timeout: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] fe_conn(frontend): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] fe_defbe: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] fe_id: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] fe_name: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] fe_req_rate(frontend): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] fe_sess_rate(frontend): sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] hdr([string,integer]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] hdr_cnt([string]): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] hdr_ip([string,integer]): ipv4
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] hdr_val([string,integer]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] hostname: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] http_auth(user list): bool
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] http_auth_bearer([string]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] http_auth_group(user list): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] http_auth_pass: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] http_auth_type: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] http_auth_user: str
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] http_first_req: bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] int(integer): sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx.data: sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx.free: sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx.free_data: sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx.has_eom: bool
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx.nbblks: sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx.size: sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx.used: sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx_blk.data(string): bin
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx_blk.hdrname(string): str
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx_blk.hdrval(string): str
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx_blk.size(string): sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx_blk.start_line(string): str
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] internal.htx_blk.type(string): str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] internal.strm.is_htx: bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] ipv4(IPv4 address): ipv4
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] ipv6(IPv6 address): ipv6
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] last_rule_file: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] last_rule_line: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] lat_ns_avg: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] lat_ns_tot: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] meth(string): meth
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] method: meth
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] nbproc: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] nbsrv(backend): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] path: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] pathq: str
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] payload(integer,integer): bin
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y . . ] payload_lv(integer,integer[,string]): bin
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] prio_class: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] prio_offset: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] proc: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] query: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] queue(backend): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] rand([integer]): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] rdp_cookie([string]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] rdp_cookie_cnt([string]): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] rep_ssl_hello_type: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.body: bin
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.body_len: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.body_param([string]): bin
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.body_size: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.cook([string]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.cook_cnt([string]): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.cook_val([string]): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.fhdr([string,integer]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.fhdr_cnt([string]): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.hdr([string,integer]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.hdr_cnt([string]): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.hdr_ip([string,integer]): ipv4
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.hdr_names([string]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.hdr_val([string,integer]): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.hdrs: bin
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.hdrs_bin: bin
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.len: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.payload(integer,integer): bin
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.payload_lv(integer,integer[,string]): bin
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] req.proto_http: bool
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.rdp_cookie([string]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.rdp_cookie_cnt([string]): sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.ssl_alpn: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.ssl_ec_ext: bool
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.ssl_hello_type: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.ssl_sni: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.ssl_st_ext: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.ssl_ver: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req.ver: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req_len: sint
+[ . . Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] req_proto_http: bool
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req_ssl_hello_type: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req_ssl_sni: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req_ssl_ver: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] req_ver: str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.body: bin
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.body_len: sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.body_size: sint
+[ . . . . . . . . . . Y Y Y Y Y Y Y Y Y Y . . ] res.cache_hit: bool
+[ . . . . . . . . . . Y Y Y Y Y Y Y Y Y Y . . ] res.cache_name: str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] res.comp: bool
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] res.comp_algo: str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.cook([string]): str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.cook_cnt([string]): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.cook_val([string]): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.fhdr([string,integer]): str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.fhdr_cnt([string]): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.hdr([string,integer]): str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.hdr_cnt([string]): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.hdr_ip([string,integer]): ipv4
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.hdr_names([string]): str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.hdr_val([string,integer]): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.hdrs: bin
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.hdrs_bin: bin
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.len: sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.payload(integer,integer): bin
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.payload_lv(integer,integer[,string]): bin
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.ssl_hello_type: sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] res.ver: str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] resp_ver: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_bytes_in_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_bytes_out_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_clr_gpc0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_clr_gpc1([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_conn_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_conn_cur([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_conn_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_get_gpc0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_get_gpc1([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_get_gpt0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_gpc0_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_gpc1_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_http_err_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_http_err_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_http_fail_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_http_fail_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_http_req_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_http_req_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_inc_gpc0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_inc_gpc1([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] sc0_kbytes_in([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] sc0_kbytes_out([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_sess_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_sess_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_tracked([table]): bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc0_trackers([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_bytes_in_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_bytes_out_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_clr_gpc(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_clr_gpc0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_clr_gpc1([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_conn_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_conn_cur([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_conn_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_get_gpc0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_get_gpc1([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_get_gpt0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_gpc0_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_gpc1_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_http_err_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_http_err_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_http_fail_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_http_fail_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_http_req_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_http_req_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_inc_gpc0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_inc_gpc1([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] sc1_kbytes_in([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] sc1_kbytes_out([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_sess_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_sess_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_tracked([table]): bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc1_trackers([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_bytes_in_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_bytes_out_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_clr_gpc0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_clr_gpc1([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_conn_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_conn_cur([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_conn_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_get_gpc0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_get_gpc1([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_get_gpt0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_gpc0_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_gpc1_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_http_err_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_http_err_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_http_fail_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_http_fail_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_http_req_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_http_req_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_inc_gpc0([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_inc_gpc1([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] sc2_kbytes_in([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] sc2_kbytes_out([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_sess_cnt([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_sess_rate([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_tracked([table]): bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc2_trackers([table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_bytes_in_rate(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_bytes_out_rate(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_clr_gpc(integer,integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_clr_gpc0(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_clr_gpc1(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_conn_cnt(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_conn_cur(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_conn_rate(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_get_gpc(integer,integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_get_gpc0(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_get_gpc1(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_get_gpt(integer,integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_get_gpt0(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_gpc0_rate(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_gpc1_rate(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_gpc_rate(integer,integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_http_err_cnt(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_http_err_rate(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_http_fail_cnt(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_http_fail_rate(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_http_req_cnt(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_http_req_rate(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_inc_gpc(integer,integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_inc_gpc0(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_inc_gpc1(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] sc_kbytes_in(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] sc_kbytes_out(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_sess_cnt(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_sess_rate(integer[,table]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_tracked(integer[,table]): bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] sc_trackers(integer[,table]): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] scook([string]): str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] scook_cnt([string]): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] scook_val([string]): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] shdr([string,integer]): str
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] shdr_cnt([string]): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] shdr_ip([string,integer]): ipv4
+[ . . . . . . . . . . . Y Y Y Y Y Y Y . Y . . ] shdr_val([string,integer]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] so_id: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . . ] so_name: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src: ipv4
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_bytes_in_rate(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_bytes_out_rate(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_clr_gpc(integer,table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_clr_gpc0(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_clr_gpc1(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_conn_cnt(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_conn_cur(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_conn_rate(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_get_gpc(integer,table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_get_gpc0(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_get_gpc1(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_get_gpt(integer,table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_get_gpt0(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_gpc0_rate(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_gpc1_rate(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_gpc_rate(integer,table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_http_err_cnt(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_http_err_rate(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_http_fail_cnt(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_http_fail_rate(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_http_req_cnt(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_http_req_rate(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_inc_gpc(integer,table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_inc_gpc0(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_inc_gpc1(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_is_local: bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_kbytes_in(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_kbytes_out(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_port: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_sess_cnt(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_sess_rate(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . . ] src_updt_conn_cnt(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] srv_conn(server): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] srv_conn_free(server): sint
+[ . . . . . . . . . . Y Y Y Y Y Y Y Y Y Y . . ] srv_id: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] srv_is_up(server): bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] srv_iweight(server): sint
+[ . . . . . . . . . . Y Y Y Y Y Y Y Y Y Y . . ] srv_name: str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] srv_queue(server): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] srv_sess_rate(server): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] srv_uweight(server): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] srv_weight(server): sint
+[ . . . . . . . . . . . Y Y Y Y Y Y Y Y Y . . ] status: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] stopping: bool
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] str(string): str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] table_avl(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] table_cnt(table): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] thread: sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] unique-id: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] url: str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] url32: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] url32+src: bin
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] url_ip: ipv4
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] url_param([string,string]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] url_port: sint
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] urlp([string,string]): str
+[ . . Y Y Y Y Y Y Y Y Y . . . . . . . . . . . ] urlp_val([string,string]): sint
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] uuid([integer]): str
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y ] var(string[,string]): any
+[ Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y Y . Y ] wait_end: bool
+# List of registered service names:

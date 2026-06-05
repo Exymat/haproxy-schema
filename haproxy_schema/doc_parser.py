@@ -13,6 +13,9 @@ from .action_parser import (
 )
 from .dconv_bridge import KeywordDoc, is_valid_keyword_name, merge_argument_docs, walk_keyword_docs
 
+from .doc_layout import DocLayout, detect_doc_layout
+from .legacy_action_parser import is_legacy_action_doc_keyword, parse_legacy_proxy_actions
+
 SECTIONS_MATRIX = ["defaults", "frontend", "listen", "backend"]
 
 # Section 4.3 matrix columns (after keyword) -> schema keyword_groups key.
@@ -48,6 +51,24 @@ STANDALONE_SECTION_SPECS: tuple[tuple[str, str], ...] = (
     ("12.9", "program"),
 )
 
+# Pre-3.2 docs document userlists, peers, etc. under chapter 3 instead of chapter 12.
+CHAPTER3_STANDALONE_SECTION_SPECS: tuple[tuple[str, str], ...] = (
+    ("3.4", "userlist"),
+    ("3.5", "peers"),
+    ("3.6", "mailers"),
+    ("3.7", "program"),
+    ("3.8", "http-errors"),
+    ("3.9", "ring"),
+    ("3.12.1", "crt-list"),
+)
+
+# Shared across layouts (resolvers, cache, fcgi-app).
+SHARED_STANDALONE_SECTION_SPECS: tuple[tuple[str, str], ...] = (
+    ("5.3.2", "resolvers"),
+    ("6.2.1", "cache"),
+    ("10.1.1", "fcgi-app"),
+)
+
 # Keywords that declare the section itself rather than an inner directive.
 _SECTION_DECLARATION_KEYWORDS = frozenset(
     {
@@ -80,6 +101,7 @@ class DocParseResult:
     )
     action_reference: dict[str, ActionDoc] = field(default_factory=dict)
     no_prefix_keywords: set[str] = field(default_factory=set)
+    named_defaults_keywords: set[str] = field(default_factory=set)
     signatures: dict[str, list[str]] = field(default_factory=dict)
     keyword_docs: dict[str, KeywordDoc] = field(default_factory=dict)
     acl_reference: AclReferenceDoc = field(default_factory=AclReferenceDoc)
@@ -121,9 +143,12 @@ def _find_subsection_end(lines: list[str], section_id: str, start_idx: int) -> i
     return len(lines)
 
 
-def _extract_4_1_matrix(lines: list[str], start_idx: int, end_idx: int) -> tuple[dict[str, set[str]], set[str]]:
+def _extract_4_1_matrix(
+    lines: list[str], start_idx: int, end_idx: int
+) -> tuple[dict[str, set[str]], set[str], set[str]]:
     out = {name: set() for name in SECTIONS_MATRIX}
     no_prefix: set[str] = set()
+    named_defaults: set[str] = set()
     for raw_line in lines[start_idx:end_idx]:
         line = raw_line.rstrip("\n")
         if not line.strip():
@@ -160,7 +185,9 @@ def _extract_4_1_matrix(lines: list[str], start_idx: int, end_idx: int) -> tuple
         for section, col in zip(SECTIONS_MATRIX, cols):
             if "X" in col:
                 out[section].add(keyword)
-    return out, no_prefix
+                if section == "defaults" and "(!)" in col:
+                    named_defaults.add(keyword)
+    return out, no_prefix, named_defaults
 
 
 def _normalize_matrix_keyword(keyword: str) -> str:
@@ -270,16 +297,25 @@ def _is_standalone_directive(name: str) -> bool:
     return True
 
 
+def _standalone_specs_for_layout(layout: DocLayout) -> tuple[tuple[str, str], ...]:
+    if layout.standalone == "chapter12":
+        return STANDALONE_SECTION_SPECS
+    return CHAPTER3_STANDALONE_SECTION_SPECS + SHARED_STANDALONE_SECTION_SPECS
+
+
 def _parse_standalone_sections(
     lines: list[str],
+    specs: tuple[tuple[str, str], ...] | None = None,
 ) -> tuple[dict[str, set[str]], dict[str, KeywordDoc]]:
     """Extract keywords documented for non-proxy sections (cache, peers, …)."""
     from .dconv_bridge import walk_keyword_docs
 
+    if specs is None:
+        specs = _standalone_specs_for_layout(detect_doc_layout(lines))
     section_keywords: dict[str, set[str]] = {}
     merged_docs: dict[str, KeywordDoc] = {}
 
-    for section_id, config_section in STANDALONE_SECTION_SPECS:
+    for section_id, config_section in specs:
         start = _find_body_section(lines, section_id)
         if start < 0:
             continue
@@ -362,9 +398,15 @@ def parse_configuration(path: Path) -> DocParseResult:
     if section_31 < 0 or section_34 < 0 or section_41 < 0 or section_42 < 0:
         raise ValueError("Failed to locate required sections 3.1/3.4/4.1/4.2 in configuration.txt")
 
+    layout = detect_doc_layout(lines)
+    has_section_44 = _find_body_section(lines, "4.4") >= 0
+    section_5 = _find_body_section(lines, "5")
+
     result = DocParseResult()
 
-    matrix_41, result.no_prefix_keywords = _extract_4_1_matrix(lines, section_41, section_42)
+    matrix_41, result.no_prefix_keywords, result.named_defaults_keywords = _extract_4_1_matrix(
+        lines, section_41, section_42
+    )
     matrix_43 = (
         _extract_4_3_actions_matrix(lines, section_43, section_44)
         if section_43 < section_44
@@ -374,7 +416,15 @@ def parse_configuration(path: Path) -> DocParseResult:
     # Only 3.1–3.3 directives belong in the HAProxy "global" section (not peers, userlists, etc.).
     global_docs = _filter_keyword_docs(walk_keyword_docs(lines, section_31, section_34, "3.1"))
     other_chapter3_docs = _filter_keyword_docs(walk_keyword_docs(lines, section_34, section_41, "3.4"))
-    proxy_docs = _filter_keyword_docs(walk_keyword_docs(lines, section_42, section_43, "4.2"))
+    if layout.actions == "modern":
+        proxy_docs_end = section_43
+    else:
+        proxy_docs_end = section_5 if section_5 >= 0 else len(lines)
+    proxy_docs = _filter_keyword_docs(walk_keyword_docs(lines, section_42, proxy_docs_end, "4.2"))
+    if layout.actions == "legacy":
+        proxy_docs = {
+            name: doc for name, doc in proxy_docs.items() if not is_legacy_action_doc_keyword(name)
+        }
     result.proxy_keywords = set(proxy_docs.keys())
     _merge_keyword_docs(result.keyword_docs, global_docs)
     _merge_keyword_docs(result.keyword_docs, other_chapter3_docs)
@@ -426,12 +476,20 @@ def parse_configuration(path: Path) -> DocParseResult:
                     continue
                 result.matrix_keywords[section].add(keyword)
 
-    if section_44 >= 0:
-        section_5 = _find_body_section(lines, "5")
+    if has_section_44:
         action_end = section_5 if section_5 >= 0 else len(lines)
         result.action_reference = parse_actions_lines(lines, section_44 + 1, action_end)
-    matrix_44 = action_matrix_from_reference(result.action_reference)
-    result.action_matrix = merge_action_matrices(matrix_43, matrix_44)
+        matrix_44 = action_matrix_from_reference(result.action_reference)
+        result.action_matrix = merge_action_matrices(matrix_43, matrix_44)
+    elif layout.actions == "legacy":
+        legacy_end = section_5 if section_5 >= 0 else len(lines)
+        result.action_reference, result.action_matrix = parse_legacy_proxy_actions(
+            lines, section_42, legacy_end
+        )
+    else:
+        result.action_matrix = merge_action_matrices(
+            matrix_43, action_matrix_from_reference(result.action_reference)
+        )
 
     known = set(result.keyword_docs.keys())
     for keywords in result.matrix_keywords.values():

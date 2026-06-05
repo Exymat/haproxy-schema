@@ -78,6 +78,8 @@ option mysql-check
     assert "bind" not in result.matrix_keywords["backend"]
     assert "capture request header" in result.matrix_keywords["listen"]
     assert "acl <aclname> <criterion> [flags]" in result.signatures["acl"]
+    assert "acl" in result.named_defaults_keywords
+    assert "maxconn" not in result.named_defaults_keywords
     assert "bind <addr> [param*]" in result.signatures["bind"]
     assert result.keyword_docs["bind"].sections == ["frontend", "listen"]
     assert "global" not in result.keyword_docs["bind"].sections
