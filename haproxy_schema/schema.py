@@ -69,6 +69,9 @@ class StatementRule:
     prefix: str | None = None
     sections: list[str] = field(default_factory=list)
     fixed_slots: list[FixedSlotSpec] = field(default_factory=list)
+    reference_kind: str | None = None
+    definition_kind: str | None = None
+    symbol_name_token_index: int | None = None
 
 
 @dataclass
@@ -160,6 +163,9 @@ class HaproxySchema:
                     prefix=rule.get("prefix"),
                     sections=rule.get("sections", []),
                     fixed_slots=fixed_slots,
+                    reference_kind=rule.get("reference_kind"),
+                    definition_kind=rule.get("definition_kind"),
+                    symbol_name_token_index=rule.get("symbol_name_token_index"),
                 )
             )
 
