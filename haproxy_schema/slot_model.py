@@ -14,6 +14,7 @@ class FixedSlot:
 
     role: str
     port: str | None = None  # required | optional | forbidden
+    address_policy: str | None = None
 
 
 @dataclass
@@ -72,10 +73,11 @@ def layout_from_signature(keyword: str, signature: str) -> StatementLayout | Non
             continue
         role = _role_from_placeholder(part)
         if role == "address_unix":
-            slots.append(FixedSlot(role="address", port="forbidden"))
+            slots.append(FixedSlot(role="address", port="forbidden", address_policy="bind"))
             continue
         if role == "address":
-            slots.append(FixedSlot(role="address", port=_port_policy_from_parts(parts, idx)))
+            policy = _address_policy_for_keyword(keyword, "address")
+            slots.append(FixedSlot(role="address", port=_port_policy_from_parts(parts, idx), address_policy=policy))
             continue
         if role == "name":
             slots.append(FixedSlot(role="name"))
@@ -112,8 +114,25 @@ def pick_best_layout(keyword: str, signatures: list[str]) -> StatementLayout | N
     return layouts[0]
 
 
+def _address_policy_for_keyword(keyword: str, role: str) -> str | None:
+    if role != "address":
+        return None
+    if keyword == "bind":
+        return "bind"
+    if keyword in {"server", "nameserver"}:
+        return "server"
+    return None
+
+
 def fixed_slots_to_dict(slots: list[FixedSlot]) -> list[dict]:
-    return [{"role": slot.role, "port": slot.port} for slot in slots]
+    return [
+        {
+            "role": slot.role,
+            "port": slot.port,
+            **({"address_policy": slot.address_policy} if slot.address_policy else {}),
+        }
+        for slot in slots
+    ]
 
 
 def _keyword_signatures(keywords: dict, name: str) -> list[str]:

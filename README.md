@@ -13,7 +13,7 @@ Outputs (written by **haproxy-vscode** `npm run generate:schema:<version>` or di
 
 | Artifact | Purpose |
 | -------- | ------- |
-| `haproxy-X.Y.schema.json` | Section/keyword model, statement rules, argument signatures — drives diagnostics |
+| `haproxy-X.Y.schema.json` | Section/keyword model, statement rules, argument signatures, **`line_layout`** (prefix families, tcp phases, stats socket levels), **`options_with_value`**, enriched **`argument_model.slots.value_kind`**, **`fixed_slots.address_policy`**, sample **`max_args`** — drives diagnostics |
 | `haproxy-X.Y.language.json` | Completion and hover payloads for the VS Code extension |
 | `haproxy-X.Y.tmLanguage.json` | TextMate grammar for syntax highlighting |
 | `coverage-X.Y.json` | Doc vs dkall gap report (keywords missing from either side) |

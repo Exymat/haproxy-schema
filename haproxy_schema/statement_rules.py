@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 class FixedSlotSpec:
     role: str
     port: str | None = None
+    address_policy: str | None = None
 
 
 @dataclass
@@ -43,7 +44,7 @@ BASE_STATEMENT_RULES: list[StatementRule] = [
         kind="bind",
         group="bind_options",
         nested_start_index=2,
-        fixed_slots=[FixedSlotSpec(role="address", port="required")],
+        fixed_slots=[FixedSlotSpec(role="address", port="required", address_policy="bind")],
     ),
     StatementRule(
         keyword="server",
@@ -52,7 +53,7 @@ BASE_STATEMENT_RULES: list[StatementRule] = [
         nested_start_index=3,
         fixed_slots=[
             FixedSlotSpec(role="name"),
-            FixedSlotSpec(role="address", port="optional"),
+            FixedSlotSpec(role="address", port="optional", address_policy="server"),
         ],
         definition_kind="server",
         symbol_name_token_index=1,
@@ -132,7 +133,11 @@ def statement_rules_from_dicts(rules: list[dict]) -> list[StatementRule]:
     out: list[StatementRule] = []
     for rule in rules:
         fixed_slots = [
-            FixedSlotSpec(role=slot["role"], port=slot.get("port"))
+            FixedSlotSpec(
+                role=slot["role"],
+                port=slot.get("port"),
+                address_policy=slot.get("address_policy"),
+            )
             for slot in rule.get("fixed_slots", [])
         ]
         out.append(
@@ -174,7 +179,14 @@ def statement_rules_to_dict(rules: list[StatementRule]) -> list[dict]:
         if rule.sections:
             item["sections"] = rule.sections
         if rule.fixed_slots:
-            item["fixed_slots"] = [{"role": slot.role, "port": slot.port} for slot in rule.fixed_slots]
+            item["fixed_slots"] = [
+                {
+                    "role": slot.role,
+                    "port": slot.port,
+                    **({"address_policy": slot.address_policy} if slot.address_policy else {}),
+                }
+                for slot in rule.fixed_slots
+            ]
         if rule.reference_kind:
             item["reference_kind"] = rule.reference_kind
         if rule.definition_kind:

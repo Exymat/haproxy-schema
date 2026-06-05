@@ -49,12 +49,15 @@ class SampleFunction:
     out_type: str = ""
     in_type: str = ""
     contexts: list[bool] = field(default_factory=list)
+    min_args: int | None = None
+    max_args: int | None = None
 
 
 @dataclass
 class FixedSlotSpec:
     role: str
     port: str | None = None
+    address_policy: str | None = None
 
 
 @dataclass
@@ -83,6 +86,7 @@ class HaproxySchema:
     statement_rules: list[StatementRule] = field(default_factory=list)
     sample_fetches: dict[str, SampleFunction] = field(default_factory=dict)
     sample_converters: dict[str, SampleFunction] = field(default_factory=dict)
+    line_layout: dict[str, object] = field(default_factory=dict)
     tokens: dict[str, list[str]] = field(
         default_factory=lambda: {
             "modifiers": ["no", "default"],
@@ -148,7 +152,11 @@ class HaproxySchema:
         for rule in data.get("statement_rules", []):
             fixed_raw = rule.get("fixed_slots", [])
             fixed_slots = [
-                FixedSlotSpec(role=slot.get("role", ""), port=slot.get("port"))
+                FixedSlotSpec(
+                    role=slot.get("role", ""),
+                    port=slot.get("port"),
+                    address_policy=slot.get("address_policy"),
+                )
                 for slot in fixed_raw
             ]
             statement_rules.append(
@@ -178,6 +186,8 @@ class HaproxySchema:
                     out_type=item.get("out_type", ""),
                     in_type=item.get("in_type", ""),
                     contexts=item.get("contexts", []),
+                    min_args=item.get("min_args"),
+                    max_args=item.get("max_args"),
                 )
             return out
 
@@ -189,6 +199,7 @@ class HaproxySchema:
             statement_rules=statement_rules,
             sample_fetches=_load_sample_funcs(data.get("sample_fetches", {})),
             sample_converters=_load_sample_funcs(data.get("sample_converters", {})),
+            line_layout=data.get("line_layout", {}),
             tokens=data.get("tokens", {}),
         )
 

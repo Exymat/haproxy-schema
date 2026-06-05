@@ -16,6 +16,7 @@ class ArgSlot:
     optional: bool = False
     variadic: bool = False
     enum: list[str] = field(default_factory=list)
+    value_kind: str = "generic"
 
 
 @dataclass
@@ -48,6 +49,19 @@ def _parse_enum_values(part: str) -> list[str]:
     return values
 
 
+def _value_kind_from_part(part: str) -> str:
+    lower = part.lower()
+    if part.startswith("{"):
+        return "enum"
+    if lower in {"<name>", "<server-name>", "<id>"}:
+        return "name"
+    if "addr" in lower or lower in {"<address>", "<addr>"}:
+        return "address"
+    if "path" in lower or "file" in lower:
+        return "path"
+    return "generic"
+
+
 def _parse_slot(part: str) -> ArgSlot | None:
     part = part.strip()
     if not part:
@@ -58,14 +72,15 @@ def _parse_slot(part: str) -> ArgSlot | None:
     if part.startswith("{"):
         enum = _parse_enum_values(part)
         if enum:
-            return ArgSlot(enum=enum)
+            return ArgSlot(enum=enum, value_kind="enum")
         return ArgSlot()
 
     if part.startswith("<") and part.endswith(">"):
         inner = part[1:-1].strip()
+        kind = _value_kind_from_part(part)
         if inner.endswith("...") or inner.endswith("*"):
-            return ArgSlot(variadic=True)
-        return ArgSlot()
+            return ArgSlot(variadic=True, value_kind=kind)
+        return ArgSlot(value_kind=kind)
 
     if part.startswith("["):
         inner = part[1:-1].strip() if part.endswith("]") else part[1:].strip()
@@ -76,9 +91,9 @@ def _parse_slot(part: str) -> ArgSlot | None:
         if inner.startswith("{"):
             enum = _parse_enum_values(inner)
             if enum:
-                return ArgSlot(optional=True, enum=enum)
+                return ArgSlot(optional=True, enum=enum, value_kind="enum")
         if inner.startswith("<"):
-            return ArgSlot(optional=True)
+            return ArgSlot(optional=True, value_kind=_value_kind_from_part(inner if inner.startswith("<") else f"<{inner}>"))
         return ArgSlot(optional=True)
 
     if part in {",", "...", "(*)", "(deprecated)"} or part.startswith(","):
@@ -153,7 +168,14 @@ def merge_argument_models(models: list[ArgumentModel]) -> ArgumentModel | None:
             enums.update(slot.enum)
         if not seen:
             continue
-        merged_slots.append(ArgSlot(optional=optional, variadic=variadic, enum=sorted(enums)))
+        merged_slots.append(
+            ArgSlot(
+                optional=optional,
+                variadic=variadic,
+                enum=sorted(enums),
+                value_kind="enum" if enums else "generic",
+            )
+        )
 
     return ArgumentModel(min_args=merged_min, max_args=merged_max, slots=merged_slots)
 
@@ -212,7 +234,12 @@ def attach_argument_models(keywords: dict[str, object]) -> None:
             min_args=model.min_args,
             max_args=model.max_args,
             slots=[
-                {"optional": slot.optional, "variadic": slot.variadic, "enum": list(slot.enum)}
+                {
+                    "optional": slot.optional,
+                    "variadic": slot.variadic,
+                    "enum": list(slot.enum),
+                    "value_kind": slot.value_kind,
+                }
                 for slot in model.slots
             ],
         )

@@ -1,0 +1,49 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+
+from haproxy_schema.line_layout import prefix_subcommands
+
+PACKAGE_DIR = Path(__file__).resolve().parents[1]
+VERSIONS = ("2.6", "2.8", "3.0", "3.2", "3.4")
+
+
+@pytest.fixture(params=VERSIONS)
+def schema_dict(request: pytest.FixtureRequest) -> dict:
+    path = PACKAGE_DIR.parent / ".." / "haproxy-vscode" / "schemas" / f"haproxy-{request.param}.schema.json"
+    if not path.exists():
+        pytest.skip(f"missing schema artifact: {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_schema_has_line_layout(schema_dict: dict) -> None:
+    layout = schema_dict.get("line_layout")
+    assert layout, "line_layout must be present"
+    assert layout.get("prefix_families")
+    assert layout.get("stats_socket_levels") == ["admin", "operator", "user"]
+
+
+def test_tcp_phases_match_keywords(schema_dict: dict) -> None:
+    layout = schema_dict["line_layout"]
+    keywords = list(schema_dict["keywords"].keys())
+    assert layout["tcp_request_phases"] == prefix_subcommands(keywords, "tcp-request")
+    assert layout["tcp_response_phases"] == prefix_subcommands(keywords, "tcp-response")
+
+
+def test_options_with_value_is_subset(schema_dict: dict) -> None:
+    options = schema_dict["keyword_groups"].get("options", [])
+    with_value = schema_dict["keyword_groups"].get("options_with_value", [])
+    assert set(with_value).issubset(set(options))
+
+
+def test_bind_and_server_slots_have_address_policy(schema_dict: dict) -> None:
+    for rule in schema_dict.get("statement_rules", []):
+        if rule.get("keyword") not in {"bind", "server"}:
+            continue
+        slots = rule.get("fixed_slots") or []
+        address_slots = [slot for slot in slots if slot.get("role") == "address"]
+        assert address_slots, f"{rule['keyword']} should define address slots"
+        assert all(slot.get("address_policy") for slot in address_slots)

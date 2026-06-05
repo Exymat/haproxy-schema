@@ -7,6 +7,8 @@ from .dkall_supplement import supplement_missing_tls_options
 from .doc_parser import DocParseResult
 from .hapee_extensions import HAPEE_SECTION_KEYWORDS
 from .schema import HaproxySchema, Keyword, SampleFunction, Section, StatementRule
+from .line_layout import build_line_layout
+from .options_metadata import collect_options_with_value
 from .signature_model import attach_argument_models
 from .slot_model import enrich_statement_rules
 from .statement_rules import BASE_STATEMENT_RULES, statement_rules_from_dicts, statement_rules_to_dict
@@ -133,6 +135,7 @@ def merge_schema(
         "bind_options": sorted(dkall.bind_options),
         "server_options": sorted(dkall.server_options),
         "options": sorted(set(dkall.options) | doc_options),
+        "options_with_value": sorted(collect_options_with_value(sorted(set(dkall.options) | doc_options))),
         "acl_criteria": sorted(dkall.acl_criteria),
         "sample_fetches": sorted(dkall.sample_fetches),
         "sample_converters": sorted(dkall.sample_converters),
@@ -165,6 +168,7 @@ def merge_schema(
             args=info.args,
             out_type=info.out_type,
             contexts=info.contexts,
+            max_args=len(info.args) if info.args else 0,
         )
         for name, info in dkall.sample_fetches_structured.items()
     }
@@ -174,9 +178,12 @@ def merge_schema(
             args=info.args,
             in_type=info.in_type,
             out_type=info.out_type,
+            max_args=len(info.args) if info.args else None,
         )
         for name, info in dkall.sample_converters_structured.items()
     }
+
+    schema.line_layout = build_line_layout(schema.keywords.keys())
 
     apply_hapee_extensions(schema)
 
