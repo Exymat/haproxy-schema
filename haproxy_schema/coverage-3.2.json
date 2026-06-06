@@ -77,7 +77,12 @@
     "use-service",
     "wait-for-body",
     "wait-for-body time",
-    "wait-for-handshake"
+    "wait-for-handshake",
+    "wurfl-cache-size",
+    "wurfl-data-file",
+    "wurfl-information-list",
+    "wurfl-information-list-separator",
+    "wurfl-patch-file"
   ],
   "dkall_only_keywords": [
     "allow-0rtt",

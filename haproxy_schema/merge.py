@@ -47,6 +47,7 @@ def _mark_source(schema: HaproxySchema, keyword: str, source: str) -> None:
 
 # Documented tcp rule actions not enumerated in dkall's action registry.
 _TCP_RULE_ACTIONS = {"accept", "reject", "inspect-delay", "expect-proxy"}
+_COMPILE_TIME_DOC_KEYWORD_PREFIXES = ("wurfl-",)
 
 
 def build_action_groups(doc: DocParseResult, dkall: DkallParseResult) -> dict[str, list[str]]:
@@ -157,6 +158,8 @@ def merge_schema(
                     continue
             _add_keyword_to_section(schema, section, keyword)
             _mark_source(schema, keyword, "dkall")
+
+    _prune_compile_time_doc_keywords(schema, dkall)
 
     doc_options = _collect_doc_options(doc)
     action_groups = build_action_groups(doc, dkall)
@@ -283,6 +286,21 @@ def merge_schema(
     schema.tokens["acl_predefined"] = sorted(acl.predefined_acls.keys())
 
     return schema
+
+
+def _prune_compile_time_doc_keywords(schema: HaproxySchema, dkall: DkallParseResult) -> None:
+    dkall_keywords = {keyword for keywords in dkall.section_keywords.values() for keyword in keywords}
+    to_remove = [
+        keyword
+        for keyword in schema.keywords
+        if keyword.startswith(_COMPILE_TIME_DOC_KEYWORD_PREFIXES) and keyword not in dkall_keywords
+    ]
+    if not to_remove:
+        return
+    for keyword in to_remove:
+        schema.keywords.pop(keyword, None)
+    for section in schema.sections.values():
+        section.keywords = [keyword for keyword in section.keywords if keyword not in to_remove]
 
 
 def apply_hapee_extensions(schema: HaproxySchema) -> None:

@@ -69,7 +69,7 @@ def _value_kind_from_part(part: str) -> str:
     lower = part.lower()
     if part.startswith("{"):
         return "enum"
-    if lower in {"<name>", "<server-name>", "<id>"}:
+    if lower in {"<name>", "<server-name>", "<id>", "<param>", "<parameter>"}:
         return "name"
     if "addr" in lower or lower in {"<address>", "<addr>"}:
         return "address"
@@ -110,6 +110,9 @@ def _parse_slot(part: str) -> ArgSlot | None:
                 return ArgSlot(optional=True, enum=enum, value_kind="enum")
         if inner.startswith("<"):
             return ArgSlot(optional=True, value_kind=_value_kind_from_part(inner if inner.startswith("<") else f"<{inner}>"))
+        # Optional literal token (e.g. [check_post]) is an enum with one value.
+        if inner and not inner.startswith("["):
+            return ArgSlot(optional=True, enum=[inner.lower()], value_kind="enum")
         return ArgSlot(optional=True)
 
     if part in {",", "...", "(*)", "(deprecated)"} or part.startswith(","):
@@ -217,11 +220,13 @@ def build_argument_model(
 def _enrich_slots_from_doc_enums(model: ArgumentModel, enum_names: list[str]) -> None:
     if not enum_names:
         return
-    for slot in model.slots:
-        if slot.enum:
-            merged = sorted(set(slot.enum) | {name.lower() for name in enum_names})
-            slot.enum = merged
-            return
+    if model.slots and model.slots[0].enum:
+        merged = sorted(set(model.slots[0].enum) | {name.lower() for name in enum_names})
+        model.slots[0].enum = merged
+        return
+    if any(slot.enum for slot in model.slots[1:]):
+        # Keep explicit trailing enum slots (e.g. optional literal modifiers) untouched.
+        return
     if model.slots:
         model.slots[0].enum = sorted({name.lower() for name in enum_names})
 
@@ -240,6 +245,8 @@ def attach_argument_models(keywords: dict[str, _KeywordLike]) -> None:
         arguments = getattr(kw, "arguments", None) or []
         for param in arguments:
             if param.parameter not in ("", "<algorithm>"):
+                continue
+            if param.parameter == "<algorithm>" and keyword != "balance":
                 continue
             for value in getattr(param, "values", []) or []:
                 base = value.name.split("(", 1)[0]

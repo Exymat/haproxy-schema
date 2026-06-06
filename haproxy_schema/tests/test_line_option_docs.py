@@ -99,3 +99,16 @@ def test_merge_schema_includes_context_metadata() -> None:
     assert "http" in schema.keywords["capture cookie"].contexts
     assert "log" in schema.keyword_group_contexts["server_options"]["check"]
     assert "http" in schema.keyword_group_contexts["options"]["httplog"]
+
+
+def test_merge_schema_prunes_unsupported_compile_time_doc_keywords() -> None:
+    version = "3.4"
+    doc_path = haproxy_configuration_txt(version)
+    if not doc_path.is_file():
+        return
+
+    doc = parse_configuration(doc_path)
+    dkall = parse_dkall(dkall_dump(version))
+    schema = merge_schema(version, doc, dkall, dkall_package_dir=dkall_dump(version).parent)
+
+    assert "wurfl-data-file" not in schema.keywords

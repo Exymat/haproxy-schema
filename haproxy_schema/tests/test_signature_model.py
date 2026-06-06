@@ -58,3 +58,26 @@ def test_trace_args_ellipsis() -> None:
     model = build_argument_model("trace", ["trace <source> <args...>"])
     assert model is not None
     assert model.max_args is None
+
+
+def test_optional_literal_in_brackets_becomes_enum() -> None:
+    model = build_argument_model(
+        "balance url_param",
+        ["balance url_param <param> [check_post]"],
+    )
+    assert model is not None
+    assert model.min_args == 1
+    assert model.max_args == 2
+    assert model.slots[1].optional is True
+    assert model.slots[1].enum == ["check_post"]
+
+
+def test_doc_enum_enrichment_does_not_pollute_trailing_literal_enum() -> None:
+    model = parse_signature_model("balance url_param <param> [check_post]", "balance url_param")
+    assert model is not None
+    # Simulate attach_argument_models enrichment behavior.
+    from haproxy_schema.signature_model import _enrich_slots_from_doc_enums
+
+    _enrich_slots_from_doc_enums(model, ["roundrobin", "leastconn"])
+    assert model.slots[0].enum == []
+    assert model.slots[1].enum == ["check_post"]
