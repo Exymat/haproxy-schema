@@ -37,6 +37,12 @@ def test_options_with_value_is_subset(schema_dict: dict) -> None:
     options = schema_dict["keyword_groups"].get("options", [])
     with_value = schema_dict["keyword_groups"].get("options_with_value", [])
     assert set(with_value).issubset(set(options))
+    bind_options = schema_dict["keyword_groups"].get("bind_options", [])
+    bind_with_value = schema_dict["keyword_groups"].get("bind_options_with_value", [])
+    assert set(bind_with_value).issubset(set(bind_options))
+    server_options = schema_dict["keyword_groups"].get("server_options", [])
+    server_with_value = schema_dict["keyword_groups"].get("server_options_with_value", [])
+    assert set(server_with_value).issubset(set(server_options))
 
 
 def test_bind_and_server_slots_have_address_policy(schema_dict: dict) -> None:

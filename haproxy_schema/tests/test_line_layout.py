@@ -28,6 +28,9 @@ def test_build_line_layout_includes_known_families() -> None:
 
 
 def test_option_takes_value_heuristics() -> None:
-    assert option_takes_value("httplog") is False
-    assert option_takes_value("crt") is True
-    assert "crt" in collect_options_with_value(["httplog", "crt"])
+    assert option_takes_value("httplog", ["httplog"]) is False
+    assert option_takes_value("crt", ["crt <path>"]) is True
+    assert "crt" in collect_options_with_value(
+        ["httplog", "crt"],
+        {"httplog": ["httplog"], "crt": ["crt <path>"]},
+    )

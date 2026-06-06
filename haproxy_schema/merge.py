@@ -1,12 +1,22 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, cast
 
 from .dkall_parser import DkallParseResult
 from .dkall_supplement import supplement_missing_tls_options
 from .doc_parser import DocParseResult
 from .hapee_extensions import HAPEE_SECTION_KEYWORDS
-from .schema import HaproxySchema, Keyword, SampleFunction, Section, StatementRule
+from .schema import (
+    ArgumentParamDoc,
+    ArgumentValueDoc,
+    FixedSlotSpec,
+    HaproxySchema,
+    Keyword,
+    SampleFunction,
+    Section,
+    StatementRule,
+)
 from .line_layout import build_line_layout
 from .options_metadata import collect_options_with_value
 from .signature_model import attach_argument_models
@@ -74,6 +84,13 @@ def _collect_doc_options(doc: DocParseResult) -> set[str]:
     return options
 
 
+def _signatures_by_option(docs: dict[str, Any]) -> dict[str, list[str]]:
+    out: dict[str, list[str]] = {}
+    for name, item in docs.items():
+        out[name.lower()] = list(item.signatures)
+    return out
+
+
 def merge_schema(
     version: str,
     doc: DocParseResult,
@@ -104,7 +121,17 @@ def merge_schema(
         kdoc = doc.keyword_docs.get(keyword)
         if kdoc:
             if kdoc.arguments:
-                kw.arguments = list(kdoc.arguments)
+                kw.arguments = [
+                    ArgumentParamDoc(
+                        parameter=argument.parameter,
+                        description=argument.description,
+                        values=[
+                            ArgumentValueDoc(name=value.name, description=value.description)
+                            for value in argument.values
+                        ],
+                    )
+                    for argument in kdoc.arguments
+                ]
             if kdoc.contexts:
                 kw.contexts = list(kdoc.contexts)
             for section in kdoc.sections:
@@ -133,11 +160,29 @@ def merge_schema(
 
     doc_options = _collect_doc_options(doc)
     action_groups = build_action_groups(doc, dkall)
+    option_signature_map = {
+        name[len("option ") :].lower(): [
+            sig[len("option ") :] if sig.lower().startswith("option ") else sig for sig in kdoc.signatures
+        ]
+        for name, kdoc in doc.keyword_docs.items()
+        if name.startswith("option ")
+    }
+    bind_signature_map = _signatures_by_option(doc.bind_option_docs)
+    server_signature_map = _signatures_by_option(doc.server_option_docs)
+
     schema.keyword_groups = {
         "bind_options": sorted(dkall.bind_options),
+        "bind_options_with_value": sorted(
+            collect_options_with_value(sorted(dkall.bind_options), bind_signature_map)
+        ),
         "server_options": sorted(dkall.server_options),
+        "server_options_with_value": sorted(
+            collect_options_with_value(sorted(dkall.server_options), server_signature_map)
+        ),
         "options": sorted(set(dkall.options) | doc_options),
-        "options_with_value": sorted(collect_options_with_value(sorted(set(dkall.options) | doc_options))),
+        "options_with_value": sorted(
+            collect_options_with_value(sorted(set(dkall.options) | doc_options), option_signature_map)
+        ),
         "acl_criteria": sorted(dkall.acl_criteria),
         "sample_fetches": sorted(dkall.sample_fetches),
         "sample_converters": sorted(dkall.sample_converters),
@@ -167,13 +212,37 @@ def merge_schema(
         keyword.signatures.sort()
         keyword.sources.sort()
 
-    attach_argument_models(schema.keywords)
+    attach_argument_models(cast(dict[str, Any], schema.keywords))
 
     enriched_rules = enrich_statement_rules(
         statement_rules_to_dict(list(BASE_STATEMENT_RULES)),
         schema.keywords,
     )
-    schema.statement_rules = statement_rules_from_dicts(enriched_rules)
+    schema.statement_rules = [
+        StatementRule(
+            keyword=rule.keyword,
+            kind=rule.kind,
+            group=rule.group,
+            value_token_index=rule.value_token_index,
+            action_token_index=rule.action_token_index,
+            phase_token_index=rule.phase_token_index,
+            nested_start_index=rule.nested_start_index,
+            prefix=rule.prefix,
+            sections=list(rule.sections),
+            fixed_slots=[
+                FixedSlotSpec(
+                    role=slot.role,
+                    port=slot.port,
+                    address_policy=slot.address_policy,
+                )
+                for slot in rule.fixed_slots
+            ],
+            reference_kind=rule.reference_kind,
+            definition_kind=rule.definition_kind,
+            symbol_name_token_index=rule.symbol_name_token_index,
+        )
+        for rule in statement_rules_from_dicts(enriched_rules)
+    ]
     for section in sorted(dkall.section_keywords.keys()):
         if section not in schema.sections:
             schema.sections[section] = Section(name=section, keywords=sorted(dkall.section_keywords[section]))

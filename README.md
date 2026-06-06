@@ -9,6 +9,26 @@ For each HAProxy release, the `build` command merges two upstream sources:
 1. **`configuration.txt`** — section structure, keyword descriptions, argument shapes, ACL/sample references, and rule-action matrices.
 2. **`haproxy -dKall`** — the complete keyword inventory emitted by a DEBUG-enabled binary.
 
+## Relationship to haproxy-dconv
+
+`haproxy-schema` **does reuse parts of haproxy-dconv parsing logic**, but it does so by
+**vendoring selected rules into this repository** instead of importing `haproxy-dconv`
+at runtime.
+
+Upstream reference: [cbonte/haproxy-dconv](https://github.com/cbonte/haproxy-dconv)
+
+- **What is reused:** keyword-line matching/parsing behavior aligned with dconv (see
+  `haproxy_schema/dconv_bridge.py`).
+- **Why not import dconv directly:** we want deterministic builds with no external
+  runtime dependency, and we avoid Python module-name conflicts from dconv's historical
+  `parser` package naming.
+- **Practical effect:** schema generation still runs only from local `configuration.txt`
+  and `dkall` inputs for each version, while keeping behavior compatible with dconv's
+  keyword parsing model.
+
+The CLI still exposes `--dconv-path` for compatibility, but this is currently
+reserved because the active rules are vendored in-tree.
+
 Outputs (written by **haproxy-vscode** `npm run generate:schema:<version>` or directly via the CLI):
 
 | Artifact | Purpose |

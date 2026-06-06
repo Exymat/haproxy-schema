@@ -1,109 +1,37 @@
-"""Identify proxy/server options that take a value argument (from option name shape)."""
+"""Identify proxy/server options that take a value from signatures."""
 
 from __future__ import annotations
 
-VALUE_OPTION_HINTS = (
-    "-file",
-    "-path",
-    "-pass",
-    "-list",
-    "-addr",
-    "-port",
-    "-net",
-    "-opts",
-    "-prefer",
-    "-name",
-    "-tag",
-    "-format",
-    "-header",
-    "-backend",
-    "-server",
-    "-conn",
-    "-delay",
-    "-limit",
-    "-inter",
-    "-key",
-)
-
-VALUE_OPTION_EXACT = frozenset(
-    {
-        "crt",
-        "name",
-        "alpn",
-        "ciphers",
-        "ciphersuites",
-        "curves",
-        "npn",
-        "proto",
-        "verify",
-        "verifyhost",
-        "sni",
-        "mss",
-        "nbconn",
-        "nice",
-        "uid",
-        "gid",
-        "group",
-        "interface",
-        "namespace",
-        "thread",
-        "process",
-        "shards",
-        "sigalgs",
-        "addr",
-        "path",
-        "command",
-        "redir",
-        "resolvers",
-        "weight",
-        "port",
-        "mode",
-        "level",
-        "label",
-        "id",
-        "ws",
-        "shard",
-        "hash-key",
-        "monitor",
-        "description",
-        "agent-port",
-        "agent-inter",
-        "agent-send",
-        "pool-max-conn",
-        "pool-low-conn",
-        "pool-purge-delay",
-        "pool-conn-name",
-        "log-proto",
-        "log-bufsize",
-        "max-reuse",
-        "slowstart",
-        "maxqueue",
-        "minconn",
-        "maxconn",
-        "quic-cc-algo",
-        "severity-output",
-        "tls-ticket-keys",
-        "client-sigalgs",
-        "proxy-v2-options",
-        "send-proxy-v2",
-        "default-crt",
-        "ca-verify-file",
-        "ca-sign-file",
-        "ca-sign-pass",
-        "crl-file",
-        "crt-list",
-        "crt-ignore-err",
-        "ca-ignore-err",
-    }
-)
+import re
 
 
-def option_takes_value(option: str) -> bool:
+def _normalize_signature(signature: str) -> str:
+    return re.sub(r"\s+\(deprecated\)$", "", signature.strip(), flags=re.I)
+
+
+def option_takes_value(option: str, signatures: list[str]) -> bool:
+    """Return True when signature forms indicate an argument after option name."""
     lower = option.lower()
-    if lower in VALUE_OPTION_EXACT:
+    for signature in signatures:
+        sig = _normalize_signature(signature)
+        sig_lower = sig.lower()
+        if sig_lower == lower:
+            continue
+        if not sig_lower.startswith(f"{lower} "):
+            continue
+        tail = sig[len(option) :].strip()
+        if not tail:
+            continue
+        # Any explicit tail means this option form requires at least one value token.
         return True
-    return any(hint in lower for hint in VALUE_OPTION_HINTS)
+    return False
 
 
-def collect_options_with_value(options: list[str]) -> list[str]:
-    return sorted({opt for opt in options if option_takes_value(opt)})
+def collect_options_with_value(options: list[str], signatures_by_option: dict[str, list[str]]) -> list[str]:
+    return sorted(
+        {
+            opt
+            for opt in options
+            if option_takes_value(opt, signatures_by_option.get(opt.lower(), signatures_by_option.get(opt, [])))
+        }
+    )

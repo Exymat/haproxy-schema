@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 import re
+from typing import Protocol
 
 from .dconv_bridge import extract_keyword_name
 
@@ -30,6 +31,21 @@ class ArgumentModel:
 
 
 _SIGNATURE_PART_RE = re.compile(r"\{[^{}]*\}|<[^>]+>|\[[^\]]*\]|[^\s]+")
+
+
+class _ValueDocLike(Protocol):
+    name: str
+
+
+class _ArgumentParamLike(Protocol):
+    parameter: str
+    values: list[_ValueDocLike]
+
+
+class _KeywordLike(Protocol):
+    signatures: list[str]
+    arguments: list[_ArgumentParamLike]
+    argument_model: object | None
 
 
 def _tokenize_signature_parts(signature: str) -> list[str]:
@@ -210,7 +226,7 @@ def _enrich_slots_from_doc_enums(model: ArgumentModel, enum_names: list[str]) ->
         model.slots[0].enum = sorted({name.lower() for name in enum_names})
 
 
-def attach_argument_models(keywords: dict[str, object]) -> None:
+def attach_argument_models(keywords: dict[str, _KeywordLike]) -> None:
     """Mutate schema Keyword objects in place (expects .signatures list)."""
     from .schema import ArgumentModel as SchemaArgumentModel
 
