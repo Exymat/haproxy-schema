@@ -4,37 +4,10 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from .line_layout import KNOWN_PREFIX_FAMILIES, KNOWN_SECTION_HEADERS
 from .schema import HaproxySchema
 
-SECTION_HEADERS = {
-    "global",
-    "defaults",
-    "frontend",
-    "backend",
-    "listen",
-    "peers",
-    "userlist",
-    "resolvers",
-    "mailers",
-    "program",
-    "http-errors",
-    "ring",
-    "cache",
-    "crt-list",
-    "crt-store",
-    "traces",
-    "acme",
-}
-
-PREFIX_FAMILIES = [
-    "stats",
-    "timeout",
-    "tcp-check",
-    "http-check",
-    "capture",
-    "tcp-request",
-    "tcp-response",
-]
+SECTION_HEADERS = set(KNOWN_SECTION_HEADERS)
 
 
 @dataclass
@@ -114,15 +87,16 @@ def _tokenize_line(line: str) -> list[ParsedToken]:
     return tokens
 
 
-def parse_config_text(content: str) -> list[ParsedLine]:
+def parse_config_text(content: str, section_headers: set[str] | None = None) -> list[ParsedLine]:
     out: list[ParsedLine] = []
     current_section: str | None = None
+    headers = section_headers or SECTION_HEADERS
     for line_no, text in enumerate(content.splitlines()):
         tokens = _tokenize_line(text)
         is_section_header = False
         if tokens:
             first = tokens[0].text.lower()
-            if first in SECTION_HEADERS:
+            if first in headers:
                 current_section = first
                 is_section_header = True
         out.append(
@@ -174,11 +148,16 @@ def _section_allowed(schema: HaproxySchema, section: str | None) -> set[str]:
 
 
 def _resolve_longest_match(
-    line: ParsedLine, allowed: set[str], max_parts: int = 4
+    line: ParsedLine, allowed: set[str], max_parts: int | None = None
 ) -> tuple[str, bool]:
     tokens = line.tokens
     if not tokens:
         return "", False
+    if max_parts is None:
+        if allowed:
+            max_parts = max(4, min(8, max(keyword.count(" ") + 1 for keyword in allowed)))
+        else:
+            max_parts = 4
     limit = min(len(tokens), max_parts)
     for end in range(limit - 1, -1, -1):
         keyword = _join_tokens(tokens, 0, end)
@@ -217,6 +196,17 @@ def _no_prefix_keywords(schema: HaproxySchema) -> set[str]:
     return {k.lower() for k in schema.tokens.get("no_prefix_keywords", [])}
 
 
+def _schema_prefix_families(schema: HaproxySchema) -> list[str]:
+    from_layout = schema.line_layout.get("prefix_families", [])
+    if from_layout:
+        return [entry.lower() for entry in from_layout]
+    return [entry.lower() for entry in KNOWN_PREFIX_FAMILIES]
+
+
+def _schema_section_headers(schema: HaproxySchema) -> set[str]:
+    return SECTION_HEADERS | {name.lower() for name in schema.sections.keys()}
+
+
 def _is_no_prefix_line(
     line: ParsedLine, allowed: set[str], no_prefix: set[str]
 ) -> bool:
@@ -240,14 +230,20 @@ def validate_config(content: str, schema: HaproxySchema) -> ValidationResult:
     result = ValidationResult()
     macros = {m.lower() for m in schema.tokens.get("macros", [])}
     no_prefix = _no_prefix_keywords(schema)
+    prefix_families = _schema_prefix_families(schema)
+    section_headers = _schema_section_headers(schema)
 
-    for line in parse_config_text(content):
+    for line in parse_config_text(content, section_headers=section_headers):
         if not line.tokens or line.is_section_header:
             continue
         if line.tokens[0].text.lower() in macros:
             continue
 
         allowed = _section_allowed(schema, line.section)
+        if line.section and line.section not in schema.sections:
+            # Compatibility path: avoid false positives for valid newer sections
+            # that the current schema version does not model yet.
+            continue
         if _is_option_line(line) and _option_allowed(allowed):
             continue
         if _is_no_prefix_line(line, allowed, no_prefix):
@@ -258,7 +254,7 @@ def validate_config(content: str, schema: HaproxySchema) -> ValidationResult:
             continue
 
         t0 = line.tokens[0].text.lower()
-        if t0 in PREFIX_FAMILIES:
+        if t0 in prefix_families:
             needle = f"{t0} "
             subs = {k[len(needle) :] for k in allowed if k.startswith(needle)}
             if subs:

@@ -11,18 +11,28 @@ from haproxy_schema.schema import HaproxySchema
 
 ROOT = Path(__file__).resolve().parents[2]
 VSCODE_ROOT = ROOT.parent / "haproxy-vscode"
-SCHEMA_PATH = VSCODE_ROOT / "schemas" / "haproxy-3.2.schema.json"
 TEMPLATE_PATH = VSCODE_ROOT / "syntaxes" / "haproxy.tmLanguage.json"
+VERSIONS = ("2.6", "2.8", "3.0", "3.2", "3.4")
 
 
-@pytest.fixture(scope="module")
-def schema() -> HaproxySchema:
-    return HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
+def _schema_path(version: str) -> Path:
+    return VSCODE_ROOT / "schemas" / f"haproxy-{version}.schema.json"
+
+
+@pytest.fixture(params=VERSIONS)
+def schema(request: pytest.FixtureRequest) -> HaproxySchema:
+    schema_path = _schema_path(request.param)
+    if not schema_path.is_file():
+        pytest.skip(f"schema not built: {schema_path}")
+    return HaproxySchema.from_json(schema_path.read_text(encoding="utf-8"))
 
 
 def test_generated_grammar_has_no_legacy_directives_single() -> None:
+    schema_path = _schema_path("3.2")
+    if not schema_path.is_file():
+        pytest.skip(f"schema not built: {schema_path}")
     grammar = emit_tm_language(
-        HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
+        HaproxySchema.from_json(schema_path.read_text(encoding="utf-8"))
     )
     assert "directives-single" not in grammar.get("repository", {})
 
@@ -49,7 +59,10 @@ def test_use_backend_in_generated_grammar(schema: HaproxySchema) -> None:
     assert "use_backend" in repo
 
 
-@pytest.mark.skipif(not SCHEMA_PATH.is_file(), reason="schema not built")
-def test_report_from_paths() -> None:
-    report = report_from_paths(SCHEMA_PATH, SCHEMA_PATH, template_path=TEMPLATE_PATH)
+@pytest.mark.parametrize("version", VERSIONS)
+def test_report_from_paths(version: str) -> None:
+    schema_path = _schema_path(version)
+    if not schema_path.is_file():
+        pytest.skip(f"schema not built: {schema_path}")
+    report = report_from_paths(schema_path, schema_path, template_path=TEMPLATE_PATH)
     assert report.ok

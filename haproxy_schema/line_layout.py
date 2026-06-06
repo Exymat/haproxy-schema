@@ -14,6 +14,28 @@ KNOWN_PREFIX_FAMILIES = (
     "tcp-response",
 )
 
+KNOWN_SECTION_HEADERS = (
+    "global",
+    "defaults",
+    "frontend",
+    "backend",
+    "listen",
+    "peers",
+    "userlist",
+    "resolvers",
+    "mailers",
+    "program",
+    "http-errors",
+    "ring",
+    "cache",
+    "crt-list",
+    "crt-store",
+    "traces",
+    "acme",
+    # Compatibility shim for newer upstream examples until schema sections expose it.
+    "log-profile",
+)
+
 STATS_SOCKET_LEVELS = ("admin", "operator", "user")
 
 

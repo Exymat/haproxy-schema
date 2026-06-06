@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from haproxy_schema.line_layout import KNOWN_PREFIX_FAMILIES, build_line_layout, prefix_subcommands
+from haproxy_schema.line_layout import (
+    KNOWN_PREFIX_FAMILIES,
+    KNOWN_SECTION_HEADERS,
+    build_line_layout,
+    prefix_subcommands,
+)
 from haproxy_schema.options_metadata import collect_options_with_value, option_takes_value
 
 
@@ -34,3 +39,7 @@ def test_option_takes_value_heuristics() -> None:
         ["httplog", "crt"],
         {"httplog": ["httplog"], "crt": ["crt <path>"]},
     )
+
+
+def test_known_section_headers_include_compatibility_shims() -> None:
+    assert "log-profile" in KNOWN_SECTION_HEADERS

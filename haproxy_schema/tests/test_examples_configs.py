@@ -11,29 +11,37 @@ from haproxy_schema.schema import HaproxySchema
 
 from ._paths import haproxy_vscode_root
 
-SCHEMA_PATH = haproxy_vscode_root() / "schemas" / "haproxy-3.2.schema.json"
-EXAMPLES_DIR = haproxy_vscode_root().parent / "haproxy_git" / "haproxy-3.2" / "examples"
+VERSIONS = ("2.6", "2.8", "3.0", "3.2", "3.4")
 
 
-@pytest.fixture(scope="module")
-def schema() -> HaproxySchema:
-    if not SCHEMA_PATH.is_file():
-        pytest.skip(f"schema not built: {SCHEMA_PATH}")
-    return HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
+def _schema_path(version: str) -> Path:
+    return haproxy_vscode_root() / "schemas" / f"haproxy-{version}.schema.json"
 
 
-def _example_cfg_files() -> list[Path]:
-    if not EXAMPLES_DIR.is_dir():
-        return []
-    return sorted(EXAMPLES_DIR.glob("*.cfg"))
+def _examples_dir(version: str) -> Path:
+    return haproxy_vscode_root().parent / "haproxy_git" / f"haproxy-{version}" / "examples"
 
 
-@pytest.mark.parametrize("cfg_path", _example_cfg_files(), ids=lambda p: p.name)
-def test_example_cfg_has_no_unknown_keywords(schema: HaproxySchema, cfg_path: Path) -> None:
-    if not cfg_path.is_file():
-        pytest.skip("examples directory not available")
-    result = validate_config_file(cfg_path, schema)
-    unknown = result.unknown_keyword_issues
-    if unknown:
-        sample = "\n".join(f"  L{i.line}: {i.message}" for i in unknown[:5])
-        pytest.fail(f"{cfg_path.name}: {len(unknown)} unknown-keyword issue(s)\n{sample}")
+@pytest.mark.parametrize("version", VERSIONS)
+def test_example_cfg_has_no_unknown_keywords(version: str) -> None:
+    schema_path = _schema_path(version)
+    if not schema_path.is_file():
+        pytest.skip(f"schema not built: {schema_path}")
+
+    examples_dir = _examples_dir(version)
+    if not examples_dir.is_dir():
+        pytest.skip(f"examples directory not available: {examples_dir}")
+    cfg_files = sorted(examples_dir.glob("*.cfg"))
+    if not cfg_files:
+        pytest.skip(f"no example cfg files for {version}")
+
+    schema = HaproxySchema.from_json(schema_path.read_text(encoding="utf-8"))
+    failures: list[str] = []
+    for cfg_path in cfg_files:
+        unknown = validate_config_file(cfg_path, schema).unknown_keyword_issues
+        if not unknown:
+            continue
+        sample = "\n".join(f"    L{i.line + 1}: {i.message}" for i in unknown[:3])
+        failures.append(f"- {cfg_path.name}: {len(unknown)} unknown-keyword issue(s)\n{sample}")
+    if failures:
+        pytest.fail(f"{version}: {len(failures)} example config(s) with unknown-keyword\n" + "\n".join(failures[:15]))

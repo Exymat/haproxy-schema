@@ -10,41 +10,23 @@ from haproxy_schema.schema import HaproxySchema
 from ._paths import hapee_root, haproxy_vscode_root, monorepo_root
 
 _MONO = monorepo_root()
-SCHEMA_PATH = haproxy_vscode_root() / "schemas" / "haproxy-3.2.schema.json"
+VERSIONS = ("2.6", "2.8", "3.0", "3.2", "3.4")
 
 
-def _conf_dirs() -> list[Path]:
-    roots: list[Path] = []
-    if _MONO is not None:
-        upstream = _MONO / "haproxy_git" / "haproxy-3.2" / "tests" / "conf"
-        if upstream.is_dir():
-            roots.append(upstream)
-    hapee = hapee_root()
-    if hapee is not None:
-        roots.extend(sorted(p.parent for p in hapee.glob("*/haproxy.cfg")))
-    return roots
+def _schema_path(version: str) -> Path:
+    return haproxy_vscode_root() / "schemas" / f"haproxy-{version}.schema.json"
 
 
-CONF_DIRS = _conf_dirs()
-
-
-@pytest.fixture(scope="module")
-def schema() -> HaproxySchema:
-    if not SCHEMA_PATH.is_file():
-        pytest.skip(f"schema not built: {SCHEMA_PATH}")
-    return HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
-
-
-def _collect_cfg_files() -> list[Path]:
+def _conf_dirs(version: str) -> list[Path]:
     files: list[Path] = []
-    for root in CONF_DIRS:
-        if not root.is_dir():
-            continue
-        hapee_cfg = root / "haproxy.cfg"
-        if hapee_cfg.is_file():
-            files.append(hapee_cfg)
-            continue
-        files.extend(sorted(root.rglob("*.cfg")))
+    if _MONO is not None:
+        upstream = _MONO / "haproxy_git" / f"haproxy-{version}" / "tests" / "conf"
+        if upstream.is_dir():
+            files.extend(sorted(upstream.rglob("*.cfg")))
+    if version == "3.2":
+        hapee = hapee_root()
+        if hapee is not None:
+            files.extend(sorted(p for p in hapee.glob("*/haproxy.cfg") if p.is_file()))
     return files
 
 
@@ -54,10 +36,25 @@ def _cfg_test_id(path: Path) -> str:
     return path.name
 
 
-@pytest.mark.parametrize("cfg_path", _collect_cfg_files(), ids=_cfg_test_id)
-def test_valid_config_has_no_unknown_keyword(schema: HaproxySchema, cfg_path: Path) -> None:
-    result = validate_config_file(cfg_path, schema)
-    unknown = result.unknown_keyword_issues
-    if unknown:
-        sample = "\n".join(f"  L{i.line + 1}: {i.message}" for i in unknown[:5])
-        pytest.fail(f"{cfg_path.name}: {len(unknown)} unknown-keyword issue(s)\n{sample}")
+@pytest.mark.parametrize("version", VERSIONS)
+def test_valid_config_has_no_unknown_keyword(version: str) -> None:
+    schema_path = _schema_path(version)
+    if not schema_path.is_file():
+        pytest.skip(f"schema not built: {schema_path}")
+    cfg_files = _conf_dirs(version)
+    if not cfg_files:
+        pytest.skip(f"no conf corpus available for {version}")
+
+    schema = HaproxySchema.from_json(schema_path.read_text(encoding="utf-8"))
+    failures: list[str] = []
+    for cfg_path in cfg_files:
+        result = validate_config_file(cfg_path, schema)
+        unknown = result.unknown_keyword_issues
+        if not unknown:
+            continue
+        sample = "\n".join(f"    L{i.line + 1}: {i.message}" for i in unknown[:3])
+        failures.append(
+            f"- {_cfg_test_id(cfg_path)}: {len(unknown)} unknown-keyword issue(s)\n{sample}"
+        )
+    if failures:
+        pytest.fail(f"{version}: {len(failures)} config(s) with unknown-keyword\n" + "\n".join(failures[:15]))
