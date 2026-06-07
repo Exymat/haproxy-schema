@@ -35,7 +35,7 @@ Outputs (written by **haproxy-vscode** `npm run generate:schema:<version>` or di
 | -------- | ------- |
 | `haproxy-X.Y.schema.json` | Section/keyword model, statement rules, argument signatures, **`line_layout`** (prefix families, tcp phases, stats socket levels), **`options_with_value`**, enriched **`argument_model.slots.value_kind`**, **`fixed_slots.address_policy`**, sample **`max_args`** — drives diagnostics |
 | `haproxy-X.Y.language.json` | Completion and hover payloads for the VS Code extension |
-| `haproxy-X.Y.tmLanguage.json` | TextMate grammar for syntax highlighting |
+| `haproxy-X.Y.tmLanguage.json` | Fully generated TextMate grammar for syntax highlighting |
 | `coverage-X.Y.json` | Doc vs dkall gap report (keywords missing from either side) |
 
 **2.6** and **2.8** use the legacy `configuration.txt` layout: rule actions are listed inline under each proxy keyword in §4.2 rather than in the separate §4.3/§4.4 reference used from 3.0 onward. The parser detects this automatically (`doc_layout.py`, `legacy_action_parser.py`).
@@ -84,8 +84,10 @@ python -m pytest haproxy_schema\tests -q
 | Command | Description |
 | ------- | ----------- |
 | `build` | Merge `configuration.txt` + dkall dump into schema JSON; optionally emit language data, grammar, and coverage report |
-| `emit-grammar` | Regenerate a TextMate grammar from an existing schema JSON |
+| `emit-grammar` | Regenerate a fully generated TextMate grammar from an existing schema JSON |
 | `check-grammar` | Verify an emitted grammar covers all schema directives (prefix conflicts, missing cache keywords, stale hyphen forms) |
+
+The grammar generator is self-contained: it does not fetch or patch any upstream tmLanguage template at build time. Generated grammars point `$schema` to a local sidecar file, `./tmlanguage.schema.json`, which is emitted beside each `haproxy-X.Y.tmLanguage.json`.
 | `audit-docs` | Report bind/server/proxy options missing hover documentation |
 | `doc-parse-audit` | Audit `configuration.txt` extraction quality for docs, signatures, hover payloads, and action references |
 | `schema-fidelity-audit` | Audit how completely keyword arguments, nested options, sample functions, and value-taking options are modeled in schema JSON |

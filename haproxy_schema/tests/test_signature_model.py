@@ -1,4 +1,8 @@
-from haproxy_schema.signature_model import build_argument_model, parse_signature_model
+from haproxy_schema.signature_model import (
+    _patch_argument_model,
+    build_argument_model,
+    parse_signature_model,
+)
 
 
 def test_mode_single_enum_argument() -> None:
@@ -60,6 +64,13 @@ def test_trace_args_ellipsis() -> None:
     assert model.max_args is None
 
 
+def test_optional_pipe_enum_in_brackets_splits_alternatives() -> None:
+    model = build_argument_model("ssl-server-verify", ["ssl-server-verify [none|required]"])
+    assert model is not None
+    assert model.max_args == 1
+    assert set(model.slots[0].enum) == {"none", "required"}
+
+
 def test_optional_literal_in_brackets_becomes_enum() -> None:
     model = build_argument_model(
         "balance url_param",
@@ -70,6 +81,17 @@ def test_optional_literal_in_brackets_becomes_enum() -> None:
     assert model.max_args == 2
     assert model.slots[1].optional is True
     assert model.slots[1].enum == ["check_post"]
+
+
+def test_log_signature_includes_facility_tail() -> None:
+    signature = (
+        "log <target> [len <length>] [format <format>] [sample <ranges>:<sample_size>] "
+        "[profile <prof>] <facility> [<level> [<minlevel>]]"
+    )
+    model = build_argument_model("log", [signature])
+    assert model is not None
+    assert model.min_args == 2
+    assert any(slot.value_kind == "generic" and not slot.enum for slot in model.slots)
 
 
 def test_doc_enum_enrichment_does_not_pollute_trailing_literal_enum() -> None:
@@ -111,6 +133,30 @@ def test_optional_group_with_literal_and_placeholder_does_not_leak_signature_syn
     assert model is not None
     all_enums = [value for slot in model.slots for value in slot.enum]
     assert all("<" not in value and "[" not in value and "]" not in value for value in all_enums)
+
+
+def test_log_argument_model_adds_syslog_facility_and_levels() -> None:
+    signature = (
+        "log <target> [len <length>] [format <format>] [sample <ranges>:<sample_size>] "
+        "[profile <prof>] <facility> [<level> [<minlevel>]]"
+    )
+    model = build_argument_model("log", [signature])
+    assert model is not None
+    _patch_argument_model("log", model)
+    assert "local0" in model.slots[-3].enum
+    assert "debug" in model.slots[-2].enum
+    assert "info" in model.slots[-1].enum
+
+
+def test_redirect_argument_model_allows_variadic_options() -> None:
+    model = build_argument_model(
+        "redirect prefix",
+        ["redirect prefix   <pfx> [code <code>] <option> [{if | unless} <condition>]"],
+    )
+    assert model is not None
+    _patch_argument_model("redirect prefix", model)
+    assert model.max_args is None
+    assert model.slots[-1].variadic is True
 
 
 def test_keyword_suffix_parenthesized_argument_is_parsed() -> None:

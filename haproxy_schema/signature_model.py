@@ -276,6 +276,16 @@ def _parse_slot(part: str) -> list[ArgSlot]:
         if inner.lower() in {"param*", "params*", "arg*", "args*"}:
             return [ArgSlot(optional=True, variadic=True)]
         if (
+            "|" in inner
+            and "<" not in inner
+            and "{" not in inner
+            and "(" not in inner
+            and not inner.startswith("[")
+        ):
+            enum = [piece.strip().lower() for piece in _split_top_level(inner, "|") if piece.strip()]
+            if enum:
+                return [ArgSlot(optional=True, variadic=variadic, enum=enum, value_kind="enum")]
+        if (
             " " in inner
             and "<" not in inner
             and "{" not in inner
@@ -442,6 +452,76 @@ def _enrich_slots_from_doc_enums(model: ArgumentModel, enum_names: list[str], sl
     model.slots[slot_index].value_kind = "enum"
 
 
+_SYSLOG_FACILITIES = (
+    "kern",
+    "user",
+    "mail",
+    "daemon",
+    "auth",
+    "syslog",
+    "lpr",
+    "news",
+    "uucp",
+    "cron",
+    "auth2",
+    "ftp",
+    "ntp",
+    "audit",
+    "alert",
+    "cron2",
+    "local0",
+    "local1",
+    "local2",
+    "local3",
+    "local4",
+    "local5",
+    "local6",
+    "local7",
+)
+
+_SYSLOG_LEVELS = ("emerg", "alert", "crit", "err", "warning", "notice", "info", "debug")
+
+_REDIRECT_OPTIONS = ("drop-query", "append-slash", "ignore-empty", "set-cookie", "clear-cookie")
+
+
+def _patch_log_argument_model(model: ArgumentModel) -> None:
+    """Attach syslog facility/level enums to the trailing positional slots."""
+    if len(model.slots) < 3:
+        return
+    for slot in model.slots:
+        if slot.enum == ["profile"]:
+            slot.optional = True
+    tail_enums = (_SYSLOG_FACILITIES, _SYSLOG_LEVELS, _SYSLOG_LEVELS)
+    start = len(model.slots) - len(tail_enums)
+    for offset, enum_values in enumerate(tail_enums):
+        slot = model.slots[start + offset]
+        slot.enum = list(enum_values)
+        slot.value_kind = "enum"
+
+
+def _patch_redirect_argument_model(model: ArgumentModel) -> None:
+    """Allow redirect option keywords and their arguments before the condition."""
+    if not model.slots:
+        return
+    prefix_slot = model.slots[0]
+    model.slots = [
+        prefix_slot,
+        ArgSlot(optional=True, enum=["code"], value_kind="enum"),
+        ArgSlot(optional=True, value_kind="generic"),
+        ArgSlot(optional=True, variadic=True, value_kind="generic"),
+    ]
+    model.min_args = 2
+    model.max_args = None
+
+
+def _patch_argument_model(keyword: str, model: ArgumentModel) -> None:
+    lower = keyword.lower()
+    if lower == "log":
+        _patch_log_argument_model(model)
+    elif lower.startswith("redirect "):
+        _patch_redirect_argument_model(model)
+
+
 def attach_argument_models(keywords: dict[str, _KeywordLike]) -> None:
     """Mutate schema Keyword objects in place (expects .signatures list)."""
     from .schema import ArgumentModel as SchemaArgumentModel
@@ -452,6 +532,7 @@ def attach_argument_models(keywords: dict[str, _KeywordLike]) -> None:
         model = build_argument_model(keyword, signatures, all_keywords=names)
         if model is None:
             continue
+        _patch_argument_model(keyword, model)
         arguments = getattr(kw, "arguments", None) or []
         normalized_param_to_slot = {
             param.parameter.strip().lower(): idx

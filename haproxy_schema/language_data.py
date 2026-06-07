@@ -80,6 +80,13 @@ def _acl_group_items(mapping: dict[str, str], signature_fmt: str = "") -> list[G
     ]
 
 
+def _sample_signature(item: object) -> str:
+    signature = getattr(item, "signature", "") or ""
+    if getattr(item, "deprecated", False) and signature and "(deprecated)" not in signature.lower():
+        return f"{signature} (deprecated)"
+    return signature
+
+
 def build_language_data(
     version: str,
     doc: DocParseResult,
@@ -117,12 +124,12 @@ def build_language_data(
         descriptions: dict[str, str],
         signatures: dict[str, str],
         *,
-        docs_chapter: str = "",
+        docs_chapter: str | None = None,
     ) -> list[GroupItem]:
         items: list[GroupItem] = []
         for name in names:
             action = actions.get(name)
-            doc_url = docs_url(version, name, docs_chapter) if docs_chapter else ""
+            doc_url = docs_url(version, name, docs_chapter or "") if docs_chapter is not None else ""
             items.append(
                 GroupItem(
                     name=name,
@@ -192,14 +199,14 @@ def build_language_data(
         "sample_fetches": group_items(
             sorted(dkall.sample_fetches),
             {name: item.description for name, item in doc.sample_reference.fetches.items() if item.description},
-            {name: item.signature for name, item in doc.sample_reference.fetches.items() if item.signature},
-            docs_chapter="7.3",
+            {name: _sample_signature(item) for name, item in doc.sample_reference.fetches.items() if item.signature},
+            docs_chapter="",
         ),
         "sample_converters": group_items(
             sorted(dkall.sample_converters),
             {name: item.description for name, item in doc.sample_reference.converters.items() if item.description},
-            {name: item.signature for name, item in doc.sample_reference.converters.items() if item.signature},
-            docs_chapter="7.3.1",
+            {name: _sample_signature(item) for name, item in doc.sample_reference.converters.items() if item.signature},
+            docs_chapter="",
         ),
         "filters": group_items(sorted(dkall.filters), {}, {}),
         "acl_flags": _acl_group_items(doc.acl_reference.flags, "-{name}"),

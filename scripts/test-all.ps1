@@ -15,7 +15,6 @@ if (-not (Test-Path (Join-Path $VscodeDir "package.json"))) {
 
 Write-Host "== grammar coverage checks =="
 $SchemaDir = Join-Path $VscodeDir "schemas"
-$GrammarTemplate = Join-Path $VscodeDir "syntaxes\haproxy.tmLanguage.json"
 $Versions = @("2.6", "2.8", "3.0", "3.2", "3.4")
 foreach ($version in $Versions) {
   $SchemaPath = Join-Path $SchemaDir "haproxy-$version.schema.json"
@@ -23,7 +22,7 @@ foreach ($version in $Versions) {
     Write-Host "skip grammar check for $version (missing schema artifact)"
     continue
   }
-  python -m haproxy_schema check-grammar --schema $SchemaPath --grammar-template $GrammarTemplate
+  python -m haproxy_schema check-grammar --schema $SchemaPath
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 

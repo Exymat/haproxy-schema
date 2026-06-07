@@ -41,6 +41,7 @@ ACTION_MATRIX_GROUP_KEYS = tuple(
 STANDALONE_SECTION_SPECS: tuple[tuple[str, str], ...] = (
     ("5.3.2", "resolvers"),
     ("6.2.1", "cache"),
+    ("8.3.5", "log-profile"),
     ("10.1.1", "fcgi-app"),
     ("11.2", "peers"),
     ("12.1", "traces"),
@@ -69,6 +70,7 @@ SHARED_STANDALONE_SECTION_SPECS: tuple[tuple[str, str], ...] = (
     ("5.3.2", "resolvers"),
     ("6.2.1", "cache"),
     ("10.1.1", "fcgi-app"),
+    ("8.3.5", "log-profile"),
 )
 
 # Keywords that declare the section itself rather than an inner directive.
@@ -86,6 +88,7 @@ _SECTION_DECLARATION_KEYWORDS = frozenset(
         "mailers",
         "program",
         "acme",
+        "log-profile",
     }
 )
 

@@ -184,6 +184,32 @@ def is_description_stop_line(line: str) -> bool:
     return any(stripped.startswith(prefix) for prefix in DESCRIPTION_STOP_PREFIXES)
 
 
+_SIGNATURE_CONTINUATION_RE = re.compile(r"^[\[<{]")
+_SIGNATURE_SYNTAX_RE = re.compile(r"[<|\[\]{}]|]\*|\]\s*\*")
+
+
+def _looks_like_signature_fragment(stripped: str) -> bool:
+    if _SIGNATURE_CONTINUATION_RE.match(stripped):
+        return True
+    if _SIGNATURE_SYNTAX_RE.search(stripped):
+        return True
+    return False
+
+
+def is_signature_continuation_line(line: str) -> bool:
+    """True for indented signature fragments split across doc lines (e.g. log facility tail)."""
+    if get_indent(line) < 4:
+        return False
+    stripped = line.strip()
+    if not stripped:
+        return False
+    if stripped.startswith("#"):
+        return False
+    if is_description_stop_line(line):
+        return False
+    return _looks_like_signature_fragment(stripped)
+
+
 def extract_description_after_header(lines: list[str], header_idx: int) -> str:
     """First substantive indented paragraph after signature block."""
     idx = header_idx + 1
@@ -219,20 +245,29 @@ def extract_description_after_header(lines: list[str], header_idx: int) -> str:
     return " ".join(parts).strip()
 
 
+def _append_signature_continuations(lines: list[str], signatures: list[str], idx: int) -> int:
+    while idx < len(lines) and is_signature_continuation_line(lines[idx]):
+        signatures[-1] = f"{signatures[-1]} {lines[idx].strip()}"
+        idx += 1
+    return idx
+
+
 def collect_signature_lines(lines: list[str], start_idx: int) -> tuple[list[str], int]:
     """Collect consecutive keyword header lines (alternate signatures)."""
     signatures: list[str] = []
     idx = start_idx
     while idx < len(lines):
         matched = match_dconv_keyword_line(lines[idx])
-        if not matched and signatures:
-            break
         if not matched:
+            if signatures and is_signature_continuation_line(lines[idx]):
+                idx = _append_signature_continuations(lines, signatures, idx)
+                continue
             break
         sig = lines[idx].strip()
         if sig not in signatures:
             signatures.append(sig)
         idx += 1
+        idx = _append_signature_continuations(lines, signatures, idx)
     return signatures, idx
 
 

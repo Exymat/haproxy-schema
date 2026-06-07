@@ -30,3 +30,20 @@ accept
     assert "http-response" in actions["deny"].rulesets
     assert "quic-initial" in actions["accept"].rulesets
     assert "tcp-request connection" in actions["accept"].rulesets
+
+
+def test_parse_actions_appends_multiline_signature(tmp_path: Path) -> None:
+    content = """4.4. Alphabetically sorted actions reference
+---------------------------------------------
+
+deny [ { status | deny_status } <code> ] [ content-type <type> ]
+     [ { default-errorfiles | errorfile <file> | errorfiles <name> |
+       file <file> | lf-file <file> | string <str> | lf-string <fmt> } ]
+     [ hdr <name> <fmt> ]*
+  This stops the evaluation of the rules.
+"""
+    path = tmp_path / "configuration.txt"
+    path.write_text(content, encoding="utf-8")
+    actions = parse_actions(path)
+    assert "lf-string <fmt>" in actions["deny"].signature
+    assert "[ hdr <name> <fmt> ]*" in actions["deny"].signature

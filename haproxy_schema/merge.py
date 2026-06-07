@@ -260,6 +260,7 @@ def merge_schema(
             signature=doc.sample_reference.fetches.get(name).signature if name in doc.sample_reference.fetches else "",
             description=doc.sample_reference.fetches.get(name).description if name in doc.sample_reference.fetches else "",
             chapter=doc.sample_reference.fetches.get(name).chapter if name in doc.sample_reference.fetches else "",
+            deprecated=doc.sample_reference.fetches.get(name).deprecated if name in doc.sample_reference.fetches else False,
         )
         for name, info in dkall.sample_fetches_structured.items()
     }
@@ -273,6 +274,7 @@ def merge_schema(
             signature=doc.sample_reference.converters.get(name).signature if name in doc.sample_reference.converters else "",
             description=doc.sample_reference.converters.get(name).description if name in doc.sample_reference.converters else "",
             chapter=doc.sample_reference.converters.get(name).chapter if name in doc.sample_reference.converters else "",
+            deprecated=doc.sample_reference.converters.get(name).deprecated if name in doc.sample_reference.converters else False,
         )
         for name, info in dkall.sample_converters_structured.items()
     }

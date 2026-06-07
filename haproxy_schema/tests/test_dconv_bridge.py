@@ -1,10 +1,17 @@
 from pathlib import Path
 
+import pytest
+
 from haproxy_schema.dconv_bridge import (
+    collect_signature_lines,
     extract_description_after_header,
+    get_indent,
+    is_signature_continuation_line,
     match_dconv_keyword_line,
     walk_keyword_docs,
 )
+
+from ._paths import haproxy_configuration_txt
 
 
 def test_match_dconv_keyword_line() -> None:
@@ -40,3 +47,93 @@ balance <algorithm> [ <arguments> ]
     assert docs["mode"].description == "Define the operating mode."
     assert "balance" in docs
     assert docs["balance"].contexts == ["tcp", "http", "log"]
+
+
+def test_collect_signature_lines_appends_continuation() -> None:
+    lines = [
+        "log <target> [len <length>] [format <format>]",
+        "    [profile <prof>] <facility> [<level>]",
+        "  Adds a global syslog server.",
+    ]
+    signatures, next_idx = collect_signature_lines(lines, 0)
+    assert signatures == [
+        "log <target> [len <length>] [format <format>] [profile <prof>] <facility> [<level>]",
+    ]
+    assert next_idx == 2
+    assert is_signature_continuation_line(lines[1])
+    assert not is_signature_continuation_line(lines[2])
+
+
+def test_collect_signature_lines_appends_inner_alternative_lines() -> None:
+    lines = [
+        "http-error status <code> [content-type <type>]",
+        "           [ { default-errorfiles | errorfile <file> | errorfiles <name> |",
+        "               file <file> | lf-file <file> | string <str> | lf-string <fmt> } ]",
+        "           [ hdr <name> <fmt> ]*",
+        "  Defines a custom error message.",
+    ]
+    signatures, next_idx = collect_signature_lines(lines, 0)
+    assert len(signatures) == 1
+    assert "lf-string <fmt>" in signatures[0]
+    assert "[ hdr <name> <fmt> ]*" in signatures[0]
+    assert next_idx == 4
+
+
+def test_collect_signature_lines_appends_table_tail() -> None:
+    lines = [
+        "table <tablename> type {ip | integer | string [len <length>] | binary [len <length>]}",
+        "      size <size> [expire <expire>] [write-to <wtable>] [nopurge] [store <data_type>]*",
+        "      [recv-only]",
+        "  Configure a stickiness table.",
+    ]
+    signatures, next_idx = collect_signature_lines(lines, 0)
+    assert len(signatures) == 1
+    assert "size <size>" in signatures[0]
+    assert "[recv-only]" in signatures[0]
+    assert next_idx == 3
+
+
+def test_collect_signature_lines_ignores_example_blocks() -> None:
+    lines = [
+        "global",
+        "    # Simple configuration for an HTTP proxy",
+        "  Some description.",
+    ]
+    signatures, next_idx = collect_signature_lines(lines, 0)
+    assert signatures == ["global"]
+    assert next_idx == 1
+    assert not is_signature_continuation_line(lines[1])
+
+
+@pytest.mark.parametrize("version", ("2.6", "2.8", "3.0", "3.2", "3.4"))
+def test_configuration_txt_has_no_missed_signature_continuations(version: str) -> None:
+    doc_path = haproxy_configuration_txt(version)
+    if not doc_path.is_file():
+        pytest.skip(f"missing HAProxy doc source: {doc_path}")
+
+    lines = doc_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    missed: list[str] = []
+    for idx, line in enumerate(lines):
+        if not match_dconv_keyword_line(line):
+            continue
+        signatures, next_idx = collect_signature_lines(lines, idx)
+        scan = next_idx
+        while scan < len(lines):
+            candidate = lines[scan]
+            if not candidate.strip():
+                break
+            if match_dconv_keyword_line(candidate) or (candidate.strip() and not candidate.startswith(" ")):
+                break
+            if get_indent(candidate) >= 4 and not is_signature_continuation_line(candidate):
+                stripped = candidate.strip()
+                if not stripped.startswith("#"):
+                    missed.append(
+                        f"{version} L{idx + 1} {signatures[0][:60]}... "
+                        f"missed L{scan + 1}: {stripped[:60]}"
+                    )
+                    break
+            if candidate.startswith("  ") and not candidate.startswith("   "):
+                break
+            scan += 1
+
+    assert not missed, "Missed signature continuations:\n" + "\n".join(missed[:20])

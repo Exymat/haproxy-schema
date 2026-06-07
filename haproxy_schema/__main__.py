@@ -73,8 +73,7 @@ def _schema_fidelity_audit_cmd(args: argparse.Namespace) -> int:
 def _check_grammar_cmd(args: argparse.Namespace) -> int:
     schema_path = Path(args.schema)
     grammar_path = Path(args.grammar) if args.grammar else None
-    template = Path(args.grammar_template) if args.grammar_template else None
-    report = report_from_paths(schema_path, grammar_path or schema_path, template_path=template)
+    report = report_from_paths(schema_path, grammar_path or schema_path)
     if args.report_out:
         Path(args.report_out).write_text(json.dumps(report.to_dict(), indent=2) + "\n", encoding="utf-8")
     if not report.ok:
@@ -98,8 +97,7 @@ def _emit_grammar_cmd(args: argparse.Namespace) -> int:
     schema_path = Path(args.schema)
     schema = HaproxySchema.from_json_dict(json.loads(schema_path.read_text(encoding="utf-8")))
     grammar_path = Path(args.out)
-    template = Path(args.grammar_template) if args.grammar_template else grammar_path.parent / "haproxy.tmLanguage.json"
-    write_tm_language(schema, grammar_path, template_path=template)
+    write_tm_language(schema, grammar_path)
     return 0
 
 
@@ -119,8 +117,7 @@ def _build_cmd(args: argparse.Namespace) -> int:
 
     if args.grammar_out:
         grammar_path = Path(args.grammar_out)
-        template = Path(args.grammar_template) if args.grammar_template else grammar_path.parent / "haproxy.tmLanguage.json"
-        write_tm_language(schema, grammar_path, template_path=template)
+        write_tm_language(schema, grammar_path)
 
     if args.coverage_out:
         report = build_coverage_report(args.version, doc, dkall, schema)
@@ -154,7 +151,7 @@ def make_parser() -> argparse.ArgumentParser:
     build.add_argument(
         "--grammar-template",
         default="",
-        help="Base TextMate grammar to patch (default: haproxy.tmLanguage.json beside output)",
+        help="Deprecated and ignored; grammar emission is fully generated from schema data",
     )
     build.add_argument(
         "--coverage-out",
@@ -175,7 +172,7 @@ def make_parser() -> argparse.ArgumentParser:
     emit.add_argument(
         "--grammar-template",
         default="",
-        help="Base TextMate grammar to patch (default: haproxy.tmLanguage.json beside output)",
+        help="Deprecated and ignored; grammar emission is fully generated from schema data",
     )
     emit.set_defaults(func=_emit_grammar_cmd)
 
@@ -184,12 +181,12 @@ def make_parser() -> argparse.ArgumentParser:
     check.add_argument(
         "--grammar",
         default="",
-        help="Existing grammar JSON (optional; default: emit from template + schema)",
+        help="Existing grammar JSON (optional; default: emit directly from schema)",
     )
     check.add_argument(
         "--grammar-template",
         default="",
-        help="Base TextMate grammar template (required when --grammar omitted)",
+        help="Deprecated and ignored; grammar emission is fully generated from schema data",
     )
     check.add_argument("--report-out", default="", help="Write JSON report path")
     check.set_defaults(func=_check_grammar_cmd)

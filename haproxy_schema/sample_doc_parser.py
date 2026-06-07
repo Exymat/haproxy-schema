@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 import re
 
-from .dconv_bridge import extract_keyword_name
+from .dconv_bridge import extract_keyword_name, match_dconv_keyword_line
 
 
 @dataclass
@@ -15,6 +15,7 @@ class SampleDoc:
     chapter: str = ""
     input_type: str = ""
     output_type: str = ""
+    deprecated: bool = False
 
 
 @dataclass
@@ -129,18 +130,23 @@ def _find_detailed_list_start(lines: list[str], start: int, end: int, *, convert
     return -1
 
 
-def _detailed_header_signature(line: str, *, converters: bool) -> str | None:
+def _detailed_header_signature(line: str, *, converters: bool) -> tuple[str, bool] | None:
     stripped = line.strip()
     if not stripped or line.startswith(" "):
         return None
     if converters:
-        if stripped.startswith(("Example", "Examples", "These ", "The following")):
+        matched = match_dconv_keyword_line(line)
+        if not matched:
             return None
-        return stripped
+        signature = matched[1]
+        deprecated = signature.lower().endswith("(deprecated)")
+        signature = re.sub(r"\s+\(deprecated\)$", "", signature, flags=re.IGNORECASE)
+        return signature, deprecated
     match = re.match(r"^(.+?)\s*:\s*([a-zA-Z0-9_+ /-]+)(?:\s+\(deprecated\))?$", stripped)
     if not match:
         return None
-    return match.group(1).strip()
+    deprecated = bool(re.search(r"\s+\(deprecated\)$", stripped, flags=re.IGNORECASE))
+    return match.group(1).strip(), deprecated
 
 
 def _extract_first_paragraph(lines: list[str], start: int, end: int) -> str:
@@ -174,35 +180,48 @@ def _merge_details(
 ) -> None:
     detail_start = _find_detailed_list_start(lines, start, end, converters=converters)
     if detail_start < 0:
-        return
+        detail_start = start
     idx = detail_start
     while idx < end:
-        header = _detailed_header_signature(lines[idx], converters=converters)
-        if not header:
+        header_info = _detailed_header_signature(lines[idx], converters=converters)
+        if not header_info:
             idx += 1
             continue
-        name = _sample_name(header)
-        if not name:
-            idx += 1
-            continue
-        block_end = idx + 1
+        header_chain: list[tuple[str, bool]] = [header_info]
+        scan = idx + 1
+        while scan < end:
+            next_header = _detailed_header_signature(lines[scan], converters=converters)
+            if not next_header:
+                break
+            header_chain.append(next_header)
+            scan += 1
+
+        block_end = scan
         while block_end < end:
             if _detailed_header_signature(lines[block_end], converters=converters):
                 break
             if lines[block_end].strip().startswith("7.3."):
                 break
             block_end += 1
-        entry = entries.get(name)
-        if entry is None:
-            entry = SampleDoc(name=name, signature=header, chapter=chapter)
-            entries[name] = entry
-        if not entry.signature:
-            entry.signature = header
-        if not entry.chapter:
-            entry.chapter = chapter
-        description = _extract_first_paragraph(lines, idx + 1, block_end)
-        if description and not entry.description:
-            entry.description = description
+        description = _extract_first_paragraph(lines, scan, block_end)
+        for header, deprecated in header_chain:
+            name = _sample_name(header)
+            if not name:
+                continue
+            entry = entries.get(name)
+            if entry is None:
+                entry = SampleDoc(name=name, signature=header, chapter=chapter)
+                entries[name] = entry
+            if not entry.signature:
+                entry.signature = header
+            if not entry.chapter:
+                entry.chapter = chapter
+            if deprecated:
+                entry.deprecated = True
+                if "(deprecated)" not in entry.signature.lower():
+                    entry.signature = f"{entry.signature} (deprecated)"
+            if description and not entry.description:
+                entry.description = description
         idx = block_end
 
 
@@ -216,19 +235,24 @@ def _fill_missing_descriptions(
 ) -> None:
     detail_start = _find_detailed_list_start(lines, start, end, converters=converters)
     if detail_start < 0:
-        return
+        detail_start = start
     for item in entries.values():
         if item.description:
             continue
         idx = detail_start
         while idx < end:
-            header = _detailed_header_signature(lines[idx], converters=converters)
-            if not header:
+            header_info = _detailed_header_signature(lines[idx], converters=converters)
+            if not header_info:
                 idx += 1
                 continue
+            header, deprecated = header_info
             if _sample_name(header) != item.name:
                 idx += 1
                 continue
+            if deprecated:
+                item.deprecated = True
+                if item.signature and "(deprecated)" not in item.signature.lower():
+                    item.signature = f"{item.signature} (deprecated)"
             block_end = idx + 1
             while block_end < end:
                 if _detailed_header_signature(lines[block_end], converters=converters):

@@ -12,7 +12,8 @@ from .grammar_util import (
     is_directive_token,
     action_words,
 )
-from .schema import HaproxySchema
+from .schema import HaproxySchema, Keyword
+from .tm_language_schema import TM_LANGUAGE_SCHEMA_REF
 
 _DIRECTIVE = "keyword.other.directive.haproxy"
 _MODIFIER = "keyword.other.modifier.haproxy"
@@ -30,6 +31,10 @@ _NUMBER = "constant.numeric.haproxy"
 _STORAGE = "storage.type"
 _COMMENT = "comment.line.number-sign.haproxy"
 _PREPROCESSOR = "keyword.control.preprocessor.haproxy"
+_CONDITION = "keyword.control.conditional.haproxy"
+_BOOLEAN = "constant.language.boolean.haproxy"
+_ACL_FLAG = "storage.modifier.acl.haproxy"
+_COMPARISON = "keyword.operator.comparison.haproxy"
 
 _TCP_PHASES = ("connection", "session", "content", "inspect-delay")
 
@@ -223,6 +228,9 @@ _LOG_LEVELS = (
     "local7",
 )
 
+_BOOLEAN_LITERALS = ("on", "off", "true", "false", "TRUE", "FALSE", "enabled", "disabled")
+_COMPARISON_WORDS = ("eq", "ne", "lt", "le", "gt", "ge")
+
 
 def _scope(name: str) -> dict[str, str]:
     return {"name": name}
@@ -299,17 +307,39 @@ def _collect_single_arg_directives(schema: HaproxySchema) -> list[str]:
     return sorted(set(words), key=len, reverse=True)
 
 
+def _has_boolean_first_arg(keyword: Keyword) -> bool:
+    if any("<on/off>" in sig for sig in keyword.signatures):
+        return True
+    model = keyword.argument_model
+    if not model or model.min_args < 1 or not model.slots:
+        return False
+    slot = model.slots[0]
+    if slot.get("value_kind") != "enum":
+        return False
+    enum_vals = {v for v in slot.get("enum") or [] if v}
+    return bool(enum_vals) and enum_vals.issubset(set(_BOOLEAN_LITERALS))
+
+
+def _collect_boolean_value_directives(schema: HaproxySchema) -> list[str]:
+    words: list[str] = []
+    for name, kw in schema.keywords.items():
+        if " " in name or not is_directive_token(name):
+            continue
+        if _has_boolean_first_arg(kw):
+            words.append(name)
+    return sorted(set(words), key=len, reverse=True)
+
+
 def _collect_enum_words(schema: HaproxySchema) -> list[str]:
     words: set[str] = set(schema.keyword_groups.get("options", []))
     words.update(_MODE_VALUES)
     words.update(_BALANCE_ALGORITHMS)
     words.update(_LOG_LEVELS)
-    words.update({"if", "unless", "true", "false", "TRUE", "FALSE"})
     words.update(_REDIRECT_WORDS)
     words.update(_EXPECT_TYPES)
     # Common bind/server flags referenced outside bind lines.
     for opt in schema.keyword_groups.get("bind_options", []):
-        if opt in {"ssl", "check", "no-check", "no-backup", "backup", "disabled", "enabled"}:
+        if opt in {"ssl", "check", "no-check", "no-backup", "backup"}:
             words.add(opt)
     for opt in ("accept-proxy", "send-proxy", "send-proxy-v2", "proxy-v2-options", "v4only", "v6only"):
         words.add(opt)
@@ -318,6 +348,17 @@ def _collect_enum_words(schema: HaproxySchema) -> list[str]:
         key=len,
         reverse=True,
     )
+
+
+def _collect_sample_words(schema: HaproxySchema) -> list[str]:
+    words: set[str] = set()
+    words.update(schema.keyword_groups.get("sample_fetches", []))
+    words.update(schema.keyword_groups.get("sample_converters", []))
+    out: list[str] = []
+    for word in words:
+        if re.fullmatch(r"[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]+)*", word):
+            out.append(word)
+    return sorted(set(out), key=len, reverse=True)
 
 
 def _build_sections(schema: HaproxySchema) -> dict[str, Any]:
@@ -350,7 +391,20 @@ def _build_sections(schema: HaproxySchema) -> dict[str, Any]:
 
 
 def _build_directives_with_values(schema: HaproxySchema) -> dict[str, Any]:
-    patterns: list[dict[str, Any]] = [
+    patterns: list[dict[str, Any]] = []
+    boolean_directives = _collect_boolean_value_directives(schema)
+    if boolean_directives:
+        patterns.append(
+            {
+                "match": (
+                    rf"\b({alt_pattern(boolean_directives, limit=500)})"
+                    rf"\s+({alt_pattern(list(_BOOLEAN_LITERALS), limit=50)})\b"
+                ),
+                "captures": _captures(_DIRECTIVE, _BOOLEAN),
+            }
+        )
+    patterns.extend(
+        [
         {
             "match": r"\b(bind)\s+(\S+)(?:\s+(.*))?$",
             "captures": {
@@ -399,7 +453,8 @@ def _build_directives_with_values(schema: HaproxySchema) -> dict[str, Any]:
             "match": r"\b(maxconn)\s+(\S+)",
             "captures": _captures(_DIRECTIVE, _NUMBER),
         },
-    ]
+        ]
+    )
     return {"patterns": patterns}
 
 
@@ -518,13 +573,22 @@ def _build_bind_param_pairs(schema: HaproxySchema) -> dict[str, Any]:
     patterns: list[dict[str, Any]] = []
 
     if value_opts:
-        val_alt = "|".join(_option_token(o) for o in value_opts)
-        patterns.append(
-            {
-                "match": rf"\b({val_alt})\s+(\S+)",
-                "captures": _captures(_OPTION, _STRING),
-            }
-        )
+        if "name" in value_opts:
+            patterns.append(
+                {
+                    "match": r"\b(name)\s+(?!%\[|\[)(\S+)",
+                    "captures": _captures(_OPTION, _STRING),
+                }
+            )
+        generic_value_opts = [o for o in value_opts if o != "name"]
+        if generic_value_opts:
+            val_alt = "|".join(_option_token(o) for o in generic_value_opts)
+            patterns.append(
+                {
+                    "match": rf"\b({val_alt})\s+(\S+)",
+                    "captures": _captures(_OPTION, _STRING),
+                }
+            )
 
     proxy_flags = [o for o in all_opts if o in {"accept-proxy", "send-proxy", "send-proxy-v2", "proxy-v2-options"}]
     if proxy_flags:
@@ -576,15 +640,22 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
     cache_words = collect_cache_keywords(schema)
     single_arg = _collect_single_arg_directives(schema)
     enums = _collect_enum_words(schema)
-    fetches = [
-        f
-        for f in schema.keyword_groups.get("sample_fetches", [])
-        if "." in f and is_directive_token(f.split(".")[0])
-    ]
+    sample_words = _collect_sample_words(schema)
+    fetches = [f for f in sample_words if "." in f and is_directive_token(f.split(".")[0])]
     fetch_sample_pat = (
         rf"\b{alt_pattern(fetches, limit=500)}\b"
         if fetches
         else r"\b(?!)never-match"
+    )
+    sample_word_pat = (
+        rf"\b(?:{alt_pattern(sample_words, limit=3000)})\b"
+        if sample_words
+        else r"\b(?!)never-match"
+    )
+    sample_call_pat = (
+        rf"\b({alt_pattern(sample_words, limit=3000)})\s*(\()"
+        if sample_words
+        else r"(?!)never-match"
     )
 
     single_arg_pat = (
@@ -672,10 +743,33 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
         "sample-fetches": {
             "patterns": [
                 {"name": _STORAGE, "match": fetch_sample_pat},
+                {"name": _STORAGE, "match": sample_word_pat},
+                {"name": _STORAGE, "match": r"(?<=,)\s*[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]+)*\b"},
+                {"name": _STORAGE, "match": r"\b[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]+)+\b"},
+            ]
+        },
+        "sample-function-calls": {
+            "patterns": [
                 {
-                    "name": _STORAGE,
-                    "match": r"\b[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]+)+(?:\([^)]*\))?",
-                },
+                    "begin": sample_call_pat,
+                    "beginCaptures": {"1": _scope(_STORAGE), "2": _scope(_MODIFIER)},
+                    "end": r"\)",
+                    "endCaptures": {"0": _scope(_MODIFIER)},
+                    "patterns": [
+                        {"include": "#strings"},
+                        {"include": "#sample-function-calls"},
+                        {"include": "#sample-fetches"},
+                        {"include": "#acl-flags"},
+                        {"include": "#comparison-operators"},
+                        {"include": "#condition-keywords"},
+                        {"include": "#boolean-literals"},
+                        {"include": "#numbers"},
+                        {"include": "#enums"},
+                        {"include": "#filenames"},
+                        {"include": "#punctuation"},
+                        {"include": "#identifiers"},
+                    ],
+                }
             ]
         },
         "numbers": {
@@ -684,15 +778,96 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                 {"name": _NUMBER, "match": r"\b[0-9]+(?:\.[0-9]+)?(?:ms|s|m|h|d|k|%)?\b"},
             ]
         },
+        "acl-flags": {
+            "patterns": [{"name": _ACL_FLAG, "match": r"(?<!\S)--?[A-Za-z][\w-]*\b"}]
+        },
+        "comparison-operators": {
+            "patterns": [{"name": _COMPARISON, "match": _boundary_alt(list(_COMPARISON_WORDS), limit=50)}]
+        },
+        "acl-expressions": {
+            "patterns": [
+                {
+                    "name": "meta.group.expression.haproxy",
+                    "begin": r"\{",
+                    "beginCaptures": {"0": _scope(_MODIFIER)},
+                    "end": r"\}",
+                    "endCaptures": {"0": _scope(_MODIFIER)},
+                    "patterns": [
+                        {"include": "#strings"},
+                        {"include": "#sample-function-calls"},
+                        {"include": "#sample-fetches"},
+                        {"include": "#acl-flags"},
+                        {"include": "#comparison-operators"},
+                        {"include": "#condition-keywords"},
+                        {"include": "#boolean-literals"},
+                        {"include": "#numbers"},
+                        {"include": "#enums"},
+                        {"include": "#modifiers"},
+                        {"include": "#filenames"},
+                        {"include": "#punctuation"},
+                        {"include": "#identifiers"},
+                    ],
+                }
+            ]
+        },
+        "sample-expressions": {
+            "patterns": [
+                {
+                    "name": "meta.embedded.sample-expression.haproxy",
+                    "begin": r"%\[",
+                    "beginCaptures": {"0": _scope(_MODIFIER)},
+                    "end": r"\]",
+                    "endCaptures": {"0": _scope(_MODIFIER)},
+                    "patterns": [
+                        {"include": "#strings"},
+                        {"include": "#sample-function-calls"},
+                        {"include": "#sample-fetches"},
+                        {"include": "#acl-flags"},
+                        {"include": "#comparison-operators"},
+                        {"include": "#condition-keywords"},
+                        {"include": "#boolean-literals"},
+                        {"include": "#numbers"},
+                        {"include": "#enums"},
+                        {"include": "#filenames"},
+                        {"include": "#punctuation"},
+                        {"include": "#identifiers"},
+                    ],
+                },
+                {
+                    "name": "meta.embedded.sample-expression.haproxy",
+                    "begin": r"\[",
+                    "beginCaptures": {"0": _scope(_MODIFIER)},
+                    "end": r"\]",
+                    "endCaptures": {"0": _scope(_MODIFIER)},
+                    "patterns": [
+                        {"include": "#strings"},
+                        {"include": "#sample-function-calls"},
+                        {"include": "#sample-fetches"},
+                        {"include": "#acl-flags"},
+                        {"include": "#comparison-operators"},
+                        {"include": "#condition-keywords"},
+                        {"include": "#boolean-literals"},
+                        {"include": "#numbers"},
+                        {"include": "#enums"},
+                        {"include": "#filenames"},
+                        {"include": "#punctuation"},
+                        {"include": "#identifiers"},
+                    ],
+                },
+            ]
+        },
+        "condition-keywords": {
+            "patterns": [{"name": _CONDITION, "match": r"\b(?:if|unless)\b"}]
+        },
+        "boolean-literals": {
+            "patterns": [{"name": _BOOLEAN, "match": _boundary_alt(list(_BOOLEAN_LITERALS), limit=50)}]
+        },
         "enums": {"patterns": [{"name": _STORAGE, "match": _boundary_alt(enums, limit=2000)}]},
         "modifiers": {
             "patterns": [{"name": _MODIFIER, "match": r"\b(?:no|(?<!from )default|!\s*)\b"}]
         },
         "expressions": {
             "patterns": [
-                {"name": _STRING, "match": r"\{[^}]*\}"},
-                {"name": _STRING, "match": r"%\[[^\]]*\]"},
-                {"name": _STRING, "match": r"\[[^\]]*\]"},
                 {"name": "constant.character.escape.haproxy", "match": r'\\[\s"\\]'},
             ]
         },
@@ -720,7 +895,7 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
 
 def build_tm_language(schema: HaproxySchema) -> dict[str, Any]:
     return {
-        "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+        "$schema": TM_LANGUAGE_SCHEMA_REF,
         "name": f"HAProxy {schema.version}",
         "scopeName": "source.haproxy",
         "patterns": [
@@ -733,6 +908,9 @@ def build_tm_language(schema: HaproxySchema) -> dict[str, Any]:
             {"include": "#cache-keywords"},
             {"include": "#schema-directives"},
             {"include": "#sample-fetches"},
+            {"include": "#sample-function-calls"},
+            {"include": "#acl-expressions"},
+            {"include": "#sample-expressions"},
             {"include": "#rule-actions"},
             {"include": "#check-actions"},
             {"include": "#log-line"},
@@ -744,6 +922,10 @@ def build_tm_language(schema: HaproxySchema) -> dict[str, Any]:
             {"include": "#versions"},
             {"include": "#sample-fetches"},
             {"include": "#numbers"},
+            {"include": "#acl-flags"},
+            {"include": "#comparison-operators"},
+            {"include": "#condition-keywords"},
+            {"include": "#boolean-literals"},
             {"include": "#enums"},
             {"include": "#modifiers"},
             {"include": "#expressions"},

@@ -11,7 +11,6 @@ from haproxy_schema.schema import HaproxySchema
 
 ROOT = Path(__file__).resolve().parents[2]
 VSCODE_ROOT = ROOT.parent / "haproxy-vscode"
-TEMPLATE_PATH = VSCODE_ROOT / "syntaxes" / "haproxy.tmLanguage.json"
 VERSIONS = ("2.6", "2.8", "3.0", "3.2", "3.4")
 
 
@@ -64,5 +63,5 @@ def test_report_from_paths(version: str) -> None:
     schema_path = _schema_path(version)
     if not schema_path.is_file():
         pytest.skip(f"schema not built: {schema_path}")
-    report = report_from_paths(schema_path, schema_path, template_path=TEMPLATE_PATH)
+    report = report_from_paths(schema_path, schema_path)
     assert report.ok

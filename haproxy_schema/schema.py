@@ -55,6 +55,7 @@ class SampleFunction:
     signature: str = ""
     description: str = ""
     chapter: str = ""
+    deprecated: bool = False
 
 
 @dataclass
@@ -197,6 +198,7 @@ class HaproxySchema:
                     signature=item.get("signature", ""),
                     description=item.get("description", ""),
                     chapter=item.get("chapter", ""),
+                    deprecated=item.get("deprecated", False),
                 )
             return out
 
