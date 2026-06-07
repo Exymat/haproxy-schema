@@ -88,9 +88,7 @@
     "tcp-response",
     "tune.vars.check-max-size"
   ],
-  "keywords_without_argument_model": [
-    "transparent"
-  ],
+  "keywords_without_argument_model": [],
   "sections_doc_only": [
     "backend",
     "cache",

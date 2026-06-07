@@ -257,6 +257,9 @@ def merge_schema(
             out_type=info.out_type,
             contexts=info.contexts,
             max_args=len(info.args) if info.args else 0,
+            signature=doc.sample_reference.fetches.get(name).signature if name in doc.sample_reference.fetches else "",
+            description=doc.sample_reference.fetches.get(name).description if name in doc.sample_reference.fetches else "",
+            chapter=doc.sample_reference.fetches.get(name).chapter if name in doc.sample_reference.fetches else "",
         )
         for name, info in dkall.sample_fetches_structured.items()
     }
@@ -267,6 +270,9 @@ def merge_schema(
             in_type=info.in_type,
             out_type=info.out_type,
             max_args=len(info.args) if info.args else None,
+            signature=doc.sample_reference.converters.get(name).signature if name in doc.sample_reference.converters else "",
+            description=doc.sample_reference.converters.get(name).description if name in doc.sample_reference.converters else "",
+            chapter=doc.sample_reference.converters.get(name).chapter if name in doc.sample_reference.converters else "",
         )
         for name, info in dkall.sample_converters_structured.items()
     }

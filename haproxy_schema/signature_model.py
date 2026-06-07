@@ -10,8 +10,6 @@ from .dconv_bridge import extract_keyword_name
 
 _ENUM_RE = re.compile(r"^\{(.+)\}$")
 _CONDITIONAL_TAIL = re.compile(r"^\[\s*\{\s*if\s*\|\s*unless\s*\}", re.I)
-
-
 @dataclass
 class ArgSlot:
     optional: bool = False
@@ -30,9 +28,6 @@ class ArgumentModel:
         return asdict(self)
 
 
-_SIGNATURE_PART_RE = re.compile(r"\{[^{}]*\}|<[^>]+>|\[[^\]]*\]|[^\s]+")
-
-
 class _ValueDocLike(Protocol):
     name: str
 
@@ -48,8 +43,100 @@ class _KeywordLike(Protocol):
     argument_model: object | None
 
 
+def _find_matching(text: str, start: int, open_char: str, close_char: str) -> int:
+    depth = 0
+    for idx in range(start, len(text)):
+        ch = text[idx]
+        if ch == open_char:
+            depth += 1
+        elif ch == close_char:
+            depth -= 1
+            if depth == 0:
+                return idx
+    return -1
+
+
 def _tokenize_signature_parts(signature: str) -> list[str]:
-    return _SIGNATURE_PART_RE.findall(signature.strip())
+    out: list[str] = []
+    current: list[str] = []
+    stack: list[str] = []
+    closing = {"<": ">", "[": "]", "{": "}", "(": ")"}
+    for ch in signature.strip():
+        if ch.isspace() and not stack:
+            if current:
+                out.append("".join(current))
+                current = []
+            continue
+        current.append(ch)
+        if ch in closing:
+            stack.append(closing[ch])
+            continue
+        if stack and ch == stack[-1]:
+            stack.pop()
+    if current:
+        out.append("".join(current))
+    return out
+
+
+def _split_top_level(text: str, delimiter: str) -> list[str]:
+    out: list[str] = []
+    current: list[str] = []
+    stack: list[str] = []
+    closing = {"<": ">", "[": "]", "{": "}", "(": ")"}
+    for ch in text:
+        if ch == delimiter and not stack:
+            piece = "".join(current).strip()
+            if piece:
+                out.append(piece)
+            current = []
+            continue
+        current.append(ch)
+        if ch in closing:
+            stack.append(closing[ch])
+            continue
+        if stack and ch == stack[-1]:
+            stack.pop()
+    piece = "".join(current).strip()
+    if piece:
+        out.append(piece)
+    return out
+
+
+def _explode_token(token: str) -> list[str]:
+    out: list[str] = []
+    idx = 0
+    while idx < len(token):
+        ch = token[idx]
+        if ch.isspace():
+            idx += 1
+            continue
+        if ch in "<[{(":
+            close = { "<": ">", "[": "]", "{": "}", "(": ")" }[ch]
+            end = _find_matching(token, idx, ch, close)
+            if end < 0:
+                out.append(token[idx:])
+                break
+            piece = token[idx : end + 1]
+            idx = end + 1
+            if ch == "[":
+                while idx < len(token) and token[idx] in {"*", "."}:
+                    if token.startswith("...", idx):
+                        piece += "..."
+                        idx += 3
+                    elif token[idx] == "*":
+                        piece += "*"
+                        idx += 1
+                    else:
+                        idx += 1
+            out.append(piece)
+            continue
+        start = idx
+        while idx < len(token) and token[idx] not in "<[{(":
+            idx += 1
+        literal = token[start:idx].strip()
+        if literal:
+            out.append(literal)
+    return out
 
 
 def _parse_enum_values(part: str) -> list[str]:
@@ -57,9 +144,11 @@ def _parse_enum_values(part: str) -> list[str]:
     if not match:
         return []
     values: list[str] = []
-    for piece in match.group(1).split("|"):
+    for piece in _split_top_level(match.group(1), "|"):
         value = piece.strip()
         if not value or value.startswith("<"):
+            continue
+        if any(ch in value for ch in "<>[]{}()"):
             continue
         values.append(value.lower())
     return values
@@ -71,67 +160,189 @@ def _value_kind_from_part(part: str) -> str:
         return "enum"
     if lower in {"<name>", "<server-name>", "<id>", "<param>", "<parameter>"}:
         return "name"
+    if lower in {"<thread-group>", "<thread-set>"}:
+        return "name"
     if "addr" in lower or lower in {"<address>", "<addr>"}:
         return "address"
     if "path" in lower or "file" in lower:
         return "path"
+    if "port" in lower:
+        return "generic"
     return "generic"
 
 
-def _parse_slot(part: str) -> ArgSlot | None:
+def _literal_slot(part: str, *, optional: bool = False, variadic: bool = False) -> ArgSlot | None:
+    cleaned = part.strip().strip(",").strip(":").strip("/")
+    if not cleaned:
+        return None
+    if cleaned.startswith("(") and "<" in cleaned:
+        return ArgSlot(optional=optional, variadic=variadic)
+    if cleaned.lower() in {"param*", "params*", "arg*", "args*"}:
+        return ArgSlot(optional=optional, variadic=True)
+    if cleaned == "...":
+        return ArgSlot(optional=optional, variadic=True)
+    return ArgSlot(optional=optional, variadic=variadic, enum=[cleaned.lower()], value_kind="enum")
+
+
+def _build_model_from_slots(slots: list[ArgSlot]) -> ArgumentModel | None:
+    if not slots:
+        return None
+    if any(slot.variadic for slot in slots):
+        required = sum(1 for slot in slots if not slot.optional and not slot.variadic)
+        return ArgumentModel(min_args=required, max_args=None, slots=slots)
+    required = sum(1 for slot in slots if not slot.optional)
+    return ArgumentModel(min_args=required, max_args=len(slots), slots=slots)
+
+
+def _parse_sequence(text: str) -> list[ArgSlot]:
+    slots: list[ArgSlot] = []
+    previous_part = ""
+    for token in _tokenize_signature_parts(text):
+        for part in _explode_token(token):
+            if _is_port_decoration(part, previous_part):
+                previous_part = part
+                continue
+            if part == "...":
+                if slots:
+                    slots[-1].variadic = True
+                previous_part = part
+                continue
+            for slot in _parse_slot(part):
+                if slot is not None:
+                    slots.append(slot)
+            previous_part = part
+    return slots
+
+
+def _parse_slot(part: str) -> list[ArgSlot]:
     part = part.strip()
     if not part:
-        return None
+        return []
     if _CONDITIONAL_TAIL.match(part):
-        return None
+        return []
 
     if part.startswith("{"):
         enum = _parse_enum_values(part)
         if enum:
-            return ArgSlot(enum=enum, value_kind="enum")
-        return ArgSlot()
+            return [ArgSlot(enum=enum, value_kind="enum")]
+        models: list[ArgumentModel] = []
+        for alternative in _split_top_level(part[1:-1].strip(), "|"):
+            model = _build_model_from_slots(_parse_sequence(alternative))
+            if model is not None:
+                models.append(model)
+        merged = merge_argument_models(models)
+        return list(merged.slots) if merged is not None else [ArgSlot()]
 
     if part.startswith("<") and part.endswith(">"):
         inner = part[1:-1].strip()
         kind = _value_kind_from_part(part)
         if inner.endswith("...") or inner.endswith("*"):
-            return ArgSlot(variadic=True, value_kind=kind)
-        return ArgSlot(value_kind=kind)
+            return [ArgSlot(variadic=True, value_kind=kind)]
+        return [ArgSlot(value_kind=kind)]
 
     if part.startswith("["):
-        inner = part[1:-1].strip() if part.endswith("]") else part[1:].strip()
+        variadic = False
+        suffix = ""
+        if part.endswith("..."):
+            suffix = "..."
+            core = part[:-3]
+            variadic = True
+        elif part.endswith("*"):
+            suffix = "*"
+            core = part[:-1]
+            variadic = True
+        else:
+            core = part
+        inner = core[1:-1].strip() if core.endswith("]") else core[1:].strip()
         if _CONDITIONAL_TAIL.match(part) or inner.startswith("{ if"):
-            return None
-        if "..." in inner or inner.endswith("*"):
-            return ArgSlot(optional=True, variadic=True)
+            return []
         if inner.startswith("{"):
             enum = _parse_enum_values(inner)
             if enum:
-                return ArgSlot(optional=True, enum=enum, value_kind="enum")
-        if inner.startswith("<"):
-            return ArgSlot(optional=True, value_kind=_value_kind_from_part(inner if inner.startswith("<") else f"<{inner}>"))
-        # Optional literal token (e.g. [check_post]) is an enum with one value.
-        if inner and not inner.startswith("["):
-            return ArgSlot(optional=True, enum=[inner.lower()], value_kind="enum")
-        return ArgSlot(optional=True)
+                return [ArgSlot(optional=True, variadic=variadic, enum=enum, value_kind="enum")]
+            models: list[ArgumentModel] = []
+            for alternative in _split_top_level(inner[1:-1].strip(), "|"):
+                slots = _parse_sequence(alternative)
+                for slot in slots:
+                    slot.optional = True
+                model = _build_model_from_slots(slots)
+                if model is not None:
+                    models.append(model)
+            merged = merge_argument_models(models)
+            if merged is not None:
+                if variadic and merged.slots:
+                    merged.slots[-1].variadic = True
+                return list(merged.slots)
+        if inner.lower() in {"param*", "params*", "arg*", "args*"}:
+            return [ArgSlot(optional=True, variadic=True)]
+        if (
+            " " in inner
+            and "<" not in inner
+            and "{" not in inner
+            and not inner.startswith("[")
+        ):
+            return [ArgSlot(optional=True)]
+        slots: list[ArgSlot] = []
+        for token in _tokenize_signature_parts(inner):
+            for piece in _explode_token(token):
+                child_slots = _parse_slot(piece)
+                for slot in child_slots:
+                    slot.optional = True
+                    slots.append(slot)
+        if variadic and slots:
+            slots[-1].variadic = True
+        if slots:
+            return slots
+        literal = _literal_slot(inner, optional=True, variadic=variadic)
+        return [literal] if literal is not None else []
 
     if part in {",", "...", "(*)", "(deprecated)"} or part.startswith(","):
-        return None
+        return []
 
-    # Literal token in the signature (e.g. "meth", "send") counts as a required argument.
-    return ArgSlot()
+    literal = _literal_slot(part)
+    return [literal] if literal is not None else []
 
 
 def _signature_argument_parts(signature: str, keyword: str) -> list[str]:
-    parts = _tokenize_signature_parts(signature)
+    sig = re.sub(r"\s+\(deprecated\)$", "", signature.strip(), flags=re.I)
+    if sig.lower().startswith(keyword.lower()):
+        remainder = sig[len(keyword) :].strip()
+        if remainder.startswith("("):
+            end = _find_matching(remainder, 0, "(", ")")
+            if end > 0:
+                remainder = remainder[1:end] + remainder[end + 1 :]
+        parts: list[str] = []
+        for token in _tokenize_signature_parts(remainder):
+            parts.extend(_explode_token(token))
+        return parts
+    parts = _tokenize_signature_parts(sig)
     kw_parts = keyword.split()
     if parts[: len(kw_parts)] == kw_parts:
-        return parts[len(kw_parts) :]
+        out: list[str] = []
+        for token in parts[len(kw_parts) :]:
+            out.extend(_explode_token(token))
+        return out
     name = extract_keyword_name(signature)
     name_parts = name.split()
     if parts[: len(name_parts)] == name_parts:
-        return parts[len(name_parts) :]
-    return parts[len(kw_parts) :]
+        out: list[str] = []
+        for token in parts[len(name_parts) :]:
+            out.extend(_explode_token(token))
+        return out
+    out: list[str] = []
+    for token in parts[len(kw_parts) :]:
+        out.extend(_explode_token(token))
+    return out
+
+
+def _is_port_decoration(part: str, previous_part: str) -> bool:
+    lower = part.strip().lower()
+    prev = previous_part.strip().lower()
+    if prev == ":" and lower.startswith("<port"):
+        return True
+    if lower.startswith("[") and "port" in lower and ":" in lower and "<" not in lower.split("port", 1)[0]:
+        return True
+    return False
 
 
 def parse_signature_model(signature: str, keyword: str) -> ArgumentModel | None:
@@ -139,25 +350,11 @@ def parse_signature_model(signature: str, keyword: str) -> ArgumentModel | None:
     if not parts:
         return ArgumentModel(min_args=0, max_args=0, slots=[])
 
-    slots: list[ArgSlot] = []
-    for part in parts:
-        if part == "...":
-            if slots:
-                slots[-1].variadic = True
-            continue
-        slot = _parse_slot(part)
-        if slot is not None:
-            slots.append(slot)
+    slots = _parse_sequence(" ".join(parts))
 
     if not slots:
         return None
-
-    if any(slot.variadic for slot in slots):
-        required = sum(1 for slot in slots if not slot.optional and not slot.variadic)
-        return ArgumentModel(min_args=required, max_args=None, slots=slots)
-
-    required = sum(1 for slot in slots if not slot.optional)
-    return ArgumentModel(min_args=required, max_args=len(slots), slots=slots)
+    return _build_model_from_slots(slots)
 
 
 def merge_argument_models(models: list[ArgumentModel]) -> ArgumentModel | None:
@@ -176,6 +373,7 @@ def merge_argument_models(models: list[ArgumentModel]) -> ArgumentModel | None:
         optional = True
         variadic = False
         enums: set[str] = set()
+        kinds: set[str] = set()
         seen = False
         for model in models:
             if idx >= len(model.slots):
@@ -185,14 +383,27 @@ def merge_argument_models(models: list[ArgumentModel]) -> ArgumentModel | None:
             optional = optional and slot.optional
             variadic = variadic or slot.variadic
             enums.update(slot.enum)
+            if slot.value_kind:
+                kinds.add(slot.value_kind)
         if not seen:
             continue
+        value_kind = "generic"
+        if enums:
+            value_kind = "enum"
+        elif len(kinds) == 1:
+            value_kind = next(iter(kinds))
+        elif "address" in kinds:
+            value_kind = "address"
+        elif "name" in kinds:
+            value_kind = "name"
+        elif "path" in kinds:
+            value_kind = "path"
         merged_slots.append(
             ArgSlot(
                 optional=optional,
                 variadic=variadic,
                 enum=sorted(enums),
-                value_kind="enum" if enums else "generic",
+                value_kind=value_kind,
             )
         )
 
@@ -217,18 +428,18 @@ def build_argument_model(
     return merge_argument_models(models)
 
 
-def _enrich_slots_from_doc_enums(model: ArgumentModel, enum_names: list[str]) -> None:
-    if not enum_names:
+def _enrich_slots_from_doc_enums(model: ArgumentModel, enum_names: list[str], slot_index: int = 0) -> None:
+    if not enum_names or slot_index >= len(model.slots):
         return
-    if model.slots and model.slots[0].enum:
-        merged = sorted(set(model.slots[0].enum) | {name.lower() for name in enum_names})
-        model.slots[0].enum = merged
+    if model.slots[slot_index].enum:
+        merged = sorted(set(model.slots[slot_index].enum) | {name.lower() for name in enum_names})
+        model.slots[slot_index].enum = merged
         return
-    if any(slot.enum for slot in model.slots[1:]):
+    if any(slot.enum for slot in model.slots[slot_index + 1 :]):
         # Keep explicit trailing enum slots (e.g. optional literal modifiers) untouched.
         return
-    if model.slots:
-        model.slots[0].enum = sorted({name.lower() for name in enum_names})
+    model.slots[slot_index].enum = sorted({name.lower() for name in enum_names})
+    model.slots[slot_index].value_kind = "enum"
 
 
 def attach_argument_models(keywords: dict[str, _KeywordLike]) -> None:
@@ -241,18 +452,30 @@ def attach_argument_models(keywords: dict[str, _KeywordLike]) -> None:
         model = build_argument_model(keyword, signatures, all_keywords=names)
         if model is None:
             continue
-        doc_enums: list[str] = []
         arguments = getattr(kw, "arguments", None) or []
-        for param in arguments:
-            if param.parameter not in ("", "<algorithm>"):
-                continue
-            if param.parameter == "<algorithm>" and keyword != "balance":
-                continue
+        normalized_param_to_slot = {
+            param.parameter.strip().lower(): idx
+            for idx, param in enumerate(arguments)
+            if idx < len(model.slots)
+        }
+        for idx, param in enumerate(arguments):
+            doc_enums: list[str] = []
             for value in getattr(param, "values", []) or []:
                 base = value.name.split("(", 1)[0]
-                if base:
+                if base and "<" not in base and ">" not in base:
                     doc_enums.append(base)
-        _enrich_slots_from_doc_enums(model, doc_enums)
+            if not doc_enums:
+                continue
+            target_idx = None
+            parameter = getattr(param, "parameter", "").strip().lower()
+            if parameter in {"", "<algorithm>"} and idx < len(model.slots):
+                target_idx = idx
+            elif parameter in normalized_param_to_slot:
+                target_idx = normalized_param_to_slot[parameter]
+            elif len(arguments) == 1 and len(model.slots) == 1:
+                target_idx = 0
+            if target_idx is not None:
+                _enrich_slots_from_doc_enums(model, doc_enums, target_idx)
         kw.argument_model = SchemaArgumentModel(
             min_args=model.min_args,
             max_args=model.max_args,

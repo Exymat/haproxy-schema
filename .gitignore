@@ -6,6 +6,8 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+doc-parse-audit-*.json
+schema-fidelity-audit-*.json
 
 # Downloaded HAProxy binaries (see scripts/install-haproxy-binary.sh)
 haproxy_schema/bin/

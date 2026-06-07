@@ -81,3 +81,40 @@ def test_doc_enum_enrichment_does_not_pollute_trailing_literal_enum() -> None:
     _enrich_slots_from_doc_enums(model, ["roundrobin", "leastconn"])
     assert model.slots[0].enum == []
     assert model.slots[1].enum == ["check_post"]
+
+
+def test_server_signature_keeps_name_and_address_slots() -> None:
+    model = build_argument_model(
+        "server",
+        [
+            "server <name> <address>[:[port]] [param*]",
+            "server <name> <address> [param*]",
+        ],
+    )
+    assert model is not None
+    assert model.min_args >= 2
+    assert model.slots[0].value_kind == "name"
+    assert model.slots[1].value_kind == "address"
+
+
+def test_bind_optional_address_is_still_address_kind() -> None:
+    model = build_argument_model("bind", ["bind [<address>]:<port_range> [, ...] [param*]"])
+    assert model is not None
+    assert model.slots[0].value_kind == "address"
+
+
+def test_optional_group_with_literal_and_placeholder_does_not_leak_signature_syntax() -> None:
+    model = build_argument_model(
+        "option forwardfor",
+        ["option forwardfor [ except <network> ] [ header <name> ] [ if-none ]"],
+    )
+    assert model is not None
+    all_enums = [value for slot in model.slots for value in slot.enum]
+    assert all("<" not in value and "[" not in value and "]" not in value for value in all_enums)
+
+
+def test_keyword_suffix_parenthesized_argument_is_parsed() -> None:
+    model = build_argument_model("persist rdp-cookie", ["persist rdp-cookie(<name>)"])
+    assert model is not None
+    assert model.min_args == 1
+    assert model.slots[0].value_kind == "name"

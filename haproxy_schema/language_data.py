@@ -189,8 +189,18 @@ def build_language_data(
             action_groups["quic_initial_actions"], action_desc, action_sigs, docs_chapter="4.4"
         ),
         "acl_criteria": group_items(sorted(dkall.acl_criteria), {}, {}),
-        "sample_fetches": group_items(sorted(dkall.sample_fetches), {}, {}),
-        "sample_converters": group_items(sorted(dkall.sample_converters), {}, {}),
+        "sample_fetches": group_items(
+            sorted(dkall.sample_fetches),
+            {name: item.description for name, item in doc.sample_reference.fetches.items() if item.description},
+            {name: item.signature for name, item in doc.sample_reference.fetches.items() if item.signature},
+            docs_chapter="7.3",
+        ),
+        "sample_converters": group_items(
+            sorted(dkall.sample_converters),
+            {name: item.description for name, item in doc.sample_reference.converters.items() if item.description},
+            {name: item.signature for name, item in doc.sample_reference.converters.items() if item.signature},
+            docs_chapter="7.3.1",
+        ),
         "filters": group_items(sorted(dkall.filters), {}, {}),
         "acl_flags": _acl_group_items(doc.acl_reference.flags, "-{name}"),
         "acl_match_methods": _acl_group_items(doc.acl_reference.match_methods, '-m {name}'),

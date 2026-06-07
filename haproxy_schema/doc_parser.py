@@ -16,6 +16,7 @@ from .dconv_bridge import KeywordDoc, is_valid_keyword_name, merge_argument_docs
 from .doc_layout import DocLayout, detect_doc_layout
 from .legacy_action_parser import is_legacy_action_doc_keyword, parse_legacy_proxy_actions
 from .line_option_docs import walk_line_option_docs
+from .sample_doc_parser import SampleReferenceDoc, parse_sample_reference
 
 SECTIONS_MATRIX = ["defaults", "frontend", "listen", "backend"]
 
@@ -108,6 +109,7 @@ class DocParseResult:
     bind_option_docs: dict[str, KeywordDoc] = field(default_factory=dict)
     server_option_docs: dict[str, KeywordDoc] = field(default_factory=dict)
     acl_reference: AclReferenceDoc = field(default_factory=AclReferenceDoc)
+    sample_reference: SampleReferenceDoc = field(default_factory=SampleReferenceDoc)
 
 
 def _next_nonblank(lines: list[str], start: int) -> str:
@@ -532,5 +534,6 @@ def parse_configuration(path: Path) -> DocParseResult:
         result.server_option_docs = walk_line_option_docs(lines, section_52, server_end, "5.2")
 
     result.acl_reference = parse_acl_reference(path)
+    result.sample_reference = parse_sample_reference(path)
 
     return result

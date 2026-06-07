@@ -7,12 +7,14 @@ from pathlib import Path
 from .action_parser import parse_actions
 from .coverage import build_coverage_report
 from .dkall_parser import parse_dkall
+from .doc_parse_audit import build_doc_parse_audit_report
 from .doc_parser import parse_configuration
 from .grammar_coverage import report_from_paths
 from .grammar_emitter import write_tm_language
 from .language_data import build_language_data
 from .doc_audit import build_doc_audit_report
 from .merge import merge_schema
+from .schema_fidelity_audit import build_schema_fidelity_report
 from .schema import HaproxySchema
 
 
@@ -29,6 +31,42 @@ def _audit_docs_cmd(args: argparse.Namespace) -> int:
     print(f"Server options missing hover docs: {len(report.server_options_missing)}")
     if report.server_options_missing:
         print("  " + ", ".join(report.server_options_missing))
+    return 0
+
+
+def _doc_parse_audit_cmd(args: argparse.Namespace) -> int:
+    report = build_doc_parse_audit_report(args.version, Path(args.doc), Path(args.dkall))
+    if args.out:
+        Path(args.out).write_text(json.dumps(report.to_dict(), indent=2) + "\n", encoding="utf-8")
+    print(
+        f"Doc parse audit: {report.keyword_docs_count} keyword docs, "
+        f"{report.signature_keywords_count} signature keywords, "
+        f"{len(report.keywords_missing_description)} missing descriptions"
+    )
+    print(
+        f"Language payload: {report.language_keywords_count} keywords, "
+        f"{len(report.language_keywords_empty_description)} empty descriptions"
+    )
+    print(
+        f"Actions: {report.action_reference_count} reference entries, "
+        f"{len(report.actions_without_rulesets)} without rulesets"
+    )
+    return 0
+
+
+def _schema_fidelity_audit_cmd(args: argparse.Namespace) -> int:
+    report = build_schema_fidelity_report(args.version, Path(args.doc), Path(args.dkall))
+    if args.out:
+        Path(args.out).write_text(json.dumps(report.to_dict(), indent=2) + "\n", encoding="utf-8")
+    print(
+        f"Schema fidelity: {report.keywords_with_argument_model_count}/"
+        f"{report.keywords_with_signatures_count} keywords with argument_model, "
+        f"{len(report.keyword_argument_issues)} keywords with model issues"
+    )
+    print(
+        f"Sample functions: {report.sample_fetches.structured_count}/{report.sample_fetches.total_count} fetches, "
+        f"{report.sample_converters.structured_count}/{report.sample_converters.total_count} converters structured"
+    )
     return 0
 
 
@@ -162,6 +200,26 @@ def make_parser() -> argparse.ArgumentParser:
     audit.add_argument("--version", default="3.4", help="HAProxy version string")
     audit.add_argument("--out", default="", help="Optional JSON report path")
     audit.set_defaults(func=_audit_docs_cmd)
+
+    parse_audit = sub.add_parser(
+        "doc-parse-audit",
+        help="Audit configuration.txt extraction quality for schema/hover/action payloads",
+    )
+    parse_audit.add_argument("--doc", required=True, help="Path to configuration.txt")
+    parse_audit.add_argument("--dkall", required=True, help="Path to dkall.output")
+    parse_audit.add_argument("--version", default="3.4", help="HAProxy version string")
+    parse_audit.add_argument("--out", default="", help="Optional JSON report path")
+    parse_audit.set_defaults(func=_doc_parse_audit_cmd)
+
+    fidelity = sub.add_parser(
+        "schema-fidelity-audit",
+        help="Audit how completely token arguments/options are modeled in the generated schema",
+    )
+    fidelity.add_argument("--doc", required=True, help="Path to configuration.txt")
+    fidelity.add_argument("--dkall", required=True, help="Path to dkall.output")
+    fidelity.add_argument("--version", default="3.4", help="HAProxy version string")
+    fidelity.add_argument("--out", default="", help="Optional JSON report path")
+    fidelity.set_defaults(func=_schema_fidelity_audit_cmd)
     return parser
 
 

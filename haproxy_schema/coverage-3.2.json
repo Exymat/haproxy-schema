@@ -119,13 +119,7 @@
     "tune.vars.check-max-size",
     "verify"
   ],
-  "keywords_without_argument_model": [
-    "no option accept-invalid-http-request",
-    "no option accept-invalid-http-response",
-    "option accept-invalid-http-request",
-    "option accept-invalid-http-response",
-    "transparent"
-  ],
+  "keywords_without_argument_model": [],
   "sections_doc_only": [
     "backend",
     "cache",

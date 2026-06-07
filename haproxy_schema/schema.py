@@ -52,6 +52,9 @@ class SampleFunction:
     contexts: list[bool] = field(default_factory=list)
     min_args: int | None = None
     max_args: int | None = None
+    signature: str = ""
+    description: str = ""
+    chapter: str = ""
 
 
 @dataclass
@@ -191,6 +194,9 @@ class HaproxySchema:
                     contexts=item.get("contexts", []),
                     min_args=item.get("min_args"),
                     max_args=item.get("max_args"),
+                    signature=item.get("signature", ""),
+                    description=item.get("description", ""),
+                    chapter=item.get("chapter", ""),
                 )
             return out
 

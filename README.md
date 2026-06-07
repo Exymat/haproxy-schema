@@ -86,6 +86,9 @@ python -m pytest haproxy_schema\tests -q
 | `build` | Merge `configuration.txt` + dkall dump into schema JSON; optionally emit language data, grammar, and coverage report |
 | `emit-grammar` | Regenerate a TextMate grammar from an existing schema JSON |
 | `check-grammar` | Verify an emitted grammar covers all schema directives (prefix conflicts, missing cache keywords, stale hyphen forms) |
+| `audit-docs` | Report bind/server/proxy options missing hover documentation |
+| `doc-parse-audit` | Audit `configuration.txt` extraction quality for docs, signatures, hover payloads, and action references |
+| `schema-fidelity-audit` | Audit how completely keyword arguments, nested options, sample functions, and value-taking options are modeled in schema JSON |
 
 Example — build schema for 3.2 (paths assume sibling `haproxy_git/` trees):
 
@@ -98,6 +101,18 @@ python -m haproxy_schema build \
   --grammar-out /tmp/haproxy-3.2.tmLanguage.json \
   --coverage-out haproxy_schema/coverage-3.2.json \
   --version 3.2
+
+python -m haproxy_schema doc-parse-audit \
+  --doc ../haproxy_git/haproxy-3.2/doc/configuration.txt \
+  --dkall haproxy_schema/dkall-3.2.txt \
+  --version 3.2 \
+  --out haproxy_schema/doc-parse-audit-3.2.json
+
+python -m haproxy_schema schema-fidelity-audit \
+  --doc ../haproxy_git/haproxy-3.2/doc/configuration.txt \
+  --dkall haproxy_schema/dkall-3.2.txt \
+  --version 3.2 \
+  --out haproxy_schema/schema-fidelity-audit-3.2.json
 ```
 
 ## Regenerate dkall dumps

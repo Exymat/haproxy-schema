@@ -122,18 +122,7 @@
     "tune.vars.check-max-size",
     "verify"
   ],
-  "keywords_without_argument_model": [
-    "master-worker",
-    "no option accept-invalid-http-request",
-    "no option accept-invalid-http-response",
-    "no option transparent",
-    "option accept-invalid-http-request",
-    "option accept-invalid-http-response",
-    "option transparent",
-    "transparent",
-    "tune.quic.disable-tx-pacing",
-    "tune.quic.disable-udp-gso"
-  ],
+  "keywords_without_argument_model": [],
   "sections_doc_only": [
     "backend",
     "cache",
