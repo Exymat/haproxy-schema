@@ -5,6 +5,7 @@ def test_docs_anchor_matches_dconv_rules() -> None:
     assert docs_anchor("mode", "4.2") == "4.2-mode"
     assert docs_anchor("option httplog", "4.2") == "4.2-option%20httplog"
     assert docs_anchor("req.hdr_cnt") == "req.hdr_cnt"
+    assert docs_anchor("hdr_cnt(<name>)", "7.3.6") == "7.3.6-hdr_cnt%28%3Cname%3E%29"
     assert docs_url("3.4", "req.hdr_cnt") == (
         "https://docs.haproxy.org/3.4/configuration.html#req.hdr_cnt"
     )

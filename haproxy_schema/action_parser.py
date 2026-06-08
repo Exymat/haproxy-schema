@@ -52,6 +52,8 @@ class ActionDoc:
     description: str = ""
     rulesets: list[str] = field(default_factory=list)
     usable_in: str = ""
+    docs_keyword: str = ""
+    chapter: str = ""
 
 
 def _find_body_section(lines: list[str], section_id: str) -> int:
@@ -137,12 +139,18 @@ def parse_actions_lines(lines: list[str], start_idx: int, end_idx: int) -> dict[
                 description=description,
                 rulesets=rulesets,
                 usable_in=usable_in,
+                docs_keyword=name,
+                chapter="4.4",
             )
         else:
             if description and not entry.description:
                 entry.description = description
             elif signature and signature != entry.signature:
                 entry.signature = signature
+            if not entry.docs_keyword:
+                entry.docs_keyword = name
+            if not entry.chapter:
+                entry.chapter = "4.4"
             for ruleset in rulesets:
                 if ruleset not in entry.rulesets:
                     entry.rulesets.append(ruleset)

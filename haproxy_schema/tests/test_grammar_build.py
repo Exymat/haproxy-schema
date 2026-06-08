@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import json
 import tempfile
+from copy import deepcopy
 from pathlib import Path
 
 from haproxy_schema.grammar_build import build_tm_language
 from haproxy_schema.grammar_emitter import write_tm_language
 from haproxy_schema.grammar_util import collect_directive_keywords
-from haproxy_schema.schema import HaproxySchema
+from haproxy_schema.schema import HaproxySchema, Keyword, Section
 
 SCHEMA_PATH = Path(__file__).resolve().parents[2].parent / "haproxy-vscode" / "schemas" / "haproxy-3.2.schema.json"
 
@@ -118,3 +119,24 @@ def test_written_grammar_uses_local_schema_sidecar() -> None:
         assert grammar["$schema"] == "./tmlanguage.schema.json"
         assert sidecar.is_file()
         assert sidecar_json["title"] == "TextMate Grammar"
+
+
+def test_schema_directive_pattern_is_stable_for_equal_length_keywords() -> None:
+    schema_a = HaproxySchema(version="test")
+    for name in ("bind", "server", "alpha", "bravo", "delta", "charlie"):
+        schema_a.keywords[name] = Keyword(name=name)
+    schema_a.sections["defaults"] = Section(
+        name="defaults",
+        keywords=["bind", "server", "alpha", "bravo", "delta", "charlie"],
+    )
+
+    schema_b = deepcopy(schema_a)
+    schema_b.keywords = {name: schema_b.keywords[name] for name in reversed(list(schema_b.keywords.keys()))}
+    schema_b.sections["defaults"].keywords = list(reversed(schema_b.sections["defaults"].keywords))
+
+    grammar_a = build_tm_language(schema_a)
+    grammar_b = build_tm_language(schema_b)
+
+    assert grammar_a["repository"]["schema-directives"]["patterns"][0]["match"] == (
+        grammar_b["repository"]["schema-directives"]["patterns"][0]["match"]
+    )

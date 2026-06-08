@@ -7,6 +7,7 @@ from typing import Any
 
 from .grammar_util import (
     alt_pattern,
+    canonical_pattern_words,
     collect_cache_keywords,
     collect_directive_keywords,
     is_directive_token,
@@ -257,7 +258,7 @@ def _options_with_values(options: list[str]) -> list[str]:
     for opt in options:
         if opt in _VALUE_OPTION_EXACT or any(h in opt for h in _VALUE_OPTION_HINTS):
             out.append(opt)
-    return sorted(out, key=len, reverse=True)
+    return canonical_pattern_words(out)
 
 
 def _statement_rule_keywords(schema: HaproxySchema) -> set[str]:
@@ -280,7 +281,7 @@ def _group_multword_keywords(schema: HaproxySchema) -> dict[str, list[str]]:
             continue
         groups.setdefault(prefix, []).append(suffix)
     for prefix in groups:
-        groups[prefix] = sorted(set(groups[prefix]), key=len, reverse=True)
+        groups[prefix] = canonical_pattern_words(groups[prefix])
     return dict(sorted(groups.items()))
 
 
@@ -292,7 +293,7 @@ def _collect_check_steps(schema: HaproxySchema) -> dict[str, list[str]]:
                 step = name[len(prefix) + 1 :]
                 if step != "expect" and is_directive_token(step.replace(" ", "-")):
                     steps[prefix].add(step)
-    return {k: sorted(v, key=len, reverse=True) for k, v in steps.items()}
+    return {k: canonical_pattern_words(v) for k, v in steps.items()}
 
 
 def _collect_single_arg_directives(schema: HaproxySchema) -> list[str]:
@@ -304,7 +305,7 @@ def _collect_single_arg_directives(schema: HaproxySchema) -> list[str]:
         model = kw.argument_model
         if model and model.min_args == 1 and (model.max_args == 1 or model.max_args is None):
             words.append(name)
-    return sorted(set(words), key=len, reverse=True)
+    return canonical_pattern_words(words)
 
 
 def _has_boolean_first_arg(keyword: Keyword) -> bool:
@@ -327,7 +328,7 @@ def _collect_boolean_value_directives(schema: HaproxySchema) -> list[str]:
             continue
         if _has_boolean_first_arg(kw):
             words.append(name)
-    return sorted(set(words), key=len, reverse=True)
+    return canonical_pattern_words(words)
 
 
 def _collect_enum_words(schema: HaproxySchema) -> list[str]:
@@ -343,10 +344,8 @@ def _collect_enum_words(schema: HaproxySchema) -> list[str]:
             words.add(opt)
     for opt in ("accept-proxy", "send-proxy", "send-proxy-v2", "proxy-v2-options", "v4only", "v6only"):
         words.add(opt)
-    return sorted(
-        (w for w in words if is_directive_token(w) or w in {"if", "unless"}),
-        key=len,
-        reverse=True,
+    return canonical_pattern_words(
+        [w for w in words if is_directive_token(w) or w in {"if", "unless"}]
     )
 
 
@@ -358,7 +357,7 @@ def _collect_sample_words(schema: HaproxySchema) -> list[str]:
     for word in words:
         if re.fullmatch(r"[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]+)*", word):
             out.append(word)
-    return sorted(set(out), key=len, reverse=True)
+    return canonical_pattern_words(out)
 
 
 def _build_sections(schema: HaproxySchema) -> dict[str, Any]:
@@ -527,7 +526,7 @@ def _build_rule_actions(schema: HaproxySchema) -> dict[str, Any]:
         }
     )
 
-    standalone_actions = sorted(action_words(schema) - set(_RULE_KEYWORDS), key=len, reverse=True)
+    standalone_actions = canonical_pattern_words(action_words(schema) - set(_RULE_KEYWORDS))
     if standalone_actions:
         patterns.append(
             {
@@ -567,7 +566,7 @@ def _build_check_actions(schema: HaproxySchema) -> dict[str, Any]:
 def _build_bind_param_pairs(schema: HaproxySchema) -> dict[str, Any]:
     bind_opts = schema.keyword_groups.get("bind_options", [])
     server_opts = schema.keyword_groups.get("server_options", [])
-    all_opts = sorted(set(bind_opts) | set(server_opts), key=len, reverse=True)
+    all_opts = canonical_pattern_words(set(bind_opts) | set(server_opts))
 
     value_opts = _options_with_values(all_opts)
     patterns: list[dict[str, Any]] = []

@@ -1,0 +1,14 @@
+haproxy-schema
+Copyright 2026 Exymat
+
+This product includes software developed by Cyril Bonté as part of
+haproxy-dconv (https://github.com/cbonte/haproxy-dconv), licensed under
+the Apache License, Version 2.0. Keyword-line parsing logic from
+haproxy-dconv/parser/keyword.py was adapted and vendored in
+haproxy_schema/dconv_bridge.py.
+
+Generated schema, language, and grammar artifacts may include keyword
+names, signatures, and documentation excerpts derived from HAProxy's
+configuration.txt (https://www.haproxy.org/) and keyword inventories
+from `haproxy -dKall` output. HAProxy is copyright Willy Tarreau and
+contributors, licensed under GPL-2.0-or-later.

@@ -10,6 +10,7 @@ from .action_parser import (
     action_matrix_from_reference,
     merge_action_matrices,
 )
+from .dconv_bridge import extract_keyword_name
 
 _SUPPORTED_HEADER_RE = re.compile(r"^\s+supported:\s*$", re.I)
 _SUPPORTED_LINE_RE = re.compile(r"^\s+-\s+(.+)$")
@@ -140,12 +141,18 @@ def _parse_legacy_action_reference(
                     signature=line.strip(),
                     description=description,
                     rulesets=[prefix],
+                    docs_keyword=extract_keyword_name(line.strip()),
+                    chapter="4.2",
                 )
             else:
                 if description and not entry.description:
                     entry.description = description
                 if prefix not in entry.rulesets:
                     entry.rulesets.append(prefix)
+                if not entry.docs_keyword:
+                    entry.docs_keyword = extract_keyword_name(line.strip())
+                if not entry.chapter:
+                    entry.chapter = "4.2"
     return actions
 
 

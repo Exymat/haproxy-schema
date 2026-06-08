@@ -28,8 +28,15 @@ def escape_regex(word: str) -> str:
     return re.escape(word)
 
 
+def canonical_pattern_words(words: list[str] | set[str], limit: int | None = None) -> list[str]:
+    ordered = sorted(set(words), key=lambda word: (-len(word), word))
+    if limit is None:
+        return ordered
+    return ordered[:limit]
+
+
 def alt_pattern(words: list[str], limit: int = 300) -> str:
-    chunk = sorted(set(words), key=len, reverse=True)[:limit]
+    chunk = canonical_pattern_words(words, limit=limit)
     if not chunk:
         return "(?!)never-match"
     return "(?:" + "|".join(escape_regex(w) for w in chunk) + ")"
@@ -49,7 +56,7 @@ def collect_cache_keywords(schema: HaproxySchema) -> list[str]:
             continue
         if "cache" in keyword.sections:
             words.add(name)
-    return sorted(words, key=len, reverse=True)
+    return canonical_pattern_words(words)
 
 
 def collect_directive_keywords(schema: HaproxySchema) -> list[str]:
@@ -69,7 +76,7 @@ def collect_directive_keywords(schema: HaproxySchema) -> list[str]:
             words.add(rule.keyword)
 
     filtered: list[str] = []
-    sorted_words = sorted(words, key=len, reverse=True)
+    sorted_words = canonical_pattern_words(words)
     for word in sorted_words:
         if any(
             other != word and len(other) > len(word) and other.startswith(f"{word}-")
@@ -77,4 +84,4 @@ def collect_directive_keywords(schema: HaproxySchema) -> list[str]:
         ):
             continue
         filtered.append(word)
-    return sorted(filtered, key=len, reverse=True)
+    return canonical_pattern_words(filtered)

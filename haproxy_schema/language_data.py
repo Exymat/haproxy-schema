@@ -91,6 +91,18 @@ def docs_url(version: str, keyword: str, chapter: str = "") -> str:
     return f"{base}#{docs_anchor(keyword, chapter)}"
 
 
+def action_docs_url(version: str, action: ActionDoc | None, default_name: str, default_chapter: str = "") -> str:
+    if action is None:
+        if not default_chapter:
+            return ""
+        return docs_url(version, default_name, default_chapter)
+    keyword = action.docs_keyword or action.name or default_name
+    chapter = action.chapter or default_chapter
+    if not keyword or not chapter:
+        return ""
+    return docs_url(version, keyword, chapter)
+
+
 def _acl_group_items(mapping: dict[str, str], signature_fmt: str = "") -> list[GroupItem]:
     return [
         GroupItem(
@@ -181,6 +193,21 @@ def build_language_data(
             )
         return items
 
+    def action_group_items(names: list[str]) -> list[GroupItem]:
+        items: list[GroupItem] = []
+        for name in names:
+            action = actions.get(name)
+            items.append(
+                GroupItem(
+                    name=name,
+                    description=action.description if action else "",
+                    signature=action.signature if action else "",
+                    rulesets=list(action.rulesets) if action else [],
+                    docsUrl=action_docs_url(version, action, name, "4.4"),
+                )
+            )
+        return items
+
     action_desc = {name: a.description for name, a in actions.items()}
     action_sigs = {name: a.signature for name, a in actions.items()}
     action_groups = build_action_groups(doc, dkall)
@@ -216,25 +243,13 @@ def build_language_data(
             server_sigs,
             docs_chapter="5.2",
         ),
-        "http_request_actions": group_items(
-            action_groups["http_request_actions"], action_desc, action_sigs, docs_chapter="4.4"
-        ),
-        "http_response_actions": group_items(
-            action_groups["http_response_actions"], action_desc, action_sigs, docs_chapter="4.4"
-        ),
-        "http_after_response_actions": group_items(
-            action_groups["http_after_response_actions"], action_desc, action_sigs, docs_chapter="4.4"
-        ),
+        "http_request_actions": action_group_items(action_groups["http_request_actions"]),
+        "http_response_actions": action_group_items(action_groups["http_response_actions"]),
+        "http_after_response_actions": action_group_items(action_groups["http_after_response_actions"]),
         "services": group_items(sorted(dkall.services), {}, {}),
-        "tcp_request_actions": group_items(
-            action_groups["tcp_request_actions"], action_desc, action_sigs, docs_chapter="4.4"
-        ),
-        "tcp_response_actions": group_items(
-            action_groups["tcp_response_actions"], action_desc, action_sigs, docs_chapter="4.4"
-        ),
-        "quic_initial_actions": group_items(
-            action_groups["quic_initial_actions"], action_desc, action_sigs, docs_chapter="4.4"
-        ),
+        "tcp_request_actions": action_group_items(action_groups["tcp_request_actions"]),
+        "tcp_response_actions": action_group_items(action_groups["tcp_response_actions"]),
+        "quic_initial_actions": action_group_items(action_groups["quic_initial_actions"]),
         "acl_criteria": group_items(sorted(dkall.acl_criteria), {}, {}),
         "sample_fetches": group_items(
             sorted(dkall.sample_fetches),

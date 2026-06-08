@@ -1,5 +1,7 @@
 # haproxy-schema
 
+[![License](https://img.shields.io/github/license/Exymat/haproxy-schema)](LICENSE)
+
 Python package that builds HAProxy **2.6**, **2.8**, **3.0**, **3.2**, and **3.4** schemas, language data, and TextMate grammars from `configuration.txt` and `haproxy -dKall` keyword dumps.
 
 ## What it produces
@@ -159,3 +161,21 @@ Schema build and full test instructions live in [haproxy-vscode/README.md](../ha
 $env:PYTHONPATH = (Resolve-Path ".\haproxy-schema").Path
 .\haproxy-schema\scripts\test-all.ps1
 ```
+
+---
+
+## License
+
+[Apache License 2.0](LICENSE). See [NOTICE](NOTICE) for third-party attributions.
+
+## Data sources
+
+Build outputs combine factual keyword inventories and documentation excerpts from upstream HAProxy releases:
+
+| Source | Origin | Upstream license |
+| ------ | ------ | ---------------- |
+| `configuration.txt` | Official HAProxy configuration reference per release | GPL-2.0-or-later |
+| `haproxy -dKall` | Keyword dump from a DEBUG-enabled HAProxy binary | GPL-2.0-or-later |
+| Keyword-line parsing | Adapted from [haproxy-dconv](https://github.com/cbonte/haproxy-dconv) (`dconv_bridge.py`) | Apache-2.0 |
+
+This tooling is independent of the HAProxy program itself; it does not link to or embed HAProxy binaries in its source tree.
