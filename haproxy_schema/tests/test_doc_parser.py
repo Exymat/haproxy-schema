@@ -264,3 +264,253 @@ set-var <var-name> <expr>
     assert "accept" in result.action_matrix["tcp_request_actions"]
     assert "accept" in result.action_matrix["quic_initial_actions"]
     assert "set-var" in result.action_matrix["http_response_actions"]
+
+
+def test_parse_configuration_assigns_chapter_per_global_subsection(tmp_path: Path) -> None:
+    content = """Summary
+3.1.      Process management and security
+3.2.      Performance tuning
+3.4.      HTTPClient tuning
+4.1.      Proxy keywords matrix
+
+3.1. Process management and security
+------------------------------------
+
+chroot { <jail dir> | auto }
+  Process management description.
+
+3.2. Performance tuning
+-----------------------
+
+tune.vars.global-max-size <size>
+  Performance tuning description.
+
+3.4. HTTPClient tuning
+----------------------
+
+httpclient.retries <count>
+  HTTPClient description.
+
+4.1. Proxy keywords matrix
+--------------------------
+
+ keyword                              defaults   frontend   listen    backend
+------------------------------------+----------+----------+---------+---------
+------------------------------------+----------+----------+---------+---------
+
+4.2. Alphabetically sorted keywords reference
+---------------------------------------------
+
+"""
+    file_path = tmp_path / "configuration.txt"
+    file_path.write_text(content, encoding="utf-8")
+
+    result = parse_configuration(file_path)
+
+    assert result.keyword_docs["chroot"].chapter == "3.1"
+    assert result.keyword_docs["tune.vars.global-max-size"].chapter == "3.2"
+    assert result.keyword_docs["httpclient.retries"].chapter == "3.4"
+    assert "tune.vars.global-max-size" in result.global_keywords
+    assert "httpclient.retries" not in result.global_keywords
+
+
+def test_parse_configuration_assigns_legacy_httpclient_chapter(tmp_path: Path) -> None:
+    content = """Summary
+3.1.      Process management and security
+3.4.      Userlists
+3.5.      Peers
+3.11.     HTTPClient tuning
+4.1.      Proxy keywords matrix
+
+3.1. Process management and security
+------------------------------------
+
+chroot { <jail dir> | auto }
+  Process management description.
+
+3.4. Userlists
+--------------
+
+3.5. Peers
+----------
+
+peers-only-keyword
+  Peers section description.
+
+3.11. HTTPClient tuning
+-----------------------
+
+httpclient.resolvers.disabled <on|off>
+  Disable the DNS resolution of the httpclient.
+
+4.1. Proxy keywords matrix
+--------------------------
+
+ keyword                              defaults   frontend   listen    backend
+------------------------------------+----------+----------+---------+---------
+------------------------------------+----------+----------+---------+---------
+
+4.2. Alphabetically sorted keywords reference
+---------------------------------------------
+
+"""
+    file_path = tmp_path / "configuration.txt"
+    file_path.write_text(content, encoding="utf-8")
+
+    result = parse_configuration(file_path)
+
+    assert result.keyword_docs["httpclient.resolvers.disabled"].chapter == "3.11"
+    assert "httpclient.resolvers.disabled <on|off>" in result.signatures["httpclient.resolvers.disabled"]
+    assert "userlist placeholder" not in result.keyword_docs
+
+
+def test_parse_configuration_extracts_legacy_log_forward_and_crt_store(tmp_path: Path) -> None:
+    content = """Summary
+3.1.      Process management and security
+3.4.      Userlists
+3.5.      Peers
+3.6.      Mailers
+3.10.     Log forwarding
+3.12.     Certificate Storage
+4.1.      Proxy keywords matrix
+
+3.1. Process management and security
+------------------------------------
+
+global-one
+
+3.4. Userlists
+--------------
+
+userlist <name>
+  Declare a userlist section.
+
+3.5. Peers
+----------
+
+peers-only-keyword
+  Peers section placeholder.
+
+3.6. Mailers
+------------
+
+mailers <mailersect>
+  Declare a mailers section.
+
+mailer <mailername> <ip>:<port>
+  Define a mailer.
+
+3.10. Log forwarding
+--------------------
+
+log-forward <name>
+  Declare a log forwarding section.
+
+dgram-bind <addr> [param*]
+  Datagram listener.
+
+3.12. Certificate Storage
+-------------------------
+
+load [crt <filename>] [param*]
+  Load SSL files in the certificate storage.
+
+crt-base <dir>
+  Default certificate directory.
+
+4.1. Proxy keywords matrix
+--------------------------
+
+ keyword                              defaults   frontend   listen    backend
+------------------------------------+----------+----------+---------+---------
+------------------------------------+----------+----------+---------+---------
+
+4.2. Alphabetically sorted keywords reference
+---------------------------------------------
+
+"""
+    file_path = tmp_path / "configuration.txt"
+    file_path.write_text(content, encoding="utf-8")
+
+    result = parse_configuration(file_path)
+
+    assert "mailers" in result.keyword_docs
+    assert "mailers <mailersect>" in result.signatures["mailers"]
+    assert "mailer" in result.section_keywords["mailers"]
+    assert "mailers" not in result.section_keywords["mailers"]
+
+    assert "log-forward" in result.keyword_docs
+    assert "dgram-bind" in result.keyword_docs
+    assert result.keyword_docs["dgram-bind"].sections == ["log-forward"]
+
+    assert "load" in result.keyword_docs
+    assert result.keyword_docs["load"].sections == ["crt-store"]
+    assert "crt-base" in result.section_keywords["crt-store"]
+
+
+def test_parse_configuration_preserves_chapter_variants_for_bind(tmp_path: Path) -> None:
+    content = """Summary
+3.1.      Process management and security
+3.4.      Userlists
+3.5.      Peers
+3.10.     Log forwarding
+4.1.      Proxy keywords matrix
+
+3.1. Process management and security
+------------------------------------
+
+global-one
+
+3.4. Userlists
+--------------
+
+userlist <name>
+  Declare a userlist section.
+
+3.5. Peers
+----------
+
+bind [<address>]:port [param*]
+  Defines the binding parameters of the local peer of this peers section.
+
+3.10. Log forwarding
+--------------------
+
+bind <addr> [param*]
+  Used to configure a stream log listener to receive messages to forward.
+
+4.1. Proxy keywords matrix
+--------------------------
+
+ keyword                              defaults   frontend   listen    backend
+------------------------------------+----------+----------+---------+---------
+bind                                      -          X         X         -
+------------------------------------+----------+----------+---------+---------
+
+4.2. Alphabetically sorted keywords reference
+---------------------------------------------
+
+bind [<address>]:<port_range> [, ...] [param*]
+  Define one or several listening addresses and/or ports in a frontend.
+
+  May be used in sections :   defaults | frontend | listen | backend
+                                 no   |    yes   |   yes  |   no
+"""
+    file_path = tmp_path / "configuration.txt"
+    file_path.write_text(content, encoding="utf-8")
+
+    result = parse_configuration(file_path)
+    bind = result.keyword_docs["bind"]
+    chapters = {variant.chapter for variant in bind.variants}
+    assert "4.2" in chapters
+    assert "3.5" in chapters
+    assert "3.10" in chapters
+    proxy = bind.variant_for("4.2")
+    peers = bind.variant_for("3.5")
+    log_forward = bind.variant_for("3.10")
+    assert "frontend" in proxy.sections
+    assert "peers" in peers.sections
+    assert "log-forward" in log_forward.sections
+    assert "frontend" in proxy.description.lower()
+    assert "peer" in peers.description.lower()
+    assert "log listener" in log_forward.description.lower()

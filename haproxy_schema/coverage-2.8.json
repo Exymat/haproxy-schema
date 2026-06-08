@@ -96,6 +96,7 @@
     "fcgi-app",
     "frontend",
     "http-errors",
+    "log-forward",
     "mailers",
     "program",
     "resolvers",

@@ -27,12 +27,23 @@ class ArgumentParamDoc:
 
 
 @dataclass
+class KeywordVariant:
+    chapter: str = ""
+    sections: list[str] = field(default_factory=list)
+    contexts: list[str] = field(default_factory=list)
+    signatures: list[str] = field(default_factory=list)
+    argument_model: ArgumentModel | None = None
+    arguments: list[ArgumentParamDoc] = field(default_factory=list)
+
+
+@dataclass
 class Keyword:
     name: str
     sections: list[str] = field(default_factory=list)
     contexts: list[str] = field(default_factory=list)
     signatures: list[str] = field(default_factory=list)
     sources: list[str] = field(default_factory=list)
+    variants: list[KeywordVariant] = field(default_factory=list)
     argument_model: ArgumentModel | None = None
     arguments: list[ArgumentParamDoc] = field(default_factory=list)
 
@@ -146,12 +157,48 @@ class HaproxySchema:
                 )
                 for param in args_raw
             ]
+            variants_raw = kw.get("variants", [])
+            variants = []
+            for variant in variants_raw:
+                variant_arg_raw = variant.get("argument_model")
+                variant_argument_model = None
+                if variant_arg_raw:
+                    variant_argument_model = ArgumentModel(
+                        min_args=variant_arg_raw.get("min_args", 0),
+                        max_args=variant_arg_raw.get("max_args"),
+                        slots=variant_arg_raw.get("slots", []),
+                    )
+                variant_args_raw = variant.get("arguments", [])
+                variants.append(
+                    KeywordVariant(
+                        chapter=variant.get("chapter", ""),
+                        sections=variant.get("sections", []),
+                        contexts=variant.get("contexts", []),
+                        signatures=variant.get("signatures", []),
+                        argument_model=variant_argument_model,
+                        arguments=[
+                            ArgumentParamDoc(
+                                parameter=param.get("parameter", ""),
+                                description=param.get("description", ""),
+                                values=[
+                                    ArgumentValueDoc(
+                                        name=value.get("name", ""),
+                                        description=value.get("description", ""),
+                                    )
+                                    for value in param.get("values", [])
+                                ],
+                            )
+                            for param in variant_args_raw
+                        ],
+                    )
+                )
             keywords[name] = Keyword(
                 name=kw.get("name", name),
                 sections=kw.get("sections", []),
                 contexts=kw.get("contexts", []),
                 signatures=kw.get("signatures", []),
                 sources=kw.get("sources", []),
+                variants=variants,
                 argument_model=argument_model,
                 arguments=arguments,
             )

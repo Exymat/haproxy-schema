@@ -50,14 +50,119 @@ class ArgumentParamDoc:
 
 
 @dataclass
-class KeywordDoc:
-    name: str
-    signatures: list[str] = field(default_factory=list)
-    description: str = ""
+class KeywordVariantDoc:
+    """One documentation occurrence of a keyword in a specific configuration.txt chapter."""
+
     chapter: str = ""
     sections: list[str] = field(default_factory=list)
+    signatures: list[str] = field(default_factory=list)
+    description: str = ""
     contexts: list[str] = field(default_factory=list)
     arguments: list[ArgumentParamDoc] = field(default_factory=list)
+
+
+@dataclass
+class KeywordDoc:
+    name: str
+    variants: list[KeywordVariantDoc] = field(default_factory=list)
+
+    def variants_for(self, chapter: str) -> list[KeywordVariantDoc]:
+        return [variant for variant in self.variants if variant.chapter == chapter]
+
+    def variant_for(
+        self,
+        chapter: str,
+        *,
+        signatures: list[str] | None = None,
+        sections: list[str] | None = None,
+    ) -> KeywordVariantDoc:
+        chapter_variants = self.variants_for(chapter)
+        if chapter_variants:
+            wanted_signatures = set(signatures or [])
+            wanted_sections = set(sections or [])
+            if wanted_signatures or wanted_sections:
+                for variant in chapter_variants:
+                    if wanted_signatures and set(variant.signatures) != wanted_signatures:
+                        continue
+                    if wanted_sections and set(variant.sections) != wanted_sections:
+                        continue
+                    return variant
+            elif len(chapter_variants) == 1:
+                return chapter_variants[0]
+        variant = KeywordVariantDoc(chapter=chapter)
+        if signatures:
+            variant.signatures.extend(signatures)
+        if sections:
+            variant.sections.extend(sections)
+        self.variants.append(variant)
+        return variant
+
+    @property
+    def chapter(self) -> str:
+        if len(self.variants) == 1:
+            return self.variants[0].chapter
+        for preferred in ("4.2", "3.1", "3.2", "3.3"):
+            for variant in self.variants:
+                if variant.chapter == preferred:
+                    return preferred
+        return self.variants[0].chapter if self.variants else ""
+
+    @chapter.setter
+    def chapter(self, value: str) -> None:
+        if not self.variants:
+            self.variants.append(KeywordVariantDoc(chapter=value))
+            return
+        if len(self.variants) == 1:
+            self.variants[0].chapter = value
+
+    @property
+    def sections(self) -> list[str]:
+        out: list[str] = []
+        for variant in self.variants:
+            for section in variant.sections:
+                if section not in out:
+                    out.append(section)
+        return out
+
+    @property
+    def signatures(self) -> list[str]:
+        out: list[str] = []
+        for variant in self.variants:
+            for signature in variant.signatures:
+                if signature not in out:
+                    out.append(signature)
+        return out
+
+    @property
+    def description(self) -> str:
+        for preferred in ("4.2",):
+            for variant in self.variants:
+                if variant.chapter == preferred and variant.description:
+                    return variant.description
+        for variant in self.variants:
+            if variant.description:
+                return variant.description
+        return ""
+
+    @property
+    def contexts(self) -> list[str]:
+        out: list[str] = []
+        for variant in self.variants:
+            for context in variant.contexts:
+                if context not in out:
+                    out.append(context)
+        return out
+
+    @property
+    def arguments(self) -> list[ArgumentParamDoc]:
+        for preferred in ("4.2",):
+            for variant in self.variants:
+                if variant.chapter == preferred and variant.arguments:
+                    return variant.arguments
+        for variant in self.variants:
+            if variant.arguments:
+                return variant.arguments
+        return []
 
 
 def get_indent(line: str) -> int:
@@ -319,27 +424,32 @@ def walk_keyword_docs(
         for name in names:
             entry = docs.get(name)
             if entry is None:
-                entry = KeywordDoc(name=name, chapter=chapter)
+                entry = KeywordDoc(name=name)
                 docs[name] = entry
+            variant = entry.variant_for(
+                chapter,
+                signatures=[sig for sig in signatures if extract_keyword_name(sig) == name],
+                sections=block_sections,
+            )
             for sig in signatures:
-                if extract_keyword_name(sig) == name and sig not in entry.signatures:
-                    entry.signatures.append(sig)
-            if description and not entry.description:
-                entry.description = description
+                if extract_keyword_name(sig) == name and sig not in variant.signatures:
+                    variant.signatures.append(sig)
+            if description and not variant.description:
+                variant.description = description
             if argument_docs:
-                merge_argument_docs(entry, argument_docs)
+                merge_argument_docs(variant, argument_docs)
             for section in block_sections:
-                if section not in entry.sections:
-                    entry.sections.append(section)
+                if section not in variant.sections:
+                    variant.sections.append(section)
             for context in block_contexts:
-                if context not in entry.contexts:
-                    entry.contexts.append(context)
+                if context not in variant.contexts:
+                    variant.contexts.append(context)
 
         idx = max(next_idx, idx + 1)
     return docs
 
 
-def merge_argument_docs(entry: KeywordDoc, parsed: list[ArgumentParamDoc]) -> None:
+def merge_argument_docs(entry: KeywordDoc | KeywordVariantDoc, parsed: list[ArgumentParamDoc]) -> None:
     existing_params = {p.parameter: p for p in entry.arguments}
     for param in parsed:
         if param.parameter in existing_params:

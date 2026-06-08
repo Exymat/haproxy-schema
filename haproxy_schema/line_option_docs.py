@@ -133,15 +133,16 @@ def walk_line_option_docs(
             for name in _option_lookup_names(sig):
                 entry = docs.get(name)
                 if entry is None:
-                    entry = KeywordDoc(name=name, chapter=chapter)
+                    entry = KeywordDoc(name=name)
                     docs[name] = entry
-                if sig not in entry.signatures:
-                    entry.signatures.append(sig)
-                if description and not entry.description:
-                    entry.description = description
+                variant = entry.variant_for(chapter)
+                if sig not in variant.signatures:
+                    variant.signatures.append(sig)
+                if description and not variant.description:
+                    variant.description = description
                 for context in contexts:
-                    if context not in entry.contexts:
-                        entry.contexts.append(context)
+                    if context not in variant.contexts:
+                        variant.contexts.append(context)
 
         idx = max(next_idx, idx + 1)
     return docs

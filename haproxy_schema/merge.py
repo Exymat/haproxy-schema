@@ -13,6 +13,7 @@ from .schema import (
     FixedSlotSpec,
     HaproxySchema,
     Keyword,
+    KeywordVariant,
     SampleFunction,
     Section,
     StatementRule,
@@ -92,6 +93,34 @@ def _signatures_by_option(docs: dict[str, Any]) -> dict[str, list[str]]:
     return out
 
 
+def _argument_docs_from_variant(arguments: list[Any]) -> list[ArgumentParamDoc]:
+    return [
+        ArgumentParamDoc(
+            parameter=argument.parameter,
+            description=argument.description,
+            values=[
+                ArgumentValueDoc(name=value.name, description=value.description) for value in argument.values
+            ],
+        )
+        for argument in arguments
+    ]
+
+
+def _apply_keyword_doc_to_schema(kw: Keyword, kdoc: Any) -> None:
+    kw.variants = [
+        KeywordVariant(
+            chapter=variant.chapter,
+            sections=list(variant.sections),
+            contexts=list(variant.contexts),
+            signatures=list(variant.signatures),
+            arguments=_argument_docs_from_variant(variant.arguments),
+        )
+        for variant in kdoc.variants
+    ]
+    kw.contexts = list(kdoc.contexts)
+    kw.arguments = _argument_docs_from_variant(kdoc.arguments)
+
+
 def merge_schema(
     version: str,
     doc: DocParseResult,
@@ -121,20 +150,7 @@ def merge_schema(
                 kw.signatures.append(sig)
         kdoc = doc.keyword_docs.get(keyword)
         if kdoc:
-            if kdoc.arguments:
-                kw.arguments = [
-                    ArgumentParamDoc(
-                        parameter=argument.parameter,
-                        description=argument.description,
-                        values=[
-                            ArgumentValueDoc(name=value.name, description=value.description)
-                            for value in argument.values
-                        ],
-                    )
-                    for argument in kdoc.arguments
-                ]
-            if kdoc.contexts:
-                kw.contexts = list(kdoc.contexts)
+            _apply_keyword_doc_to_schema(kw, kdoc)
             for section in kdoc.sections:
                 _add_keyword_to_section(schema, section, keyword)
         _mark_source(schema, keyword, "doc")
@@ -214,6 +230,11 @@ def merge_schema(
         keyword.contexts.sort()
         keyword.signatures.sort()
         keyword.sources.sort()
+        keyword.variants.sort(key=lambda variant: variant.chapter)
+        for variant in keyword.variants:
+            variant.sections.sort()
+            variant.contexts.sort()
+            variant.signatures.sort()
 
     attach_argument_models(cast(dict[str, Any], schema.keywords))
 

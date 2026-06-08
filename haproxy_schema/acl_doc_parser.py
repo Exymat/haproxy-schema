@@ -1,4 +1,4 @@
-"""Parse ACL reference data from configuration.txt chapter 7.1–7.4."""
+"""Parse ACL reference data from configuration.txt chapter 7.1-7.4."""
 
 from __future__ import annotations
 
@@ -39,7 +39,9 @@ class AclReferenceDoc:
     predefined_acls: dict[str, str] = field(default_factory=dict)
 
 
-def _section_range(lines: list[str], section_id: str, next_id: str | None) -> tuple[int, int]:
+def _section_range(
+    lines: list[str], section_id: str, next_id: str | None
+) -> tuple[int, int]:
     start = _find_body_section(lines, section_id)
     if start < 0:
         return -1, -1
@@ -49,7 +51,9 @@ def _section_range(lines: list[str], section_id: str, next_id: str | None) -> tu
     return start, end
 
 
-def _parse_7_1_flags_and_methods(lines: list[str], start: int, end: int, out: AclReferenceDoc) -> None:
+def _parse_7_1_flags_and_methods(
+    lines: list[str], start: int, end: int, out: AclReferenceDoc
+) -> None:
     in_flags = False
     in_methods = False
     for raw in lines[start:end]:
@@ -77,7 +81,9 @@ def _parse_7_1_flags_and_methods(lines: list[str], start: int, end: int, out: Ac
                 out.match_methods[m.group(1).lower()] = m.group(2).strip()
 
 
-def _parse_7_1_2_operators(lines: list[str], start: int, end: int, out: AclReferenceDoc) -> None:
+def _parse_7_1_2_operators(
+    lines: list[str], start: int, end: int, out: AclReferenceDoc
+) -> None:
     in_ops = False
     for offset, raw in enumerate(lines[start:end]):
         line = raw.rstrip("\n")
@@ -94,7 +100,9 @@ def _parse_7_1_2_operators(lines: list[str], start: int, end: int, out: AclRefer
             out.int_operators[m.group(1).lower()] = m.group(2).strip()
 
 
-def _parse_7_1_3_string_methods(lines: list[str], start: int, end: int, out: AclReferenceDoc) -> None:
+def _parse_7_1_3_string_methods(
+    lines: list[str], start: int, end: int, out: AclReferenceDoc
+) -> None:
     for raw in lines[start:end]:
         line = raw.rstrip("\n")
         m = _STRING_MATCH_RE.match(line)
@@ -102,7 +110,9 @@ def _parse_7_1_3_string_methods(lines: list[str], start: int, end: int, out: Acl
             out.string_match_methods[m.group(1).lower()] = m.group(2).strip()
 
 
-def _parse_7_4_predefined(lines: list[str], start: int, end: int, out: AclReferenceDoc) -> None:
+def _parse_7_4_predefined(
+    lines: list[str], start: int, end: int, out: AclReferenceDoc
+) -> None:
     in_table = False
     for raw in lines[start:end]:
         line = raw.rstrip("\n")

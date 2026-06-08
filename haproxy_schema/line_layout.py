@@ -32,6 +32,7 @@ KNOWN_SECTION_HEADERS = (
     "crt-store",
     "traces",
     "acme",
+    "log-forward",
     # Compatibility shim for newer upstream examples until schema sections expose it.
     "log-profile",
 )

@@ -117,10 +117,12 @@
   "sections_doc_only": [
     "backend",
     "cache",
+    "crt-store",
     "defaults",
     "fcgi-app",
     "frontend",
     "http-errors",
+    "log-forward",
     "mailers",
     "program",
     "resolvers",

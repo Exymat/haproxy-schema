@@ -130,6 +130,7 @@
     "fcgi-app",
     "frontend",
     "http-errors",
+    "log-forward",
     "log-profile",
     "mailers",
     "program",

@@ -49,6 +49,32 @@ balance <algorithm> [ <arguments> ]
     assert docs["balance"].contexts == ["tcp", "http", "log"]
 
 
+def test_walk_keyword_docs_keeps_same_chapter_section_variants_distinct() -> None:
+    content = """4.2. Alphabetically sorted keywords reference
+---------------------------------------------
+
+bind [<address>]:<port_range> [, ...] [param*]
+  Frontend/listen bind description.
+
+  May be used in sections :   defaults | frontend | listen | backend
+                                 no    |    yes   |   yes  |   no
+
+bind [<address>]:port [param*]
+  Peer bind description.
+"""
+    lines = content.splitlines()
+    docs = walk_keyword_docs(lines, 2, len(lines), "4.2")
+    bind = docs["bind"]
+    assert len(bind.variants) == 2
+    proxy_variant = next(variant for variant in bind.variants if "listen" in variant.sections)
+    peer_variant = next(
+        variant for variant in bind.variants if variant.description == "Peer bind description."
+    )
+    assert proxy_variant.description == "Frontend/listen bind description."
+    assert proxy_variant.sections == ["frontend", "listen"]
+    assert peer_variant.signatures == ["bind [<address>]:port [param*]"]
+
+
 def test_collect_signature_lines_appends_continuation() -> None:
     lines = [
         "log <target> [len <length>] [format <format>]",

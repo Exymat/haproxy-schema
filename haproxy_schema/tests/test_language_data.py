@@ -21,5 +21,8 @@ def test_build_language_data_mode_description() -> None:
     assert "global" not in bind.sections
     assert "frontend" in bind.sections
     assert "listen" in bind.sections
-    assert "listening" in bind.description.lower()
-    assert "peers section" not in bind.description.lower()
+    assert bind.variants
+    proxy_variant = next(v for v in bind.variants if v.chapter == "4.2")
+    peers_variant = next(v for v in bind.variants if "peers" in v.sections)
+    assert "listening" in proxy_variant.description.lower()
+    assert "peer" in peers_variant.description.lower()

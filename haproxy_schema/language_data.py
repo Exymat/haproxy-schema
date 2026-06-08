@@ -36,6 +36,17 @@ class LanguageArgumentParam:
 
 
 @dataclass
+class LanguageKeywordVariant:
+    chapter: str
+    sections: list[str]
+    signatures: list[str]
+    description: str
+    docsUrl: str
+    arguments: list[LanguageArgumentParam] = field(default_factory=list)
+    contexts: list[str] = field(default_factory=list)
+
+
+@dataclass
 class LanguageKeyword:
     name: str
     sections: list[str]
@@ -43,6 +54,7 @@ class LanguageKeyword:
     description: str
     docsUrl: str
     arguments: list[LanguageArgumentParam] = field(default_factory=list)
+    variants: list[LanguageKeywordVariant] = field(default_factory=list)
 
 
 @dataclass
@@ -63,10 +75,20 @@ class HaproxyLanguageData:
         path.write_text(self.to_json() + "\n", encoding="utf-8")
 
 
+def docs_anchor(keyword: str, chapter: str = "") -> str:
+    """Build a documentation fragment id matching haproxy-dconv anchor rules.
+
+    Configuration keywords use ``{chapter}-{keyword}`` (KeyWordParser href).
+    Sample fetches/converters and non-conflicting cross-links use the bare
+    ``keyword`` when no chapter is set.
+    """
+    anchor = f"{chapter}-{keyword}" if chapter else keyword
+    return quote(anchor, safe="")
+
+
 def docs_url(version: str, keyword: str, chapter: str = "") -> str:
     base = f"https://docs.haproxy.org/{version}/configuration.html"
-    anchor = quote(f"{chapter}-{keyword}" if chapter else keyword, safe="")
-    return f"{base}#{anchor}"
+    return f"{base}#{docs_anchor(keyword, chapter)}"
 
 
 def _acl_group_items(mapping: dict[str, str], signature_fmt: str = "") -> list[GroupItem]:
@@ -96,27 +118,45 @@ def build_language_data(
     docs_base = f"https://docs.haproxy.org/{version}/configuration.html"
     data = HaproxyLanguageData(version=version, docsBaseUrl=docs_base)
 
+    def language_arguments(arguments: list[Any]) -> list[LanguageArgumentParam]:
+        return [
+            LanguageArgumentParam(
+                parameter=param.parameter,
+                description=param.description,
+                values=[
+                    LanguageArgumentValue(name=value.name, description=value.description)
+                    for value in param.values
+                ],
+            )
+            for param in arguments
+        ]
+
     for name, kdoc in sorted(doc.keyword_docs.items()):
         sections = list(kdoc.sections)
         signatures = kdoc.signatures or [name]
-        chapter = kdoc.chapter or ("4.2" if any(name in doc.matrix_keywords.get(s, set()) for s in SECTIONS_MATRIX) else "3.1")
+        chapter = kdoc.chapter or (
+            "4.2" if any(name in doc.matrix_keywords.get(s, set()) for s in SECTIONS_MATRIX) else "3.1"
+        )
+        variants = [
+            LanguageKeywordVariant(
+                chapter=variant.chapter,
+                sections=list(variant.sections),
+                signatures=list(variant.signatures) or [name],
+                description=variant.description,
+                docsUrl=docs_url(version, name, variant.chapter),
+                arguments=language_arguments(variant.arguments),
+                contexts=list(variant.contexts),
+            )
+            for variant in kdoc.variants
+        ]
         data.keywords[name] = LanguageKeyword(
             name=name,
             sections=sections,
             signatures=signatures,
             description=kdoc.description,
             docsUrl=docs_url(version, name, chapter),
-            arguments=[
-                LanguageArgumentParam(
-                    parameter=param.parameter,
-                    description=param.description,
-                    values=[
-                        LanguageArgumentValue(name=value.name, description=value.description)
-                        for value in param.values
-                    ],
-                )
-                for param in kdoc.arguments
-            ],
+            arguments=language_arguments(kdoc.arguments),
+            variants=variants,
         )
 
     def group_items(

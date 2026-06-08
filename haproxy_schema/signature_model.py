@@ -522,51 +522,80 @@ def _patch_argument_model(keyword: str, model: ArgumentModel) -> None:
         _patch_redirect_argument_model(model)
 
 
-def attach_argument_models(keywords: dict[str, _KeywordLike]) -> None:
-    """Mutate schema Keyword objects in place (expects .signatures list)."""
+def _attach_argument_model_to_target(
+    keyword: str,
+    target: _KeywordLike,
+    *,
+    all_keywords: set[str],
+) -> None:
     from .schema import ArgumentModel as SchemaArgumentModel
 
+    signatures = getattr(target, "signatures", None) or []
+    model = build_argument_model(keyword, signatures, all_keywords=all_keywords)
+    if model is None:
+        return
+    _patch_argument_model(keyword, model)
+    arguments = getattr(target, "arguments", None) or []
+    normalized_param_to_slot = {
+        param.parameter.strip().lower(): idx
+        for idx, param in enumerate(arguments)
+        if idx < len(model.slots)
+    }
+    for idx, param in enumerate(arguments):
+        doc_enums: list[str] = []
+        for value in getattr(param, "values", []) or []:
+            base = value.name.split("(", 1)[0]
+            if base and "<" not in base and ">" not in base:
+                doc_enums.append(base)
+        if not doc_enums:
+            continue
+        target_idx = None
+        parameter = getattr(param, "parameter", "").strip().lower()
+        if parameter in {"", "<algorithm>"} and idx < len(model.slots):
+            target_idx = idx
+        elif parameter in normalized_param_to_slot:
+            target_idx = normalized_param_to_slot[parameter]
+        elif len(arguments) == 1 and len(model.slots) == 1:
+            target_idx = 0
+        if target_idx is not None:
+            _enrich_slots_from_doc_enums(model, doc_enums, target_idx)
+    target.argument_model = SchemaArgumentModel(
+        min_args=model.min_args,
+        max_args=model.max_args,
+        slots=[
+            {
+                "optional": slot.optional,
+                "variadic": slot.variadic,
+                "enum": list(slot.enum),
+                "value_kind": slot.value_kind,
+            }
+            for slot in model.slots
+        ],
+    )
+
+
+def _preferred_keyword_variant(keyword: _KeywordLike) -> _KeywordLike | None:
+    variants = getattr(keyword, "variants", None) or []
+    if not variants:
+        return keyword
+    for chapter in ("4.2", "3.1", "3.2", "3.3"):
+        for variant in variants:
+            if getattr(variant, "chapter", "") == chapter:
+                return variant
+    return variants[0]
+
+
+def attach_argument_models(keywords: dict[str, _KeywordLike]) -> None:
+    """Mutate schema Keyword objects in place (expects .signatures list)."""
     names = set(keywords.keys())
     for keyword, kw in keywords.items():
-        signatures = getattr(kw, "signatures", None) or []
-        model = build_argument_model(keyword, signatures, all_keywords=names)
-        if model is None:
+        variants = getattr(kw, "variants", None) or []
+        if variants:
+            for variant in variants:
+                _attach_argument_model_to_target(keyword, variant, all_keywords=names)
+            preferred = _preferred_keyword_variant(kw)
+            if preferred is not None:
+                kw.argument_model = getattr(preferred, "argument_model", None)
+                kw.arguments = list(getattr(preferred, "arguments", None) or [])
             continue
-        _patch_argument_model(keyword, model)
-        arguments = getattr(kw, "arguments", None) or []
-        normalized_param_to_slot = {
-            param.parameter.strip().lower(): idx
-            for idx, param in enumerate(arguments)
-            if idx < len(model.slots)
-        }
-        for idx, param in enumerate(arguments):
-            doc_enums: list[str] = []
-            for value in getattr(param, "values", []) or []:
-                base = value.name.split("(", 1)[0]
-                if base and "<" not in base and ">" not in base:
-                    doc_enums.append(base)
-            if not doc_enums:
-                continue
-            target_idx = None
-            parameter = getattr(param, "parameter", "").strip().lower()
-            if parameter in {"", "<algorithm>"} and idx < len(model.slots):
-                target_idx = idx
-            elif parameter in normalized_param_to_slot:
-                target_idx = normalized_param_to_slot[parameter]
-            elif len(arguments) == 1 and len(model.slots) == 1:
-                target_idx = 0
-            if target_idx is not None:
-                _enrich_slots_from_doc_enums(model, doc_enums, target_idx)
-        kw.argument_model = SchemaArgumentModel(
-            min_args=model.min_args,
-            max_args=model.max_args,
-            slots=[
-                {
-                    "optional": slot.optional,
-                    "variadic": slot.variadic,
-                    "enum": list(slot.enum),
-                    "value_kind": slot.value_kind,
-                }
-                for slot in model.slots
-            ],
-        )
+        _attach_argument_model_to_target(keyword, kw, all_keywords=names)
