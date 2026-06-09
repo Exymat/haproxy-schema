@@ -1,11 +1,14 @@
 # CI-friendly test runner for HAProxy schema + VS Code extension
 $ErrorActionPreference = "Stop"
 $ToolsRoot = Split-Path -Parent $PSScriptRoot
-$env:PYTHONPATH = $ToolsRoot
-
-Write-Host "== haproxy_schema pytest =="
-python -m pytest (Join-Path $ToolsRoot "haproxy_schema\tests") -q
+Push-Location $ToolsRoot
+try {
+Write-Host "== haproxy_schema pytest (with coverage report) =="
+uv run pytest -q
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+} finally {
+  Pop-Location
+}
 
 $VscodeDir = Join-Path (Split-Path -Parent $ToolsRoot) "haproxy-vscode"
 if (-not (Test-Path (Join-Path $VscodeDir "package.json"))) {
@@ -22,7 +25,7 @@ foreach ($version in $Versions) {
     Write-Host "skip grammar check for $version (missing schema artifact)"
     continue
   }
-  python -m haproxy_schema check-grammar --schema $SchemaPath
+  uv run --directory $ToolsRoot haproxy-schema check-grammar --schema $SchemaPath
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 

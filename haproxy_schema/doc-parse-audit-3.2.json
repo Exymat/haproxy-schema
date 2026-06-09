@@ -1,0 +1,53 @@
+{
+  "version": "3.2",
+  "keyword_docs_count": 583,
+  "signature_keywords_count": 583,
+  "signatures_total_count": 607,
+  "section_keywords_count": 15,
+  "action_reference_count": 73,
+  "language_keywords_count": 583,
+  "keywords_missing_description": [
+    "acme",
+    "crt-store",
+    "docroot"
+  ],
+  "keywords_missing_signatures": [],
+  "signature_keywords_missing_keyword_doc": [],
+  "keyword_docs_missing_language_payload": [],
+  "language_keywords_missing_doc_source": [],
+  "language_keywords_empty_description": [
+    "acme",
+    "crt-store",
+    "docroot"
+  ],
+  "actions_missing_description": [
+    "set-path"
+  ],
+  "actions_without_rulesets": [
+    "attach-srv",
+    "close",
+    "set-mark",
+    "set-tos",
+    "switch-mode http"
+  ],
+  "action_reference_only": [
+    "switch-mode http"
+  ],
+  "action_matrix_only": [
+    "expect-netscaler-cip",
+    "sc-inc-gpc1",
+    "set-var-fmt",
+    "switch-mode",
+    "track-sc1",
+    "track-sc2",
+    "wait-for-body"
+  ],
+  "proxy_options_missing_hover_docs": [],
+  "bind_options_missing_hover_docs": [
+    "process"
+  ],
+  "server_options_missing_hover_docs": [
+    "no-check-send-proxy",
+    "usesrc"
+  ]
+}

@@ -13,6 +13,9 @@ from ._paths import haproxy_vscode_root
 
 VERSIONS = ("2.6", "2.8", "3.0", "3.2", "3.4")
 
+# Examples for compile-time optional features (e.g. WURFL) are not in the schema.
+_SKIP_EXAMPLE_CFGS = frozenset({"wurfl-example.cfg"})
+
 
 def _schema_path(version: str) -> Path:
     return haproxy_vscode_root() / "schemas" / f"haproxy-{version}.schema.json"
@@ -31,7 +34,7 @@ def test_example_cfg_has_no_unknown_keywords(version: str) -> None:
     examples_dir = _examples_dir(version)
     if not examples_dir.is_dir():
         pytest.skip(f"examples directory not available: {examples_dir}")
-    cfg_files = sorted(examples_dir.glob("*.cfg"))
+    cfg_files = sorted(p for p in examples_dir.glob("*.cfg") if p.name not in _SKIP_EXAMPLE_CFGS)
     if not cfg_files:
         pytest.skip(f"no example cfg files for {version}")
 

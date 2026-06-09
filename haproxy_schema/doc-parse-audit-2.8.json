@@ -1,0 +1,33 @@
+{
+  "version": "2.8",
+  "keyword_docs_count": 478,
+  "signature_keywords_count": 478,
+  "signatures_total_count": 500,
+  "section_keywords_count": 10,
+  "action_reference_count": 67,
+  "language_keywords_count": 478,
+  "keywords_missing_description": [
+    "docroot"
+  ],
+  "keywords_missing_signatures": [],
+  "signature_keywords_missing_keyword_doc": [],
+  "keyword_docs_missing_language_payload": [],
+  "language_keywords_missing_doc_source": [],
+  "language_keywords_empty_description": [
+    "docroot"
+  ],
+  "actions_missing_description": [
+    "set-path"
+  ],
+  "actions_without_rulesets": [],
+  "action_reference_only": [],
+  "action_matrix_only": [],
+  "proxy_options_missing_hover_docs": [],
+  "bind_options_missing_hover_docs": [
+    "process"
+  ],
+  "server_options_missing_hover_docs": [
+    "no-check-send-proxy",
+    "usesrc"
+  ]
+}

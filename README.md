@@ -46,7 +46,7 @@ Outputs (written by **haproxy-vscode** `npm run generate:schema:<version>` or di
 
 ```
 haproxy-schema/
-  haproxy_schema/          # importable package (CLI: python -m haproxy_schema)
+  haproxy_schema/          # importable package (CLI: uv run haproxy-schema)
     dkall-2.6.txt          # checked-in -dKall dumps
     dkall-2.8.txt
     dkall-3.0.txt
@@ -61,25 +61,25 @@ haproxy-schema/
   scripts/                 # dkall generation, optional binary install, test runner
 ```
 
-Set `PYTHONPATH` to the **repository root** (the directory that contains `haproxy_schema/`), not the package directory itself.
-
-## Quick start
+Dependencies and the virtual environment are managed with [uv](https://docs.astral.sh/uv/). Install uv, then from the repository root:
 
 ```bash
 cd haproxy-schema
-export PYTHONPATH="$(pwd)"
-python -m haproxy_schema build --help
-python -m pytest haproxy_schema/tests -q
+uv sync
+uv run haproxy-schema build --help
+uv run pytest
 ```
 
 On Windows (PowerShell):
 
 ```powershell
 cd haproxy-schema
-$env:PYTHONPATH = (Get-Location).Path
-python -m haproxy_schema build --help
-python -m pytest haproxy_schema\tests -q
+uv sync
+uv run haproxy-schema build --help
+uv run pytest
 ```
+
+`uv run pytest` writes a terminal summary plus HTML (`htmlcov/index.html`) and XML (`coverage.xml`) reports. Coverage thresholds are not enforced yet.
 
 ## CLI
 
@@ -97,7 +97,7 @@ The grammar generator is self-contained: it does not fetch or patch any upstream
 Example — build schema for 3.2 (paths assume sibling `haproxy_git/` trees):
 
 ```bash
-python -m haproxy_schema build \
+uv run haproxy-schema build \
   --doc ../haproxy_git/haproxy-3.2/doc/configuration.txt \
   --dkall haproxy_schema/dkall-3.2.txt \
   --out /tmp/haproxy-3.2.schema.json \
@@ -106,13 +106,13 @@ python -m haproxy_schema build \
   --coverage-out haproxy_schema/coverage-3.2.json \
   --version 3.2
 
-python -m haproxy_schema doc-parse-audit \
+uv run haproxy-schema doc-parse-audit \
   --doc ../haproxy_git/haproxy-3.2/doc/configuration.txt \
   --dkall haproxy_schema/dkall-3.2.txt \
   --version 3.2 \
   --out haproxy_schema/doc-parse-audit-3.2.json
 
-python -m haproxy_schema schema-fidelity-audit \
+uv run haproxy-schema schema-fidelity-audit \
   --doc ../haproxy_git/haproxy-3.2/doc/configuration.txt \
   --dkall haproxy_schema/dkall-3.2.txt \
   --version 3.2 \
@@ -158,7 +158,6 @@ parent/
 Schema build and full test instructions live in [haproxy-vscode/README.md](../haproxy-vscode/README.md). From the parent directory:
 
 ```powershell
-$env:PYTHONPATH = (Resolve-Path ".\haproxy-schema").Path
 .\haproxy-schema\scripts\test-all.ps1
 ```
 
