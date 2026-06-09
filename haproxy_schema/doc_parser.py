@@ -46,37 +46,6 @@ ACTION_MATRIX_GROUP_KEYS = tuple(
 
 # configuration.txt subsections whose keywords apply inside a named config section
 # (not covered by the proxy keywords matrix in 4.1).
-STANDALONE_SECTION_SPECS: tuple[tuple[str, str], ...] = (
-    ("5.3.2", "resolvers"),
-    ("6.2.1", "cache"),
-    ("8.3.5", "log-profile"),
-    ("10.1.1", "fcgi-app"),
-    ("11.2", "peers"),
-    ("12.1", "traces"),
-    ("12.2", "userlist"),
-    ("12.3", "mailers"),
-    ("12.4", "http-errors"),
-    ("12.5", "ring"),
-    ("12.6", "log-forward"),
-    ("12.7", "crt-store"),
-    ("12.8", "acme"),
-    ("12.9", "program"),
-)
-
-# Pre-3.2 docs document userlists, peers, etc. under chapter 3 instead of chapter 12.
-CHAPTER3_STANDALONE_SECTION_SPECS: tuple[tuple[str, str], ...] = (
-    ("3.4", "userlist"),
-    ("3.5", "peers"),
-    ("3.6", "mailers"),
-    ("3.7", "program"),
-    ("3.8", "http-errors"),
-    ("3.9", "ring"),
-    ("3.10", "log-forward"),
-    ("3.12", "crt-store"),
-    ("3.12.1", "crt-list"),
-)
-
-# Shared across layouts (resolvers, cache, fcgi-app).
 SHARED_STANDALONE_SECTION_SPECS: tuple[tuple[str, str], ...] = (
     ("5.3.2", "resolvers"),
     ("6.2.1", "cache"),
@@ -84,14 +53,21 @@ SHARED_STANDALONE_SECTION_SPECS: tuple[tuple[str, str], ...] = (
     ("8.3.5", "log-profile"),
 )
 
-CONFIG_SECTION_TO_DOC_CHAPTER: dict[str, str] = {
-    config_section: chapter
-    for specs in (
-        STANDALONE_SECTION_SPECS,
-        CHAPTER3_STANDALONE_SECTION_SPECS,
-        SHARED_STANDALONE_SECTION_SPECS,
-    )
-    for chapter, config_section in specs
+_STANDALONE_SECTION_TITLE_MAP: dict[str, str] = {
+    "userlists": "userlist",
+    "users": "userlist",
+    "peers": "peers",
+    "peers declaration": "peers",
+    "mailers": "mailers",
+    "programs": "program",
+    "programs deprecated": "program",
+    "http errors": "http-errors",
+    "rings": "ring",
+    "log forwarding": "log-forward",
+    "certificate storage": "crt-store",
+    "traces": "traces",
+    "acme": "acme",
+    "healthchecks": "healthcheck",
 }
 
 GLOBAL_DOC_CHAPTERS = frozenset({"3.1", "3.2", "3.3"})
@@ -110,6 +86,7 @@ _SECTION_DECLARATION_KEYWORDS = frozenset(
         "userlist",
         "mailers",
         "program",
+        "healthcheck",
         "acme",
         "log-forward",
         "log-profile",
@@ -173,6 +150,26 @@ def _find_subsection_end(lines: list[str], section_id: str, start_idx: int) -> i
                     return idx
         idx += 1
     return len(lines)
+
+
+def _normalize_heading_title(title: str) -> str:
+    title = re.sub(r"\([^)]*\)", " ", title)
+    title = title.replace("-", " ")
+    title = re.sub(r"[^a-z0-9\s]", " ", title.lower())
+    return re.sub(r"\s+", " ", title).strip()
+
+
+def _iter_body_headings(lines: list[str]) -> list[tuple[str, str, int]]:
+    header_re = re.compile(r"^(\d+(?:\.\d+)*)\.\s+(.+?)\s*$")
+    headings: list[tuple[str, str, int]] = []
+    for idx, line in enumerate(lines):
+        match = header_re.match(line.strip())
+        if not match:
+            continue
+        underline = _next_nonblank(lines, idx + 1)
+        if underline and set(underline.strip()) == {"-"}:
+            headings.append((match.group(1), match.group(2).strip(), idx))
+    return headings
 
 
 def _walk_chapter_section(lines: list[str], section_id: str) -> dict[str, KeywordDoc]:
@@ -391,23 +388,46 @@ def _is_standalone_directive(name: str) -> bool:
     return True
 
 
-def _standalone_specs_for_layout(layout: DocLayout) -> tuple[tuple[str, str], ...]:
-    if layout.standalone == "chapter12":
-        return STANDALONE_SECTION_SPECS
-    return CHAPTER3_STANDALONE_SECTION_SPECS + SHARED_STANDALONE_SECTION_SPECS
+def _standalone_specs_for_layout(
+    lines: list[str],
+    layout: DocLayout,
+) -> tuple[tuple[str, str], ...]:
+    specs: list[tuple[str, str]] = list(SHARED_STANDALONE_SECTION_SPECS)
+    for section_id, title, _ in _iter_body_headings(lines):
+        if layout.standalone == "chapter12":
+            if not (section_id.startswith("11.") or section_id.startswith("12.")):
+                continue
+        elif not section_id.startswith("3."):
+            continue
+        config_section = _STANDALONE_SECTION_TITLE_MAP.get(_normalize_heading_title(title))
+        if config_section is None or config_section == "crt-list":
+            continue
+        specs.append((section_id, config_section))
+    return tuple(dict.fromkeys(specs))
+
+
+def _section_chapters_from_specs(
+    specs: tuple[tuple[str, str], ...],
+) -> dict[str, set[str]]:
+    section_chapters: dict[str, set[str]] = {}
+    for section_id, config_section in specs:
+        section_chapters.setdefault(config_section, set()).add(section_id)
+    return section_chapters
 
 
 def _parse_standalone_sections(
     lines: list[str],
     specs: tuple[tuple[str, str], ...] | None = None,
-) -> tuple[dict[str, set[str]], dict[str, KeywordDoc]]:
+) -> tuple[dict[str, set[str]], dict[str, KeywordDoc], dict[str, set[str]]]:
     """Extract keywords documented for non-proxy sections (cache, peers, …)."""
     from .dconv_bridge import walk_keyword_docs
 
+    layout = detect_doc_layout(lines)
     if specs is None:
-        specs = _standalone_specs_for_layout(detect_doc_layout(lines))
+        specs = _standalone_specs_for_layout(lines, layout)
     section_keywords: dict[str, set[str]] = {}
     merged_docs: dict[str, KeywordDoc] = {}
+    section_chapters = _section_chapters_from_specs(specs)
 
     for section_id, config_section in specs:
         start = _find_body_section(lines, section_id)
@@ -432,30 +452,28 @@ def _parse_standalone_sections(
                         variant.sections.append(config_section)
             _merge_keyword_docs(merged_docs, inner)
 
-    layout = detect_doc_layout(lines)
-    # Load options in 12.7.1 apply inside crt-list; legacy docs use 3.12.1 via specs above.
-    if layout.standalone != "chapter3":
-        crt_list_start = _find_body_section(lines, "12.7.1")
-        if crt_list_start >= 0:
-            crt_list_end = _find_body_section(lines, "12.8")
-            if crt_list_end < 0:
-                crt_list_end = len(lines)
-            load_docs = walk_keyword_docs(lines, crt_list_start, crt_list_end, "12.7.1")
-            load_docs = {
-                name: doc
-                for name, doc in load_docs.items()
-                if name not in _SECTION_DECLARATION_KEYWORDS and _is_standalone_directive(name)
-            }
-            if load_docs:
-                bucket = section_keywords.setdefault("crt-list", set())
-                bucket.update(load_docs.keys())
-                for doc in load_docs.values():
-                    for variant in doc.variants_for("12.7.1"):
-                        if "crt-list" not in variant.sections:
-                            variant.sections.append("crt-list")
-                _merge_keyword_docs(merged_docs, load_docs)
+    # Load options apply inside crt-list, but their chapter id differs across layouts.
+    crt_list_section_id = "12.7.1" if layout.standalone != "chapter3" else "3.12.1"
+    crt_list_start = _find_body_section(lines, crt_list_section_id)
+    if crt_list_start >= 0:
+        crt_list_end = _find_subsection_end(lines, crt_list_section_id, crt_list_start)
+        load_docs = walk_keyword_docs(lines, crt_list_start, crt_list_end, crt_list_section_id)
+        load_docs = {
+            name: doc
+            for name, doc in load_docs.items()
+            if name not in _SECTION_DECLARATION_KEYWORDS and _is_standalone_directive(name)
+        }
+        if load_docs:
+            bucket = section_keywords.setdefault("crt-list", set())
+            bucket.update(load_docs.keys())
+            for doc in load_docs.values():
+                for variant in doc.variants_for(crt_list_section_id):
+                    if "crt-list" not in variant.sections:
+                        variant.sections.append("crt-list")
+            _merge_keyword_docs(merged_docs, load_docs)
+            section_chapters.setdefault("crt-list", set()).add(crt_list_section_id)
 
-    return section_keywords, merged_docs
+    return section_keywords, merged_docs, section_chapters
 
 
 def _sections_for_doc(
@@ -487,6 +505,7 @@ def _sections_for_variant(
     global_keywords: set[str],
     matrix: dict[str, set[str]],
     section_keywords: dict[str, set[str]] | None = None,
+    section_chapters: dict[str, set[str]] | None = None,
 ) -> list[str]:
     """Assign config sections to one chapter-specific keyword variant without cross-contamination."""
     sections = list(dict.fromkeys(variant.sections))
@@ -501,8 +520,8 @@ def _sections_for_variant(
         for config_section, keywords in section_keywords.items():
             if name not in keywords or config_section in sections:
                 continue
-            expected_chapter = CONFIG_SECTION_TO_DOC_CHAPTER.get(config_section)
-            if expected_chapter and variant.chapter != expected_chapter:
+            allowed_chapters = section_chapters.get(config_section) if section_chapters else None
+            if allowed_chapters and variant.chapter not in allowed_chapters:
                 continue
             sections.append(config_section)
     return sections
@@ -558,7 +577,7 @@ def parse_configuration(path: Path) -> DocParseResult:
     _merge_keyword_docs(result.keyword_docs, other_chapter3_docs)
     _merge_keyword_docs(result.keyword_docs, proxy_docs, prefer_source_description=True)
 
-    result.section_keywords, standalone_docs = _parse_standalone_sections(lines)
+    result.section_keywords, standalone_docs, standalone_section_chapters = _parse_standalone_sections(lines)
     standalone_docs = _filter_keyword_docs(standalone_docs)
     _merge_keyword_docs(result.keyword_docs, standalone_docs)
 
@@ -573,6 +592,7 @@ def parse_configuration(path: Path) -> DocParseResult:
                 result.global_keywords,
                 matrix_41,
                 result.section_keywords,
+                standalone_section_chapters,
             )
         if not doc.sections and " " in name and name in result.proxy_keywords:
             prefix = name.split()[0]
@@ -593,6 +613,7 @@ def parse_configuration(path: Path) -> DocParseResult:
                     result.global_keywords,
                     matrix_41,
                     result.section_keywords,
+                    standalone_section_chapters,
                 )
                 if not proxy_variant.sections:
                     proxy_variant.sections = list(sibling_sections)

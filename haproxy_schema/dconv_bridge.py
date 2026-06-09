@@ -222,11 +222,22 @@ def _strip_paren_suffix(token: str) -> str:
     return token
 
 
+def _is_signature_parameter_token(token: str) -> bool:
+    stripped = token.strip()
+    if not stripped:
+        return False
+    if stripped[0] in "<[{":
+        return True
+    if len(stripped) >= 2 and stripped[0] in "/:" and stripped[1] in "<[{":
+        return True
+    return False
+
+
 def extract_keyword_name(signature: str) -> str:
     sig = re.sub(r"\s+\(deprecated\)$", "", signature.strip())
     tokens: list[str] = []
     for part in sig.split():
-        if part.startswith("<") or part.startswith("[") or part.startswith("{"):
+        if _is_signature_parameter_token(part):
             break
         if part.endswith("*"):
             break

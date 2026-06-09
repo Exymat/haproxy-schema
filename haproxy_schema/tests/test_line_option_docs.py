@@ -186,6 +186,23 @@ def test_merge_schema_promotes_line_option_signatures_to_keywords() -> None:
     assert check_variant.argument_model is not None
 
 
+def test_merge_schema_keeps_bind_unix_path_signature_from_doc_parser() -> None:
+    version = "3.4"
+    doc_path = haproxy_configuration_txt(version)
+    if not doc_path.is_file():
+        return
+
+    doc = parse_configuration(doc_path)
+    assert "bind /<path> [, ...] [param*]" in doc.signatures["bind"]
+    dkall = parse_dkall(dkall_dump(version))
+    schema = merge_schema(version, doc, dkall, dkall_package_dir=dkall_dump(version).parent)
+
+    bind_kw = schema.keywords["bind"]
+    bind_variant = next(variant for variant in bind_kw.variants if variant.chapter == "4.2")
+    assert "bind /<path> [, ...] [param*]" in bind_kw.signatures
+    assert "bind /<path> [, ...] [param*]" in bind_variant.signatures
+
+
 def test_merge_schema_keeps_nested_line_options_out_of_top_level_sections() -> None:
     version = "3.4"
     doc_path = haproxy_configuration_txt(version)

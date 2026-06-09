@@ -5,6 +5,7 @@ import pytest
 from haproxy_schema.dconv_bridge import (
     collect_signature_lines,
     extract_description_after_header,
+    extract_keyword_name,
     get_indent,
     is_signature_continuation_line,
     match_dconv_keyword_line,
@@ -18,6 +19,11 @@ def test_match_dconv_keyword_line() -> None:
     assert match_dconv_keyword_line("mode { tcp|http|log }") == ("mode", "mode { tcp|http|log }")
     assert match_dconv_keyword_line("balance <algorithm> [ <arguments> ]") is not None
     assert match_dconv_keyword_line("  indented") is None
+
+
+def test_extract_keyword_name_stops_before_prefixed_placeholder() -> None:
+    assert extract_keyword_name("bind /<path> [, ...] [param*]") == "bind"
+    assert extract_keyword_name("stats socket /<path> [param*]") == "stats socket"
 
 
 def test_extract_description() -> None:
@@ -85,6 +91,25 @@ bind [<address>]:port [param*]
     assert proxy_variant.description == "Frontend/listen bind description."
     assert proxy_variant.sections == ["frontend", "listen"]
     assert peer_variant.signatures == ["bind [<address>]:port [param*]"]
+
+
+def test_walk_keyword_docs_keeps_alternative_prefixed_placeholder_signatures() -> None:
+    content = """4.2. Alphabetically sorted keywords reference
+---------------------------------------------
+
+bind [<address>]:<port_range> [, ...] [param*]
+bind /<path> [, ...] [param*]
+  Frontend/listen bind description.
+
+  May be used in sections :   defaults | frontend | listen | backend
+                                 no    |    yes   |   yes  |   no
+"""
+    lines = content.splitlines()
+    docs = walk_keyword_docs(lines, 2, len(lines), "4.2")
+    bind = docs["bind"]
+    proxy_variant = bind.variant_for("4.2")
+    assert "bind [<address>]:<port_range> [, ...] [param*]" in proxy_variant.signatures
+    assert "bind /<path> [, ...] [param*]" in proxy_variant.signatures
 
 
 def test_collect_signature_lines_appends_continuation() -> None:

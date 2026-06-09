@@ -2,6 +2,8 @@ from pathlib import Path
 
 from haproxy_schema.doc_parser import parse_configuration
 
+from ._paths import haproxy_configuration_txt
+
 
 def test_parse_configuration_extracts_sections_matrix_and_signatures(tmp_path: Path) -> None:
     content = """Summary
@@ -514,3 +516,103 @@ bind [<address>]:<port_range> [, ...] [param*]
     assert "frontend" in proxy.description.lower()
     assert "peer" in peers.description.lower()
     assert "log listener" in log_forward.description.lower()
+
+
+def test_parse_configuration_maps_healthchecks_section_by_heading_title(tmp_path: Path) -> None:
+    content = """Summary
+3.1.      Process management and security
+3.4.      Userlists
+4.1.      Proxy keywords matrix
+12.8.     ACME
+12.9.     Healthchecks
+
+3.1. Process management and security
+------------------------------------
+
+global-one
+
+3.4. Userlists
+--------------
+
+userlist <name>
+  Declare a userlist section.
+
+4.1. Proxy keywords matrix
+--------------------------
+
+ keyword                              defaults   frontend   listen    backend
+------------------------------------+----------+----------+---------+---------
+bind                                      -          X         X         -
+------------------------------------+----------+----------+---------+---------
+
+4.2. Alphabetically sorted keywords reference
+---------------------------------------------
+
+bind [<address>]:<port_range> [, ...] [param*]
+  Define one or several listening addresses and/or ports in a frontend.
+
+12.8. ACME
+----------
+
+acme <name>
+  Declare an ACME section.
+
+12.9. Healthchecks
+------------------
+
+healthcheck <name>
+  Created a new healthcheck with name <name>.
+
+tcp-check connect [default] [port <expr>]
+  Adds a tcp health-check connection rule.
+"""
+    file_path = tmp_path / "configuration.txt"
+    file_path.write_text(content, encoding="utf-8")
+
+    result = parse_configuration(file_path)
+
+    assert "healthcheck" in result.keyword_docs
+    assert "tcp-check connect" in result.section_keywords["healthcheck"]
+    assert result.keyword_docs["healthcheck"].sections == ["healthcheck"]
+    assert result.keyword_docs["tcp-check connect"].sections == ["healthcheck"]
+    assert "program" not in result.section_keywords or "tcp-check connect" not in result.section_keywords["program"]
+
+
+def test_parse_configuration_real_docs_cover_late_sections_and_healthchecks() -> None:
+    doc34 = haproxy_configuration_txt("3.4")
+    if not doc34.is_file():
+        return
+
+    result34 = parse_configuration(doc34)
+    for section in (
+        "peers",
+        "traces",
+        "userlist",
+        "mailers",
+        "http-errors",
+        "ring",
+        "log-forward",
+        "crt-store",
+        "crt-list",
+        "acme",
+        "healthcheck",
+    ):
+        assert section in result34.section_keywords
+    assert "bind" in result34.section_keywords["peers"]
+    assert "bind" in result34.section_keywords["log-forward"]
+    assert "tcp-check connect" in result34.section_keywords["healthcheck"]
+    assert result34.keyword_docs["healthcheck"].sections == ["healthcheck"]
+    assert "program" not in result34.section_keywords
+
+    bind34 = result34.keyword_docs["bind"]
+    assert "peers" in bind34.variant_for("11.2").sections
+    assert "log-forward" in bind34.variant_for("12.6").sections
+
+    doc32 = haproxy_configuration_txt("3.2")
+    if not doc32.is_file():
+        return
+
+    result32 = parse_configuration(doc32)
+    assert "program" in result32.section_keywords
+    assert "command" in result32.section_keywords["program"]
+    assert "healthcheck" not in result32.section_keywords

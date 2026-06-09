@@ -25,6 +25,7 @@ KNOWN_SECTION_HEADERS = (
     "resolvers",
     "mailers",
     "program",
+    "healthcheck",
     "http-errors",
     "ring",
     "cache",

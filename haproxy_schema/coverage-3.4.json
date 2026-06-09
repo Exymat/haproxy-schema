@@ -129,11 +129,11 @@
     "defaults",
     "fcgi-app",
     "frontend",
+    "healthcheck",
     "http-errors",
     "log-forward",
     "log-profile",
     "mailers",
-    "program",
     "resolvers",
     "ring"
   ],
