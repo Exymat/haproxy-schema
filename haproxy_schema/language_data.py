@@ -208,8 +208,6 @@ def build_language_data(
             )
         return items
 
-    action_desc = {name: a.description for name, a in actions.items()}
-    action_sigs = {name: a.signature for name, a in actions.items()}
     action_groups = build_action_groups(doc, dkall)
 
     option_desc = {

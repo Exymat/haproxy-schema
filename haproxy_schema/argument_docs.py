@@ -19,8 +19,13 @@ _VALUE_LINE_RE = re.compile(
 # Some balance algorithms (random, rdp-cookie, …) use a name-only line or a single space before the description.
 _VALUE_NAME_ONLY_RE = re.compile(r"^ {6}(\S+(?:\([^)]*\))?)\s*$")
 _VALUE_SINGLE_DESC_RE = re.compile(r"^ {6}(\S+(?:\([^)]*\))?)\s(\S.*)$")
-_PARAM_LINE_RE = re.compile(r"^ {4}<([^>]+)>\s")
+_PARAM_LINE_RE = re.compile(r"^ {4}<([^>]+)>\s*(.*)$")
 _LITERAL_VALUE_LINE_RE = re.compile(r"^ {4}([a-z][a-z0-9_.-]*)\s{2,}(.*)$", re.I)
+_LITERAL_PARAM_WITH_ARGS_RE = re.compile(
+    r"^ {4}([a-z][a-z0-9_.-]*(?:-[a-z0-9_.-]+)*)"
+    r"((?:\s+<[^>]+>)+)\s{2,}(.*)$",
+    re.I,
+)
 _ARGUMENTS_HEADER_RE = re.compile(r"^ {2}Arguments?\s*:\s*$", re.I)
 
 
@@ -135,17 +140,29 @@ def extract_argument_docs(lines: list[str], header_idx: int) -> list[ArgumentPar
         if param_match:
             if current and (current.values or current.description):
                 params.append(current)
-            current = ArgumentParamDoc(parameter=f"<{param_match.group(1)}>")
-            collecting_values = False
+            current = ArgumentParamDoc(
+                parameter=f"<{param_match.group(1)}>",
+                description=param_match.group(2).strip(),
+            )
+            collecting_values = "following" in current.description.lower()
             idx += 1
             while idx < end_idx:
                 cont = lines[idx]
                 if not cont.strip():
                     break
-                if _VALUE_LINE_RE.match(cont) or _PARAM_LINE_RE.match(cont):
+                if (
+                    _PARAM_LINE_RE.match(cont)
+                    or (collecting_values and (_VALUE_LINE_RE.match(cont) or _VALUE_NAME_ONLY_RE.match(cont) or _VALUE_SINGLE_DESC_RE.match(cont)))
+                ):
                     break
-                if cont.startswith("    ") and not cont.startswith("      "):
+                if _LITERAL_PARAM_WITH_ARGS_RE.match(cont) or (
+                    not collecting_values and _LITERAL_VALUE_LINE_RE.match(cont) and not cont.startswith("      ")
+                ):
+                    break
+                if cont.startswith("      "):
                     current.description += (" " if current.description else "") + cont.strip()
+                    if "following" in cont.lower():
+                        collecting_values = True
                     idx += 1
                     continue
                 if "following" in cont.lower():
@@ -160,12 +177,47 @@ def extract_argument_docs(lines: list[str], header_idx: int) -> list[ArgumentPar
         literal_match = _LITERAL_VALUE_LINE_RE.match(line)
         if literal_match and not line.startswith("      "):
             name, desc = literal_match.group(1), literal_match.group(2).strip()
+            if collecting_values and current is not None:
+                _append_value(current.values, name, desc)
+                idx += 1
+                continue
             if current and (current.values or current.description):
                 params.append(current)
             current = ArgumentParamDoc(parameter=name)
             _append_value(current.values, name, desc)
             collecting_values = False
             idx += 1
+            continue
+
+        literal_param_match = _LITERAL_PARAM_WITH_ARGS_RE.match(line)
+        if literal_param_match and not line.startswith("      "):
+            name = literal_param_match.group(1).strip()
+            placeholders = literal_param_match.group(2).strip()
+            desc = literal_param_match.group(3).strip()
+            if current and (current.values or current.description):
+                params.append(current)
+            current = ArgumentParamDoc(parameter=f"{name} {placeholders}")
+            _append_value(current.values, name, desc)
+            collecting_values = False
+            idx += 1
+            while idx < end_idx:
+                cont = lines[idx]
+                if not cont.strip():
+                    break
+                if (
+                    _VALUE_LINE_RE.match(cont)
+                    or _PARAM_LINE_RE.match(cont)
+                    or _LITERAL_VALUE_LINE_RE.match(cont)
+                    or _LITERAL_PARAM_WITH_ARGS_RE.match(cont)
+                ):
+                    break
+                if cont.startswith("      "):
+                    current.description += (" " if current.description else "") + cont.strip()
+                    if current.values:
+                        current.values[-1].description += " " + cont.strip()
+                    idx += 1
+                    continue
+                break
             continue
 
         if current and collecting_values and line.startswith("                  "):

@@ -57,6 +57,65 @@ expose-fd listeners
     assert server_docs["expose-fd listeners"].description.startswith("This option is only usable")
 
 
+def test_walk_line_option_docs_keeps_multiple_paragraphs(tmp_path: Path) -> None:
+    content = """5.2. Server and default-server options
+-------------------------------------
+
+source <addr>[:<port>] [usesrc { <addr2>[:<port2>] | client | clientip } ]
+source <addr>[:<port>] [usesrc { <addr2>[:<port2>] | hdr_ip(<hdr>[,<occ>]) } ]
+source <addr>[:<port>] [interface <name>]
+  The "source" parameter sets the source address which will be used when
+  connecting to the server.
+
+  Additionally, the "source" statement on a server line allows one to specify a
+  source port range.
+
+  Since Linux 4.2/libc 2.23 IP_BIND_ADDRESS_NO_PORT is set for connections
+  specifying the source address without port(s).
+
+ssl
+  Enable SSL.
+"""
+    lines = content.splitlines()
+    docs = walk_line_option_docs(lines, 0, len(lines), "5.2")
+    description = docs["source"].description
+    assert 'The "source" parameter sets the source address' in description
+    assert "Additionally, the \"source\" statement on a server line allows one to specify" in description
+    assert "Since Linux 4.2/libc 2.23" in description
+    assert "\n\n" in description
+
+
+def test_walk_line_option_docs_keeps_ascii_tables(tmp_path: Path) -> None:
+    content = """5.2. Server and default-server options
+-------------------------------------
+
+inter <delay>
+fastinter <delay>
+downinter <delay>
+  May be used in the following contexts: tcp, http, log
+
+  The "inter" parameter sets the interval between two consecutive health checks
+  to <delay> milliseconds.
+
+             Server state                   |         Interval used
+    ----------------------------------------+----------------------------------
+     UP 100% (non-transitional)             | "inter"
+    ----------------------------------------+----------------------------------
+     DOWN 100% (non-transitional)           | "downinter" if set,
+                                            | "inter" otherwise.
+    ----------------------------------------+----------------------------------
+
+  Just as with every other time-based parameter, they can be entered in any
+  other explicit unit.
+"""
+    lines = content.splitlines()
+    docs = walk_line_option_docs(lines, 0, len(lines), "5.2")
+    description = docs["inter"].description
+    assert "Server state" in description
+    assert 'UP 100% (non-transitional)             | "inter"' in description
+    assert '"downinter" if set,' in description
+
+
 def test_parse_configuration_populates_line_option_docs() -> None:
     doc_path = haproxy_configuration_txt("3.4")
     if not doc_path.is_file():
@@ -99,6 +158,48 @@ def test_merge_schema_includes_context_metadata() -> None:
     assert "http" in schema.keywords["capture cookie"].contexts
     assert "log" in schema.keyword_group_contexts["server_options"]["check"]
     assert "http" in schema.keyword_group_contexts["options"]["httplog"]
+
+
+def test_merge_schema_promotes_line_option_signatures_to_keywords() -> None:
+    version = "3.4"
+    doc_path = haproxy_configuration_txt(version)
+    if not doc_path.is_file():
+        return
+
+    doc = parse_configuration(doc_path)
+    dkall = parse_dkall(dkall_dump(version))
+    schema = merge_schema(version, doc, dkall, dkall_package_dir=dkall_dump(version).parent)
+
+    source_kw = schema.keywords["source"]
+    source_variant = next(variant for variant in source_kw.variants if variant.chapter == "5.2")
+    assert any(
+        signature.startswith("source <addr>") and "[interface <name>]" in signature
+        for signature in source_variant.signatures
+    )
+    assert source_variant.sections == []
+    assert source_variant.argument_model is not None
+
+    check_kw = schema.keywords["check"]
+    check_variant = next(variant for variant in check_kw.variants if variant.chapter == "5.2")
+    assert check_variant.signatures
+    assert check_variant.sections == []
+    assert check_variant.argument_model is not None
+
+
+def test_merge_schema_keeps_nested_line_options_out_of_top_level_sections() -> None:
+    version = "3.4"
+    doc_path = haproxy_configuration_txt(version)
+    if not doc_path.is_file():
+        return
+
+    doc = parse_configuration(doc_path)
+    dkall = parse_dkall(dkall_dump(version))
+    schema = merge_schema(version, doc, dkall, dkall_package_dir=dkall_dump(version).parent)
+
+    verify_kw = schema.keywords["verify"]
+    assert verify_kw.sections == ["crt-list"]
+    bind_variant = next(variant for variant in verify_kw.variants if variant.chapter == "5.1")
+    assert bind_variant.sections == []
 
 
 def test_merge_schema_prunes_unsupported_compile_time_doc_keywords() -> None:

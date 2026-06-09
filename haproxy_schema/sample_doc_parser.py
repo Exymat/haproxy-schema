@@ -149,24 +149,28 @@ def _detailed_header_signature(line: str, *, converters: bool) -> tuple[str, boo
     return match.group(1).strip(), deprecated
 
 
-def _extract_first_paragraph(lines: list[str], start: int, end: int) -> str:
-    parts: list[str] = []
+def _extract_description(lines: list[str], start: int, end: int) -> str:
+    paragraphs: list[str] = []
+    current: list[str] = []
     idx = start
     while idx < end:
         line = lines[idx]
         stripped = line.strip()
         if not stripped:
-            if parts:
-                break
+            if current:
+                paragraphs.append(" ".join(current).strip())
+                current = []
             idx += 1
             continue
         if not line.startswith("  "):
             break
         if stripped.startswith(("ACL derivatives", "Example", "Examples", "See also", "Note:")):
             break
-        parts.append(stripped)
+        current.append(stripped)
         idx += 1
-    return " ".join(parts).strip()
+    if current:
+        paragraphs.append(" ".join(current).strip())
+    return "\n\n".join(paragraph for paragraph in paragraphs if paragraph).strip()
 
 
 def _merge_details(
@@ -203,7 +207,7 @@ def _merge_details(
             if lines[block_end].strip().startswith("7.3."):
                 break
             block_end += 1
-        description = _extract_first_paragraph(lines, scan, block_end)
+        description = _extract_description(lines, scan, block_end)
         for header, deprecated in header_chain:
             name = _sample_name(header)
             if not name:
@@ -260,7 +264,7 @@ def _fill_missing_descriptions(
                 if lines[block_end].strip().startswith("7.3."):
                     break
                 block_end += 1
-            description = _extract_first_paragraph(lines, idx + 1, block_end)
+            description = _extract_description(lines, idx + 1, block_end)
             if description:
                 item.description = description
             break

@@ -316,7 +316,7 @@ def is_signature_continuation_line(line: str) -> bool:
 
 
 def extract_description_after_header(lines: list[str], header_idx: int) -> str:
-    """First substantive indented paragraph after signature block."""
+    """Collect prose paragraphs after the signature block, skipping metadata tables."""
     idx = header_idx + 1
     while idx < len(lines):
         if match_dconv_keyword_line(lines[idx]):
@@ -327,27 +327,39 @@ def extract_description_after_header(lines: list[str], header_idx: int) -> str:
             continue
         break
 
-    parts: list[str] = []
+    paragraphs: list[str] = []
+    current: list[str] = []
     while idx < len(lines):
         line = lines[idx]
+        if match_dconv_keyword_line(line):
+            break
+        if line.strip() and not line.startswith(" "):
+            break
         if not line.strip():
-            if parts:
-                break
+            if current:
+                paragraphs.append(" ".join(current).strip())
+                current = []
             idx += 1
             continue
         if not line.startswith("  ") or line.startswith("   "):
             break
         if is_skippable_metadata_line(line):
+            if current:
+                paragraphs.append(" ".join(current).strip())
+                current = []
             idx += 1
             while idx < len(lines) and lines[idx].startswith(" ") and lines[idx].strip():
                 idx += 1
             continue
         if is_description_stop_line(line):
             break
-        parts.append(line.strip())
+        current.append(line.strip())
         idx += 1
 
-    return " ".join(parts).strip()
+    if current:
+        paragraphs.append(" ".join(current).strip())
+
+    return "\n\n".join(paragraph for paragraph in paragraphs if paragraph).strip()
 
 
 def _append_signature_continuations(lines: list[str], signatures: list[str], idx: int) -> int:

@@ -121,6 +121,48 @@ def _apply_keyword_doc_to_schema(kw: Keyword, kdoc: Any) -> None:
     kw.arguments = _argument_docs_from_variant(kdoc.arguments)
 
 
+def _merge_keyword_variant_docs(
+    kw: Keyword,
+    kdoc: Any,
+    *,
+    sections: list[str] | None = None,
+    merge_keyword_sections: bool,
+    merge_keyword_contexts: bool,
+    replace_existing: bool,
+) -> None:
+    variants = list(kw.variants)
+    for source_variant in kdoc.variants:
+        target_sections = list(source_variant.sections or sections or [])
+        target = next(
+            (
+                variant
+                for variant in variants
+                if variant.chapter == source_variant.chapter and variant.sections == target_sections
+            ),
+            None,
+        )
+        if target is None:
+            target = KeywordVariant(chapter=source_variant.chapter, sections=target_sections)
+            variants.append(target)
+        for signature in source_variant.signatures:
+            if signature not in target.signatures:
+                target.signatures.append(signature)
+        for context in source_variant.contexts:
+            if context not in target.contexts:
+                target.contexts.append(context)
+        if replace_existing or not target.arguments:
+            target.arguments = _argument_docs_from_variant(source_variant.arguments)
+    kw.variants = variants
+    if merge_keyword_sections:
+        for section in sections or kdoc.sections:
+            if section not in kw.sections:
+                kw.sections.append(section)
+    if merge_keyword_contexts:
+        for context in kdoc.contexts:
+            if context not in kw.contexts:
+                kw.contexts.append(context)
+
+
 def merge_schema(
     version: str,
     doc: DocParseResult,
@@ -154,6 +196,30 @@ def merge_schema(
             for section in kdoc.sections:
                 _add_keyword_to_section(schema, section, keyword)
         _mark_source(schema, keyword, "doc")
+
+    for option_name, kdoc in doc.bind_option_docs.items():
+        kw = _ensure_keyword(schema, option_name)
+        _merge_keyword_variant_docs(
+            kw,
+            kdoc,
+            sections=[],
+            merge_keyword_sections=False,
+            merge_keyword_contexts=False,
+            replace_existing=False,
+        )
+        _mark_source(schema, option_name, "doc")
+
+    for option_name, kdoc in doc.server_option_docs.items():
+        kw = _ensure_keyword(schema, option_name)
+        _merge_keyword_variant_docs(
+            kw,
+            kdoc,
+            sections=[],
+            merge_keyword_sections=False,
+            merge_keyword_contexts=False,
+            replace_existing=False,
+        )
+        _mark_source(schema, option_name, "doc")
 
     for section, keywords in doc.section_keywords.items():
         for keyword in keywords:

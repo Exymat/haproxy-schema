@@ -23,6 +23,10 @@ def test_balance_argument_values_extracted() -> None:
     assert "rdp-cookie" in names
     roundrobin = next(v for v in algorithm.values if v.name == "roundrobin")
     assert "turns" in roundrobin.description.lower()
+    assert "algorithm used to select a server" in algorithm.description
+    arguments = next((p for p in params if p.parameter == "<arguments>"), None)
+    assert arguments is not None
+    assert "optional list of arguments" in arguments.description
 
 
 def test_mode_enum_from_arguments_section() -> None:
@@ -37,3 +41,20 @@ def test_mode_enum_from_arguments_section() -> None:
     values = {value.name for param in params for value in param.values}
     assert "tcp" in values
     assert "http" in values
+
+
+def test_literal_keyword_arguments_with_placeholders_are_extracted() -> None:
+    lines = """http-check send [meth <method>] [comment <msg>]
+  Add a request.
+
+  Arguments :
+    comment <msg>  defines a message to report if the rule evaluation fails.
+
+    meth <method>  is the optional HTTP method used with the requests. When not
+                   set, the "OPTIONS" method is used.
+""".splitlines()
+    params = extract_argument_docs(lines, 0)
+    names = {value.name: value.description for param in params for value in param.values}
+    assert "comment" in names
+    assert "meth" in names
+    assert "OPTIONS" in names["meth"]

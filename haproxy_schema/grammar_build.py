@@ -265,10 +265,16 @@ def _statement_rule_keywords(schema: HaproxySchema) -> set[str]:
     return {rule.keyword for rule in schema.statement_rules if is_directive_token(rule.keyword)}
 
 
+def _is_top_level_keyword(keyword: Keyword) -> bool:
+    return bool(keyword.sections)
+
+
 def _group_multword_keywords(schema: HaproxySchema) -> dict[str, list[str]]:
     skip = _statement_rule_keywords(schema)
     groups: dict[str, list[str]] = {}
-    for name in schema.keywords:
+    for name, kw in schema.keywords.items():
+        if not _is_top_level_keyword(kw):
+            continue
         if " " not in name:
             continue
         parts = name.split(" ", 1)
@@ -287,7 +293,9 @@ def _group_multword_keywords(schema: HaproxySchema) -> dict[str, list[str]]:
 
 def _collect_check_steps(schema: HaproxySchema) -> dict[str, list[str]]:
     steps: dict[str, set[str]] = {"tcp-check": set(), "http-check": set()}
-    for name in schema.keywords:
+    for name, kw in schema.keywords.items():
+        if not _is_top_level_keyword(kw):
+            continue
         for prefix in steps:
             if name.startswith(f"{prefix} "):
                 step = name[len(prefix) + 1 :]
@@ -300,7 +308,7 @@ def _collect_single_arg_directives(schema: HaproxySchema) -> list[str]:
     skip = _statement_rule_keywords(schema) | action_words(schema)
     words: list[str] = []
     for name, kw in schema.keywords.items():
-        if name in skip or " " in name or not is_directive_token(name):
+        if not _is_top_level_keyword(kw) or name in skip or " " in name or not is_directive_token(name):
             continue
         model = kw.argument_model
         if model and model.min_args == 1 and (model.max_args == 1 or model.max_args is None):
@@ -324,7 +332,7 @@ def _has_boolean_first_arg(keyword: Keyword) -> bool:
 def _collect_boolean_value_directives(schema: HaproxySchema) -> list[str]:
     words: list[str] = []
     for name, kw in schema.keywords.items():
-        if " " in name or not is_directive_token(name):
+        if not _is_top_level_keyword(kw) or " " in name or not is_directive_token(name):
             continue
         if _has_boolean_first_arg(kw):
             words.append(name)

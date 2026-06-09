@@ -18,7 +18,14 @@ _SECTIONS_HEADER_RE = re.compile(r"^  May be used in sections\s*:", re.I)
 _ARGUMENTS_HEADER_RE = re.compile(r"^  Arguments?\s*:", re.I)
 _EXAMPLE_HEADER_RE = re.compile(r"^  Examples?\s*:", re.I)
 _SEE_ALSO_RE = re.compile(r"^  See also", re.I)
-_MATRIX_ROW_RE = re.compile(r"^\s+.+(\||\s+yes\s+|\s+no\s+)", re.I)
+_SECTIONS_MATRIX_HEADER_RE = re.compile(
+    r"^\s*(defaults|frontend|listen|backend)\s*(\|\s*(defaults|frontend|listen|backend)\s*)+$",
+    re.I,
+)
+_SECTIONS_MATRIX_VALUE_RE = re.compile(
+    r"^\s*(yes|no|-)\s*(\|\s*(yes|no|-)\s*)+$",
+    re.I,
+)
 
 
 def _is_metadata_line(line: str) -> bool:
@@ -32,9 +39,23 @@ def _is_metadata_line(line: str) -> bool:
         return True
     if "May be used in sections" in line:
         return True
-    if _MATRIX_ROW_RE.match(line) and "|" in line:
+    stripped = line.strip()
+    if _SECTIONS_MATRIX_HEADER_RE.match(stripped):
+        return True
+    if _SECTIONS_MATRIX_VALUE_RE.match(stripped):
         return True
     return False
+
+
+def _is_structured_doc_line(line: str) -> bool:
+    stripped = line.rstrip()
+    if not stripped:
+        return False
+    return (
+        "|" in stripped
+        or re.match(r"^\s*[-+]{8,}\s*$", stripped) is not None
+        or re.match(r"^\s*[-]{4,}\+[-+]{4,}\s*$", stripped) is not None
+    )
 
 
 def _skip_metadata_block(lines: list[str], idx: int, end_idx: int) -> int:
@@ -61,7 +82,8 @@ def extract_line_option_description(lines: list[str], header_idx: int, end_idx: 
     _, next_idx = collect_signature_lines(lines, header_idx)
     idx = _skip_metadata_block(lines, next_idx, end_idx)
 
-    parts: list[str] = []
+    paragraphs: list[str] = []
+    current: list[str] = []
     while idx < end_idx:
         line = lines[idx]
         if match_dconv_keyword_line(line):
@@ -69,22 +91,51 @@ def extract_line_option_description(lines: list[str], header_idx: int, end_idx: 
         if line.strip() and not line.startswith(" "):
             break
         if not line.strip():
-            if parts:
-                break
+            if current:
+                paragraphs.append(" ".join(current).strip())
+                current = []
             idx += 1
             continue
         if _ARGUMENTS_HEADER_RE.match(line) or _EXAMPLE_HEADER_RE.match(line) or _SEE_ALSO_RE.match(line):
             break
         if _is_metadata_line(line):
+            if current:
+                paragraphs.append(" ".join(current).strip())
+                current = []
             idx = _skip_metadata_block(lines, idx, end_idx)
             continue
+        if _is_structured_doc_line(line):
+            if current:
+                paragraphs.append(" ".join(current).strip())
+                current = []
+            structured: list[str] = []
+            while idx < end_idx:
+                structured_line = lines[idx]
+                if not structured_line.strip():
+                    break
+                if _ARGUMENTS_HEADER_RE.match(structured_line) or _EXAMPLE_HEADER_RE.match(structured_line) or _SEE_ALSO_RE.match(structured_line):
+                    break
+                if match_dconv_keyword_line(structured_line):
+                    break
+                if structured_line.strip() and not structured_line.startswith(" "):
+                    break
+                if not _is_structured_doc_line(structured_line):
+                    break
+                structured.append(structured_line.rstrip())
+                idx += 1
+            if structured:
+                paragraphs.append("\n".join(structured).strip())
+            continue
         if line.startswith(" "):
-            parts.append(line.strip())
+            current.append(line.strip())
             idx += 1
             continue
         break
 
-    return " ".join(parts).strip()
+    if current:
+        paragraphs.append(" ".join(current).strip())
+
+    return "\n\n".join(paragraph for paragraph in paragraphs if paragraph).strip()
 
 
 def _keyword_block_end(lines: list[str], header_idx: int, end_idx: int) -> int:

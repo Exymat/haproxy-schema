@@ -29,6 +29,18 @@ def test_extract_description() -> None:
     assert extract_description_after_header(lines, 0) == "Set the running mode or protocol of the instance"
 
 
+def test_extract_description_keeps_multiple_paragraphs() -> None:
+    lines = [
+        "source <addr> [param*]",
+        "  The first paragraph.",
+        "",
+        "  The second paragraph.",
+        "",
+        "  Arguments: none",
+    ]
+    assert extract_description_after_header(lines, 0) == "The first paragraph.\n\nThe second paragraph."
+
+
 def test_walk_keyword_docs() -> None:
     content = """4.2. Alphabetically sorted keywords reference
 ---------------------------------------------
