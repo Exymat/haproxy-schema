@@ -352,7 +352,10 @@ def extract_description_after_header(lines: list[str], header_idx: int) -> str:
                 current = []
             idx += 1
             continue
-        if not line.startswith("  ") or line.startswith("   "):
+        if get_indent(line) < 2:
+            break
+        stripped = line.strip()
+        if get_indent(line) >= 4 and _SIGNATURE_CONTINUATION_RE.match(stripped):
             break
         if is_skippable_metadata_line(line):
             if current:

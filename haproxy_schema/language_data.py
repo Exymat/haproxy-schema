@@ -6,7 +6,7 @@ from typing import Any
 from urllib.parse import quote
 import json
 
-from .action_parser import ActionDoc, parse_actions
+from .action_parser import ActionDoc, lookup_action_doc, parse_actions
 from .dkall_parser import DkallParseResult, parse_dkall
 from .dkall_supplement import supplement_missing_tls_options
 from .doc_parser import DocParseResult, SECTIONS_MATRIX, parse_configuration
@@ -180,7 +180,7 @@ def build_language_data(
     ) -> list[GroupItem]:
         items: list[GroupItem] = []
         for name in names:
-            action = actions.get(name)
+            action = lookup_action_doc(actions, name)
             doc_url = docs_url(version, name, docs_chapter or "") if docs_chapter is not None else ""
             items.append(
                 GroupItem(
@@ -196,7 +196,7 @@ def build_language_data(
     def action_group_items(names: list[str]) -> list[GroupItem]:
         items: list[GroupItem] = []
         for name in names:
-            action = actions.get(name)
+            action = lookup_action_doc(actions, name)
             items.append(
                 GroupItem(
                     name=name,

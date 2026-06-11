@@ -105,6 +105,52 @@ def _match_action_header(line: str) -> tuple[str, str] | None:
     return None
 
 
+def _store_action_doc(
+    actions: dict[str, ActionDoc],
+    *,
+    name: str,
+    signature: str,
+    description: str,
+    rulesets: list[str],
+    usable_in: str,
+    docs_keyword: str,
+) -> None:
+    entry = actions.get(name)
+    if entry is None:
+        actions[name] = ActionDoc(
+            name=name,
+            signature=signature,
+            description=description,
+            rulesets=list(rulesets),
+            usable_in=usable_in,
+            docs_keyword=docs_keyword,
+            chapter="4.4",
+        )
+        return
+    if description and not entry.description:
+        entry.description = description
+    elif signature and signature != entry.signature:
+        entry.signature = signature
+    if not entry.docs_keyword:
+        entry.docs_keyword = docs_keyword
+    if not entry.chapter:
+        entry.chapter = "4.4"
+    for ruleset in rulesets:
+        if ruleset not in entry.rulesets:
+            entry.rulesets.append(ruleset)
+
+
+def lookup_action_doc(actions: dict[str, ActionDoc], name: str) -> ActionDoc | None:
+    """Resolve a config/matrix action name to its section 4.4 documentation."""
+    direct = actions.get(name)
+    if direct is not None:
+        return direct
+    prefix_matches = [doc for key, doc in actions.items() if key.startswith(f"{name} ")]
+    if len(prefix_matches) == 1:
+        return prefix_matches[0]
+    return None
+
+
 def parse_actions_lines(lines: list[str], start_idx: int, end_idx: int) -> dict[str, ActionDoc]:
     actions: dict[str, ActionDoc] = {}
     idx = start_idx
@@ -115,8 +161,7 @@ def parse_actions_lines(lines: list[str], start_idx: int, end_idx: int) -> dict[
             continue
 
         signatures, scan = collect_signature_lines(lines, idx)
-        name = extract_keyword_name(signatures[0])
-        signature = signatures[0]
+        primary_name = extract_keyword_name(signatures[0])
         usable_in = ""
         rulesets: list[str] = []
         while scan < end_idx and lines[scan].strip() and lines[scan].startswith(" "):
@@ -131,29 +176,29 @@ def parse_actions_lines(lines: list[str], start_idx: int, end_idx: int) -> dict[
             scan += 1
 
         description = extract_description_after_header(lines, idx)
-        entry = actions.get(name)
-        if entry is None:
-            actions[name] = ActionDoc(
-                name=name,
+        for signature in signatures:
+            sig_name = extract_keyword_name(signature)
+            _store_action_doc(
+                actions,
+                name=sig_name,
                 signature=signature,
                 description=description,
                 rulesets=rulesets,
                 usable_in=usable_in,
-                docs_keyword=name,
-                chapter="4.4",
+                docs_keyword=sig_name,
             )
-        else:
-            if description and not entry.description:
-                entry.description = description
-            elif signature and signature != entry.signature:
-                entry.signature = signature
-            if not entry.docs_keyword:
-                entry.docs_keyword = name
-            if not entry.chapter:
-                entry.chapter = "4.4"
-            for ruleset in rulesets:
-                if ruleset not in entry.rulesets:
-                    entry.rulesets.append(ruleset)
+        if " " in primary_name:
+            short_name = primary_name.split()[0]
+            if short_name not in actions:
+                _store_action_doc(
+                    actions,
+                    name=short_name,
+                    signature=signatures[0],
+                    description=description,
+                    rulesets=rulesets,
+                    usable_in=usable_in,
+                    docs_keyword=primary_name,
+                )
         idx = scan
     return actions
 

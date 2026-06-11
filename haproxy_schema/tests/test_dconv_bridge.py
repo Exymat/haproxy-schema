@@ -35,6 +35,20 @@ def test_extract_description() -> None:
     assert extract_description_after_header(lines, 0) == "Set the running mode or protocol of the instance"
 
 
+def test_extract_description_accepts_four_space_prose() -> None:
+    lines = [
+        "set-path <fmt>",
+        "  Usable in: HTTP Req",
+        "                    X",
+        "",
+        "    This rewrites the request path with the result of the evaluation of format",
+        "    string <fmt>. The query string, if any, is left intact.",
+    ]
+    text = extract_description_after_header(lines, 0)
+    assert "rewrites the request path" in text
+    assert "query string" in text
+
+
 def test_extract_description_keeps_multiple_paragraphs() -> None:
     lines = [
         "source <addr> [param*]",
