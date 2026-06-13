@@ -74,7 +74,7 @@ def _parse_7_1_flags_and_methods(
         if in_flags:
             m = _FLAG_RE.match(line)
             if m:
-                out.flags[m.group(1).lower()] = stripped.split(":", 1)[-1].strip()
+                out.flags[m.group(1)] = stripped.split(":", 1)[-1].strip()
         elif in_methods:
             m = _QUOTED_METHOD_RE.match(line)
             if m:

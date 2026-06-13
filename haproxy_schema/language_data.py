@@ -262,7 +262,7 @@ def build_language_data(
             docs_chapter="",
         ),
         "filters": group_items(sorted(dkall.filters), {}, {}),
-        "acl_flags": _acl_group_items(doc.acl_reference.flags, "-{name}"),
+        "acl_flags": _acl_group_items(doc.acl_reference.flags),
         "acl_match_methods": _acl_group_items(doc.acl_reference.match_methods, '-m {name}'),
         "acl_int_operators": _acl_group_items(doc.acl_reference.int_operators),
         "acl_string_match_methods": _acl_group_items(
