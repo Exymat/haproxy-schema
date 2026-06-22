@@ -46,26 +46,32 @@ Outputs (written by **haproxy-vscode** `npm run generate:schema:<version>` or di
 
 ```
 haproxy-schema/
-  haproxy_schema/          # importable package (CLI: uv run haproxy-schema)
-    dkall-2.6.txt          # checked-in -dKall dumps
+  .github/workflows/     # GitHub Actions (build + test per HAProxy release)
+  .python-version        # pinned Python for uv and CI (3.13)
+  uv.lock                # locked dev dependencies (pytest, pytest-cov)
+  haproxy_schema/        # importable package (CLI: uv run haproxy-schema)
+    dkall-2.6.txt        # checked-in -dKall dumps
     dkall-2.8.txt
     dkall-3.0.txt
     dkall-3.2.txt
     dkall-3.4.txt
-    coverage-2.6.json      # doc vs dkall gap reports (written by build)
+    coverage-2.6.json    # doc vs dkall gap reports (written by build)
     coverage-2.8.json
     coverage-3.0.json
     coverage-3.2.json
     coverage-3.4.json
+    doc-parse-audit-*.json       # checked-in doc-parse audit snapshots
+    schema-fidelity-audit-*.json # checked-in schema-fidelity audit snapshots
     tests/
-  scripts/                 # dkall generation, optional binary install, test runner
+      _paths.py          # SUPPORTED_VERSIONS and monorepo path helpers
+  scripts/               # dkall generation, optional binary install, test runner
 ```
 
 Dependencies and the virtual environment are managed with [uv](https://docs.astral.sh/uv/). Install uv, then from the repository root:
 
 ```bash
 cd haproxy-schema
-uv sync
+uv sync --locked --dev
 uv run haproxy-schema build --help
 uv run pytest
 ```
@@ -74,12 +80,40 @@ On Windows (PowerShell):
 
 ```powershell
 cd haproxy-schema
-uv sync
+uv sync --locked --dev
 uv run haproxy-schema build --help
 uv run pytest
 ```
 
-`uv run pytest` writes a terminal summary plus HTML (`htmlcov/index.html`) and XML (`coverage.xml`) reports. Coverage thresholds are not enforced yet.
+`uv run pytest` writes a terminal summary plus HTML (`htmlcov/index.html`) and XML (`coverage.xml`) reports. Current coverage is about **98%**; thresholds are not enforced in CI yet.
+
+## Testing
+
+The suite has **389 tests** covering parsing, schema merge, grammar emission, CLI commands, and audit snapshots. Many integration tests are parametrized over all five supported releases (`2.6`, `2.8`, `3.0`, `3.2`, `3.4`); the canonical version list lives in `haproxy_schema/tests/_paths.py` as `SUPPORTED_VERSIONS`.
+
+`haproxy_schema/tests/test_per_version.py` runs end-to-end checks for every release: doc parsing, layout detection, schema merge, language data, coverage reports, schema invariants, audit artifacts, and JSON round-trip.
+
+Full runs expect a **monorepo-style sibling layout** under the same parent directory:
+
+| Path | Purpose |
+| ---- | ------- |
+| `../haproxy_git/haproxy-<version>/` | upstream `configuration.txt` per release |
+| `../haproxy-vscode/schemas/haproxy-<version>.schema.json` | built schema artifacts consumed by grammar and validator tests |
+
+Tests skip gracefully when a source tree or schema file is missing. To run everything locally, clone [haproxy-vscode](https://github.com/Exymat/haproxy-vscode) and the HAProxy version repos as siblings (see below), build schemas, then run `uv run pytest`.
+
+From a parent directory that contains both repos, `scripts/test-all.ps1` runs pytest with coverage and, when **haproxy-vscode** is present, grammar checks plus the extension's npm test suite.
+
+## Continuous integration
+
+GitHub Actions workflow [`.github/workflows/test.yml`](.github/workflows/test.yml) runs on every push and pull request (markdown changes are ignored):
+
+| Job | What it does |
+| --- | ------------ |
+| **Build** (matrix: 2.6, 2.8, 3.0, 3.2, 3.4) | Clones upstream HAProxy source, builds schema/language/grammar artifacts, runs `check-grammar` |
+| **Tests** | Clones all five HAProxy trees, builds schemas, runs the full pytest suite with coverage |
+
+CI uses [actions/setup-python](https://github.com/actions/setup-python) with `.python-version`, [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) (uv **0.11.19**, locked sync, cache enabled), and uploads `coverage.xml` to Codecov. Upstream HAProxy sources are fetched from `git.haproxy.org` at job time; no sibling checkout is required on the runner beyond what the workflow creates under `../haproxy_git/` and `../haproxy-vscode/schemas/`.
 
 ## CLI
 
@@ -88,11 +122,11 @@ uv run pytest
 | `build` | Merge `configuration.txt` + dkall dump into schema JSON; optionally emit language data, grammar, and coverage report |
 | `emit-grammar` | Regenerate a fully generated TextMate grammar from an existing schema JSON |
 | `check-grammar` | Verify an emitted grammar covers all schema directives (prefix conflicts, missing cache keywords, stale hyphen forms) |
-
-The grammar generator is self-contained: it does not fetch or patch any upstream tmLanguage template at build time. Generated grammars point `$schema` to a local sidecar file, `./tmlanguage.schema.json`, which is emitted beside each `haproxy-X.Y.tmLanguage.json`.
 | `audit-docs` | Report bind/server/proxy options missing hover documentation |
 | `doc-parse-audit` | Audit `configuration.txt` extraction quality for docs, signatures, hover payloads, and action references |
 | `schema-fidelity-audit` | Audit how completely keyword arguments, nested options, sample functions, and value-taking options are modeled in schema JSON |
+
+The grammar generator is self-contained: it does not fetch or patch any upstream tmLanguage template at build time. Generated grammars point `$schema` to a local sidecar file, `./tmlanguage.schema.json`, which is emitted beside each `haproxy-X.Y.tmLanguage.json`.
 
 Example — build schema for 3.2 (paths assume sibling `haproxy_git/` trees):
 
@@ -152,7 +186,7 @@ The **haproxy-vscode** extension consumes generated `schema.json`, `language.jso
 parent/
   haproxy-schema/
   haproxy-vscode/
-  haproxy_git/             # optional: haproxy-2.6/, haproxy-2.8/, haproxy-3.0/, … for doc + integration tests
+  haproxy_git/             # haproxy-2.6/, haproxy-2.8/, haproxy-3.0/, … for doc sources and integration tests
 ```
 
 Schema build and full test instructions live in [haproxy-vscode/README.md](../haproxy-vscode/README.md). From the parent directory:
@@ -160,6 +194,8 @@ Schema build and full test instructions live in [haproxy-vscode/README.md](../ha
 ```powershell
 .\haproxy-schema\scripts\test-all.ps1
 ```
+
+This runs `uv run pytest` (with coverage), then `check-grammar` for each built schema, then `npm test` in **haproxy-vscode** when that sibling repo is present.
 
 ---
 
