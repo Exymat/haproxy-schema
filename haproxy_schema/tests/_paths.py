@@ -6,6 +6,13 @@ from pathlib import Path
 
 _SCHEMA_REPO = Path(__file__).resolve().parents[2]
 
+# HAProxy releases this package builds schemas for (see README).
+SUPPORTED_VERSIONS: tuple[str, ...] = ("2.6", "2.8", "3.0", "3.2", "3.4")
+
+# Legacy docs (2.6/2.8) vs modern §4.3/§4.4 reference (3.0+).
+LEGACY_DOC_VERSIONS: frozenset[str] = frozenset({"2.6", "2.8"})
+MODERN_DOC_VERSIONS: frozenset[str] = frozenset({"3.0", "3.2", "3.4"})
+
 
 def schema_repo_root() -> Path:
     return _SCHEMA_REPO

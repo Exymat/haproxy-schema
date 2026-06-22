@@ -230,3 +230,43 @@ def test_merge_schema_prunes_unsupported_compile_time_doc_keywords() -> None:
     schema = merge_schema(version, doc, dkall, dkall_package_dir=dkall_dump(version).parent)
 
     assert "wurfl-data-file" not in schema.keywords
+
+
+def test_line_option_docs_metadata_and_structured_branches() -> None:
+    from haproxy_schema.line_option_docs import (
+        _is_metadata_line,
+        _is_structured_doc_line,
+        _skip_metadata_block,
+        extract_line_option_description,
+    )
+
+    assert _is_metadata_line("  May be used in the following contexts without colon") is True
+    assert _is_metadata_line("  May be used in sections inline") is True
+    assert _is_metadata_line("defaults | frontend | listen | backend") is True
+    assert _is_metadata_line("yes | no | - | yes") is True
+    assert _is_structured_doc_line("") is False
+    assert _is_structured_doc_line("----------------+---------------") is True
+
+    lines = [
+        "table-opt <val>",
+        "  May be used in sections : defaults | frontend",
+        "                    yes | yes",
+        "  Intro paragraph.",
+        "",
+        "  Second paragraph after blank.",
+        "  | Name | Value |",
+        "  +------+-------+",
+        "  | foo  | bar   |",
+        "  Arguments:",
+        "    table-opt value",
+        "  Examples:",
+        "    table-opt 1",
+        "  See also: ssl",
+        "next-opt",
+        "  Final option.",
+    ]
+    idx = _skip_metadata_block(lines, 1, len(lines))
+    assert idx >= 1
+    desc = extract_line_option_description(lines, 0, len(lines))
+    assert "Intro paragraph" in desc
+    assert "Name" in desc or "foo" in desc

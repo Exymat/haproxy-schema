@@ -5,7 +5,7 @@ import tempfile
 from copy import deepcopy
 from pathlib import Path
 
-from haproxy_schema.grammar_build import build_tm_language
+from haproxy_schema.grammar_build import build_tm_language, validate_line_isolated_grammar
 from haproxy_schema.grammar_emitter import write_tm_language
 from haproxy_schema.grammar_util import collect_directive_keywords
 from haproxy_schema.schema import HaproxySchema, Keyword, Section
@@ -140,3 +140,9 @@ def test_schema_directive_pattern_is_stable_for_equal_length_keywords() -> None:
     assert grammar_a["repository"]["schema-directives"]["patterns"][0]["match"] == (
         grammar_b["repository"]["schema-directives"]["patterns"][0]["match"]
     )
+
+
+def test_generated_grammar_is_line_isolated() -> None:
+    schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
+    grammar = build_tm_language(schema)
+    validate_line_isolated_grammar(grammar)

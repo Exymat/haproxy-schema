@@ -36374,8 +36374,8 @@
     },
     {
       "name": "http_request_actions",
-      "schema_count": 70,
-      "source_count": 70,
+      "schema_count": 78,
+      "source_count": 78,
       "missing_from_schema": [],
       "extra_in_schema": []
     },

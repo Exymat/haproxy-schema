@@ -278,8 +278,6 @@ def _group_multword_keywords(schema: HaproxySchema) -> dict[str, list[str]]:
         if " " not in name:
             continue
         parts = name.split(" ", 1)
-        if len(parts) != 2:
-            continue
         prefix, suffix = parts
         if prefix in skip or not is_directive_token(prefix):
             continue
@@ -686,13 +684,13 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                 {
                     "name": "string.quoted.double.haproxy",
                     "begin": '"',
-                    "end": '"',
+                    "end": r'("|$)',
                     "patterns": [{"name": "constant.character.escape.haproxy", "match": r"\\."}],
                 },
                 {
                     "name": "string.quoted.single.haproxy",
                     "begin": "'",
-                    "end": "'",
+                    "end": r"('|$)",
                     "patterns": [{"name": "constant.character.escape.haproxy", "match": r"\\."}],
                 },
             ]
@@ -760,7 +758,7 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                 {
                     "begin": sample_call_pat,
                     "beginCaptures": {"1": _scope(_STORAGE), "2": _scope(_MODIFIER)},
-                    "end": r"\)",
+                    "end": r"(\)|$)",
                     "endCaptures": {"0": _scope(_MODIFIER)},
                     "patterns": [
                         {"include": "#strings"},
@@ -797,7 +795,7 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                     "name": "meta.group.expression.haproxy",
                     "begin": r"\{",
                     "beginCaptures": {"0": _scope(_MODIFIER)},
-                    "end": r"\}",
+                    "end": r"(\}|$)",
                     "endCaptures": {"0": _scope(_MODIFIER)},
                     "patterns": [
                         {"include": "#strings"},
@@ -823,7 +821,7 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                     "name": "meta.embedded.sample-expression.haproxy",
                     "begin": r"%\[",
                     "beginCaptures": {"0": _scope(_MODIFIER)},
-                    "end": r"\]",
+                    "end": r"(\]|$)",
                     "endCaptures": {"0": _scope(_MODIFIER)},
                     "patterns": [
                         {"include": "#strings"},
@@ -844,7 +842,7 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                     "name": "meta.embedded.sample-expression.haproxy",
                     "begin": r"\[",
                     "beginCaptures": {"0": _scope(_MODIFIER)},
-                    "end": r"\]",
+                    "end": r"(\]|$)",
                     "endCaptures": {"0": _scope(_MODIFIER)},
                     "patterns": [
                         {"include": "#strings"},
@@ -900,8 +898,31 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
     }
 
 
+def _walk_grammar_rules(node: Any, path: str, violations: list[str]) -> None:
+    """Collect begin/end rules whose end pattern does not terminate at end-of-line."""
+    if isinstance(node, dict):
+        begin = node.get("begin")
+        end = node.get("end")
+        if isinstance(begin, str) and isinstance(end, str) and "$" not in end:
+            violations.append(f"{path}: end pattern {end!r} must include $ for line isolation")
+        for key, value in node.items():
+            child_path = f"{path}.{key}" if path else key
+            _walk_grammar_rules(value, child_path, violations)
+    elif isinstance(node, list):
+        for index, item in enumerate(node):
+            _walk_grammar_rules(item, f"{path}[{index}]", violations)
+
+
+def validate_line_isolated_grammar(grammar: dict[str, Any]) -> None:
+    """HAProxy highlighting is line-oriented: no begin/end rule may carry state past EOL."""
+    violations: list[str] = []
+    _walk_grammar_rules(grammar, "", violations)
+    if violations:
+        raise ValueError("Grammar is not line-isolated:\n" + "\n".join(violations))
+
+
 def build_tm_language(schema: HaproxySchema) -> dict[str, Any]:
-    return {
+    grammar = {
         "$schema": TM_LANGUAGE_SCHEMA_REF,
         "name": f"HAProxy {schema.version}",
         "scopeName": "source.haproxy",
@@ -942,3 +963,5 @@ def build_tm_language(schema: HaproxySchema) -> dict[str, Any]:
         ],
         "repository": build_repository(schema),
     }
+    validate_line_isolated_grammar(grammar)
+    return grammar

@@ -1,0 +1,125 @@
+name: Test
+
+on:
+  push:
+    paths-ignore:
+      - "**/*.md"
+  pull_request:
+    paths-ignore:
+      - "**/*.md"
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_VERSION: "0.11.19"
+  HAPROXY_VERSIONS: "2.6 2.8 3.0 3.2 3.4"
+
+jobs:
+  build:
+    name: Build (HAProxy ${{ matrix.haproxy-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        haproxy-version: ["2.6", "2.8", "3.0", "3.2", "3.4"]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Install the project
+        run: uv sync --locked --dev
+
+      - name: Clone upstream HAProxy source
+        run: |
+          mkdir -p ../haproxy_git
+          git clone --depth 1 \
+            "http://git.haproxy.org/git/haproxy-${{ matrix.haproxy-version }}.git" \
+            "../haproxy_git/haproxy-${{ matrix.haproxy-version }}"
+
+      - name: Build schema artifacts
+        run: |
+          VERSION="${{ matrix.haproxy-version }}"
+          mkdir -p ../haproxy-vscode/schemas
+          DOC="../haproxy_git/haproxy-${VERSION}/doc/configuration.txt"
+          uv run haproxy-schema build \
+            --doc "${DOC}" \
+            --dkall "haproxy_schema/dkall-${VERSION}.txt" \
+            --out "../haproxy-vscode/schemas/haproxy-${VERSION}.schema.json" \
+            --language-data-out "../haproxy-vscode/schemas/haproxy-${VERSION}.language.json" \
+            --grammar-out "../haproxy-vscode/schemas/haproxy-${VERSION}.tmLanguage.json" \
+            --coverage-out "haproxy_schema/coverage-${VERSION}.json" \
+            --version "${VERSION}"
+
+      - name: Check grammar coverage
+        run: |
+          VERSION="${{ matrix.haproxy-version }}"
+          uv run haproxy-schema check-grammar \
+            --schema "../haproxy-vscode/schemas/haproxy-${VERSION}.schema.json"
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Install the project
+        run: uv sync --locked --dev
+
+      - name: Clone upstream HAProxy sources
+        run: |
+          mkdir -p ../haproxy_git
+          for version in ${HAPROXY_VERSIONS}; do
+            git clone --depth 1 \
+              "http://git.haproxy.org/git/haproxy-${version}.git" \
+              "../haproxy_git/haproxy-${version}"
+          done
+
+      - name: Build schema artifacts
+        run: |
+          mkdir -p ../haproxy-vscode/schemas
+          for version in ${HAPROXY_VERSIONS}; do
+            DOC="../haproxy_git/haproxy-${version}/doc/configuration.txt"
+            uv run haproxy-schema build \
+              --doc "${DOC}" \
+              --dkall "haproxy_schema/dkall-${version}.txt" \
+              --out "../haproxy-vscode/schemas/haproxy-${version}.schema.json" \
+              --language-data-out "../haproxy-vscode/schemas/haproxy-${version}.language.json" \
+              --grammar-out "../haproxy-vscode/schemas/haproxy-${version}.tmLanguage.json" \
+              --coverage-out "haproxy_schema/coverage-${version}.json" \
+              --version "${version}"
+          done
+
+      - name: Run tests with coverage
+        run: uv run pytest -q
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false

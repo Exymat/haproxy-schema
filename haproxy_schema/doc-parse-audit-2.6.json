@@ -19,8 +19,7 @@
     "http-check connect"
   ],
   "actions_missing_description": [
-    "return",
-    "set-path"
+    "return"
   ],
   "actions_without_rulesets": [],
   "action_reference_only": [],

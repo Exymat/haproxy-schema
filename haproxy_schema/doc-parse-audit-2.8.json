@@ -16,9 +16,7 @@
   "language_keywords_empty_description": [
     "docroot"
   ],
-  "actions_missing_description": [
-    "set-path"
-  ],
+  "actions_missing_description": [],
   "actions_without_rulesets": [],
   "action_reference_only": [],
   "action_matrix_only": [],

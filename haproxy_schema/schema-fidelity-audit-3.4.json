@@ -39630,8 +39630,8 @@
     },
     {
       "name": "http_request_actions",
-      "schema_count": 72,
-      "source_count": 72,
+      "schema_count": 80,
+      "source_count": 80,
       "missing_from_schema": [],
       "extra_in_schema": []
     },

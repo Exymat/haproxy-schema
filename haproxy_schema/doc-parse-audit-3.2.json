@@ -4,7 +4,7 @@
   "signature_keywords_count": 583,
   "signatures_total_count": 607,
   "section_keywords_count": 15,
-  "action_reference_count": 73,
+  "action_reference_count": 89,
   "language_keywords_count": 583,
   "keywords_missing_description": [
     "acme",
@@ -20,28 +20,19 @@
     "crt-store",
     "docroot"
   ],
-  "actions_missing_description": [
-    "set-path"
-  ],
+  "actions_missing_description": [],
   "actions_without_rulesets": [
     "attach-srv",
     "close",
     "set-mark",
     "set-tos",
+    "switch-mode",
     "switch-mode http"
   ],
   "action_reference_only": [
     "switch-mode http"
   ],
-  "action_matrix_only": [
-    "expect-netscaler-cip",
-    "sc-inc-gpc1",
-    "set-var-fmt",
-    "switch-mode",
-    "track-sc1",
-    "track-sc2",
-    "wait-for-body"
-  ],
+  "action_matrix_only": [],
   "proxy_options_missing_hover_docs": [],
   "bind_options_missing_hover_docs": [
     "process"

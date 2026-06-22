@@ -225,11 +225,6 @@ def merge_schema(
         for keyword in keywords:
             _add_keyword_to_section(schema, section, keyword)
             _mark_source(schema, keyword, "doc")
-            kdoc = doc.keyword_docs.get(keyword)
-            if kdoc:
-                kw = _ensure_keyword(schema, keyword)
-                if section not in kw.sections:
-                    kw.sections.append(section)
 
     # Dkall complements top-level sections not fully covered by doc.
     for section, keywords in dkall.section_keywords.items():
