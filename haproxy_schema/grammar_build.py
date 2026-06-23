@@ -33,6 +33,7 @@ _STORAGE = "storage.type"
 _COMMENT = "comment.line.number-sign.haproxy"
 _PREPROCESSOR = "keyword.control.preprocessor.haproxy"
 _CONDITION = "keyword.control.conditional.haproxy"
+_LOGFORMAT = "variable.other.logformat.haproxy"
 _BOOLEAN = "constant.language.boolean.haproxy"
 _ACL_FLAG = "storage.modifier.acl.haproxy"
 _COMPARISON = "keyword.operator.comparison.haproxy"
@@ -625,7 +626,65 @@ def _build_bind_param_pairs(schema: HaproxySchema) -> dict[str, Any]:
     return {"patterns": patterns}
 
 
-def _build_log_line() -> dict[str, Any]:
+def _build_log_format_content(schema: HaproxySchema) -> dict[str, Any]:
+    alias_names = sorted(
+        {name.lstrip("%") for name in schema.logformat_aliases},
+        key=len,
+        reverse=True,
+    )
+    patterns: list[dict[str, Any]] = [
+        {"include": "#sample-expressions"},
+        {
+            "name": _MODIFIER,
+            "match": r"%(?:\([^)]*\))?\{[+\-][^}]+\}",
+        },
+        {
+            "name": _MODIFIER,
+            "match": r"%\([^)]*\)",
+        },
+    ]
+    if alias_names:
+        alias_pat = alt_pattern(alias_names, limit=200)
+        patterns.append(
+            {
+                "name": _LOGFORMAT,
+                "match": rf"%(?:{alias_pat})\b",
+            }
+        )
+    patterns.append({"name": "constant.character.escape.haproxy", "match": r"%%"})
+    return {"patterns": patterns}
+
+
+def _build_log_format_prefix_patterns(schema: HaproxySchema) -> dict[str, Any]:
+    prefixes = sorted(
+        {
+            str(slot["prefix"])
+            for slot in schema.logformat_slots
+            if slot.get("kind") == "prefix" and slot.get("prefix")
+        },
+        key=len,
+        reverse=True,
+    )
+    if not prefixes:
+        return {"patterns": []}
+    prefix_pat = alt_pattern(prefixes, limit=50)
+    return {
+        "patterns": [
+            {
+                "match": rf"\b({prefix_pat})\s+(\S+)",
+                "captures": {
+                    "1": _scope(_OPTION),
+                    "2": {"patterns": [{"include": "#log-format-content"}]},
+                },
+            }
+        ]
+    }
+
+
+def _build_log_line(schema: HaproxySchema) -> dict[str, Any]:
+    fmt_directives = (
+        "log-format-sd|log-format|error-log-format|unique-id-format|set-var-fmt"
+    )
     return {
         "patterns": [
             {
@@ -633,8 +692,11 @@ def _build_log_line() -> dict[str, Any]:
                 "captures": _captures(_DIRECTIVE, _STRING, _STORAGE),
             },
             {
-                "match": r"\b(log-format-sd|log-format)\s+(.+)$",
-                "captures": _captures(_DIRECTIVE, _STRING),
+                "match": rf"\b({fmt_directives})\s+(.+)$",
+                "captures": {
+                    "1": _scope(_DIRECTIVE),
+                    "2": {"patterns": [{"include": "#log-format-content"}]},
+                },
             },
         ]
     }
@@ -685,13 +747,19 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                     "name": "string.quoted.double.haproxy",
                     "begin": '"',
                     "end": r'("|$)',
-                    "patterns": [{"name": "constant.character.escape.haproxy", "match": r"\\."}],
+                    "patterns": [
+                        {"include": "#log-format-content"},
+                        {"name": "constant.character.escape.haproxy", "match": r"\\."},
+                    ],
                 },
                 {
                     "name": "string.quoted.single.haproxy",
                     "begin": "'",
                     "end": r"('|$)",
-                    "patterns": [{"name": "constant.character.escape.haproxy", "match": r"\\."}],
+                    "patterns": [
+                        {"include": "#log-format-content"},
+                        {"name": "constant.character.escape.haproxy", "match": r"\\."},
+                    ],
                 },
             ]
         },
@@ -706,7 +774,9 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
         "directives-multiword": _build_directives_multiword(schema),
         "rule-actions": _build_rule_actions(schema),
         "check-actions": _build_check_actions(schema),
-        "log-line": _build_log_line(),
+        "log-format-content": _build_log_format_content(schema),
+        "log-format-prefixes": _build_log_format_prefix_patterns(schema),
+        "log-line": _build_log_line(schema),
         "single-arg-directives": {
             "patterns": [
                 {
@@ -941,6 +1011,7 @@ def build_tm_language(schema: HaproxySchema) -> dict[str, Any]:
             {"include": "#sample-expressions"},
             {"include": "#rule-actions"},
             {"include": "#check-actions"},
+            {"include": "#log-format-prefixes"},
             {"include": "#log-line"},
             {"include": "#bind-param-pairs"},
             {"include": "#single-arg-directives"},

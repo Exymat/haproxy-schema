@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import re
 
+from .example_docs import ExampleDoc, extract_example_blocks
+
 # From haproxy-dconv/parser/keyword.py KeyWordParser.keywordPattern
 _KEYWORD_PATTERN = re.compile(
     r"^("
@@ -57,6 +59,7 @@ class KeywordVariantDoc:
     sections: list[str] = field(default_factory=list)
     signatures: list[str] = field(default_factory=list)
     description: str = ""
+    examples: list[ExampleDoc] = field(default_factory=list)
     contexts: list[str] = field(default_factory=list)
     arguments: list[ArgumentParamDoc] = field(default_factory=list)
 
@@ -162,6 +165,17 @@ class KeywordDoc:
         for variant in self.variants:
             if variant.arguments:
                 return variant.arguments
+        return []
+
+    @property
+    def examples(self) -> list[ExampleDoc]:
+        for preferred in ("4.2",):
+            for variant in self.variants:
+                if variant.chapter == preferred and variant.examples:
+                    return variant.examples
+        for variant in self.variants:
+            if variant.examples:
+                return variant.examples
         return []
 
 
@@ -444,6 +458,7 @@ def walk_keyword_docs(
         block_end = min(_keyword_block_end(lines, idx), end_idx)
         description = extract_description_after_header(lines, idx)
         argument_docs = extract_argument_docs(lines, idx)
+        example_docs = extract_example_blocks(lines, idx, block_end)
         block_sections = extract_sections_from_keyword_block(lines, idx, block_end)
         block_contexts = extract_contexts_from_keyword_block(lines, idx, block_end)
 
@@ -462,6 +477,8 @@ def walk_keyword_docs(
                     variant.signatures.append(sig)
             if description and not variant.description:
                 variant.description = description
+            if example_docs and not variant.examples:
+                variant.examples = list(example_docs)
             if argument_docs:
                 merge_argument_docs(variant, argument_docs)
             for section in block_sections:

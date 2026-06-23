@@ -12,6 +12,7 @@ from .dconv_bridge import (
     is_valid_keyword_name,
     match_dconv_keyword_line,
 )
+from .example_docs import extract_example_blocks
 
 _CONTEXTS_RE = re.compile(r"^  May be used in the following contexts:", re.I)
 _SECTIONS_HEADER_RE = re.compile(r"^  May be used in sections\s*:", re.I)
@@ -178,6 +179,7 @@ def walk_line_option_docs(
         signatures, next_idx = collect_signature_lines(lines, idx)
         block_end = min(_keyword_block_end(lines, idx, end_idx), end_idx)
         description = extract_line_option_description(lines, idx, block_end)
+        example_docs = extract_example_blocks(lines, idx, block_end)
         contexts = extract_contexts_from_keyword_block(lines, idx, block_end)
 
         for sig in signatures:
@@ -191,6 +193,8 @@ def walk_line_option_docs(
                     variant.signatures.append(sig)
                 if description and not variant.description:
                     variant.description = description
+                if example_docs and not variant.examples:
+                    variant.examples = list(example_docs)
                 for context in contexts:
                     if context not in variant.contexts:
                         variant.contexts.append(context)

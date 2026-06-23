@@ -14,12 +14,19 @@ from .merge import build_action_groups
 
 
 @dataclass
+class LanguageExample:
+    title: str = ""
+    code: str = ""
+
+
+@dataclass
 class GroupItem:
     name: str
     description: str = ""
     signature: str = ""
     rulesets: list[str] = field(default_factory=list)
     docsUrl: str = ""
+    examples: list[LanguageExample] = field(default_factory=list)
 
 
 @dataclass
@@ -44,6 +51,7 @@ class LanguageKeywordVariant:
     docsUrl: str
     arguments: list[LanguageArgumentParam] = field(default_factory=list)
     contexts: list[str] = field(default_factory=list)
+    examples: list[LanguageExample] = field(default_factory=list)
 
 
 @dataclass
@@ -55,6 +63,7 @@ class LanguageKeyword:
     docsUrl: str
     arguments: list[LanguageArgumentParam] = field(default_factory=list)
     variants: list[LanguageKeywordVariant] = field(default_factory=list)
+    examples: list[LanguageExample] = field(default_factory=list)
 
 
 @dataclass
@@ -114,11 +123,34 @@ def _acl_group_items(mapping: dict[str, str], signature_fmt: str = "") -> list[G
     ]
 
 
+def _logformat_alias_description(item: object) -> str:
+    field_name = getattr(item, "field_name", "") or ""
+    sample_fetch = getattr(item, "sample_fetch", "") or ""
+    alias_type = getattr(item, "type", "") or ""
+    restrictions = getattr(item, "restrictions", "") or ""
+    parts = [field_name]
+    if sample_fetch:
+        parts.append(f"Equivalent: {sample_fetch}")
+    if alias_type:
+        parts.append(f"Type: {alias_type}")
+    if restrictions:
+        parts.append(f"Restrictions: {restrictions}")
+    return " — ".join(part for part in parts if part)
+
+
 def _sample_signature(item: object) -> str:
     signature = getattr(item, "signature", "") or ""
     if getattr(item, "deprecated", False) and signature and "(deprecated)" not in signature.lower():
         return f"{signature} (deprecated)"
     return signature
+
+
+def _language_examples(examples: list[Any]) -> list[LanguageExample]:
+    return [
+        LanguageExample(title=getattr(example, "title", "") or "", code=getattr(example, "code", "") or "")
+        for example in examples
+        if getattr(example, "code", "")
+    ]
 
 
 def build_language_data(
@@ -158,6 +190,7 @@ def build_language_data(
                 docsUrl=docs_url(version, name, variant.chapter),
                 arguments=language_arguments(variant.arguments),
                 contexts=list(variant.contexts),
+                examples=_language_examples(variant.examples),
             )
             for variant in kdoc.variants
         ]
@@ -169,6 +202,7 @@ def build_language_data(
             docsUrl=docs_url(version, name, chapter),
             arguments=language_arguments(kdoc.arguments),
             variants=variants,
+            examples=_language_examples(kdoc.examples),
         )
 
     def group_items(
@@ -176,6 +210,7 @@ def build_language_data(
         descriptions: dict[str, str],
         signatures: dict[str, str],
         *,
+        examples: dict[str, list[LanguageExample]] | None = None,
         docs_chapter: str | None = None,
     ) -> list[GroupItem]:
         items: list[GroupItem] = []
@@ -189,6 +224,7 @@ def build_language_data(
                     signature=signatures.get(name, action.signature if action else ""),
                     rulesets=list(action.rulesets) if action else [],
                     docsUrl=doc_url,
+                    examples=list(examples.get(name, [])) if examples else [],
                 )
             )
         return items
@@ -204,6 +240,7 @@ def build_language_data(
                     signature=action.signature if action else "",
                     rulesets=list(action.rulesets) if action else [],
                     docsUrl=action_docs_url(version, action, name, "4.4"),
+                    examples=_language_examples(action.examples) if action else [],
                 )
             )
         return items
@@ -218,6 +255,11 @@ def build_language_data(
         for name, doc in doc.bind_option_docs.items()
         if doc.signatures
     }
+    option_examples = {
+        name: _language_examples(doc.examples)
+        for name, doc in doc.bind_option_docs.items()
+        if doc.examples
+    }
     server_desc = {
         name: doc.description for name, doc in doc.server_option_docs.items() if doc.description
     }
@@ -226,6 +268,21 @@ def build_language_data(
         for name, doc in doc.server_option_docs.items()
         if doc.signatures
     }
+    server_examples = {
+        name: _language_examples(doc.examples)
+        for name, doc in doc.server_option_docs.items()
+        if doc.examples
+    }
+    sample_fetch_examples = {
+        name: _language_examples(item.examples)
+        for name, item in doc.sample_reference.fetches.items()
+        if item.examples
+    }
+    sample_converter_examples = {
+        name: _language_examples(item.examples)
+        for name, item in doc.sample_reference.converters.items()
+        if item.examples
+    }
 
     data.groups = {
         "options": group_items(sorted(set(dkall.options) | _collect_doc_options(doc)), {}, {}),
@@ -233,12 +290,14 @@ def build_language_data(
             sorted(dkall.bind_options),
             option_desc,
             option_sigs,
+            examples=option_examples,
             docs_chapter="5.1",
         ),
         "server_options": group_items(
             sorted(dkall.server_options),
             server_desc,
             server_sigs,
+            examples=server_examples,
             docs_chapter="5.2",
         ),
         "http_request_actions": action_group_items(action_groups["http_request_actions"]),
@@ -253,12 +312,14 @@ def build_language_data(
             sorted(dkall.sample_fetches),
             {name: item.description for name, item in doc.sample_reference.fetches.items() if item.description},
             {name: _sample_signature(item) for name, item in doc.sample_reference.fetches.items() if item.signature},
+            examples=sample_fetch_examples,
             docs_chapter="",
         ),
         "sample_converters": group_items(
             sorted(dkall.sample_converters),
             {name: item.description for name, item in doc.sample_reference.converters.items() if item.description},
             {name: _sample_signature(item) for name, item in doc.sample_reference.converters.items() if item.signature},
+            examples=sample_converter_examples,
             docs_chapter="",
         ),
         "filters": group_items(sorted(dkall.filters), {}, {}),
@@ -269,6 +330,19 @@ def build_language_data(
             doc.acl_reference.string_match_methods, "-m {name}"
         ),
         "acl_predefined": _acl_group_items(doc.acl_reference.predefined_acls),
+        "logformat_flags": _acl_group_items(doc.logformat_reference.flags),
+        "logformat_aliases": [
+            GroupItem(
+                name=item.name,
+                description=_logformat_alias_description(item),
+                signature=item.name,
+                docsUrl=docs_url(version, item.name.lstrip("%"), "8.2.6"),
+            )
+            for item in sorted(
+                doc.logformat_reference.aliases.values(),
+                key=lambda alias: alias.name,
+            )
+        ],
     }
 
     return data

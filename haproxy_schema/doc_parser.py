@@ -11,6 +11,7 @@ from .action_parser import (
     merge_action_matrices,
     parse_actions_lines,
 )
+from .logformat_doc_parser import LogformatReferenceDoc, parse_logformat_reference
 from .dconv_bridge import (
     ArgumentParamDoc,
     ArgumentValueDoc,
@@ -114,6 +115,7 @@ class DocParseResult:
     server_option_docs: dict[str, KeywordDoc] = field(default_factory=dict)
     acl_reference: AclReferenceDoc = field(default_factory=AclReferenceDoc)
     sample_reference: SampleReferenceDoc = field(default_factory=SampleReferenceDoc)
+    logformat_reference: LogformatReferenceDoc = field(default_factory=LogformatReferenceDoc)
 
 
 def _next_nonblank(lines: list[str], start: int) -> str:
@@ -302,6 +304,8 @@ def _merge_variant_docs(
             target.description = source.description
     if source.arguments:
         merge_argument_docs(target, source.arguments)
+    if source.examples and not target.examples:
+        target.examples = list(source.examples)
 
 
 def _merge_keyword_docs(
@@ -321,6 +325,7 @@ def _merge_keyword_docs(
                         sections=list(variant.sections),
                         signatures=list(variant.signatures),
                         description=variant.description,
+                        examples=list(variant.examples),
                         contexts=list(variant.contexts),
                         arguments=[
                             ArgumentParamDoc(
@@ -683,5 +688,6 @@ def parse_configuration(path: Path) -> DocParseResult:
 
     result.acl_reference = parse_acl_reference(path)
     result.sample_reference = parse_sample_reference(path)
+    result.logformat_reference = parse_logformat_reference(path)
 
     return result

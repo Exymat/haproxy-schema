@@ -14,6 +14,7 @@ from .dconv_bridge import (
     is_valid_keyword_name,
     match_dconv_keyword_line,
 )
+from .example_docs import ExampleDoc, extract_example_blocks
 
 _USABLE_HEADER_RE = re.compile(r"^\s*Usable in:\s*(.+)$", re.I)
 _MARKS_LINE_RE = re.compile(r"^\s+[-Xx| ]+\s*$")
@@ -50,6 +51,7 @@ class ActionDoc:
     name: str
     signature: str
     description: str = ""
+    examples: list[ExampleDoc] = field(default_factory=list)
     rulesets: list[str] = field(default_factory=list)
     usable_in: str = ""
     docs_keyword: str = ""
@@ -111,6 +113,7 @@ def _store_action_doc(
     name: str,
     signature: str,
     description: str,
+    examples: list[ExampleDoc],
     rulesets: list[str],
     usable_in: str,
     docs_keyword: str,
@@ -121,6 +124,7 @@ def _store_action_doc(
             name=name,
             signature=signature,
             description=description,
+            examples=list(examples),
             rulesets=list(rulesets),
             usable_in=usable_in,
             docs_keyword=docs_keyword,
@@ -131,6 +135,8 @@ def _store_action_doc(
         entry.description = description
     elif signature and signature != entry.signature:
         entry.signature = signature
+    if examples and not entry.examples:
+        entry.examples = list(examples)
     if not entry.docs_keyword:
         entry.docs_keyword = docs_keyword
     if not entry.chapter:
@@ -149,6 +155,18 @@ def lookup_action_doc(actions: dict[str, ActionDoc], name: str) -> ActionDoc | N
     if len(prefix_matches) == 1:
         return prefix_matches[0]
     return None
+
+
+def _action_block_end(lines: list[str], header_idx: int, end_idx: int) -> int:
+    signatures, next_idx = collect_signature_lines(lines, header_idx)
+    idx = next_idx
+    while idx < end_idx:
+        if _match_action_header(lines[idx]):
+            return idx
+        if lines[idx].strip() and not lines[idx].startswith(" "):
+            return idx
+        idx += 1
+    return end_idx
 
 
 def parse_actions_lines(lines: list[str], start_idx: int, end_idx: int) -> dict[str, ActionDoc]:
@@ -176,6 +194,8 @@ def parse_actions_lines(lines: list[str], start_idx: int, end_idx: int) -> dict[
             scan += 1
 
         description = extract_description_after_header(lines, idx)
+        block_end = _action_block_end(lines, idx, end_idx)
+        example_docs = extract_example_blocks(lines, idx, block_end)
         for signature in signatures:
             sig_name = extract_keyword_name(signature)
             _store_action_doc(
@@ -183,6 +203,7 @@ def parse_actions_lines(lines: list[str], start_idx: int, end_idx: int) -> dict[
                 name=sig_name,
                 signature=signature,
                 description=description,
+                examples=example_docs,
                 rulesets=rulesets,
                 usable_in=usable_in,
                 docs_keyword=sig_name,
@@ -195,11 +216,12 @@ def parse_actions_lines(lines: list[str], start_idx: int, end_idx: int) -> dict[
                     name=short_name,
                     signature=signatures[0],
                     description=description,
+                    examples=example_docs,
                     rulesets=rulesets,
                     usable_in=usable_in,
                     docs_keyword=primary_name,
                 )
-        idx = scan
+        idx = block_end
     return actions
 
 

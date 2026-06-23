@@ -70,6 +70,16 @@ class SampleFunction:
 
 
 @dataclass
+class LogformatAlias:
+    name: str
+    field_name: str = ""
+    sample_fetch: str = ""
+    type: str = ""
+    restrictions: str = ""
+    category: str = ""
+
+
+@dataclass
 class FixedSlotSpec:
     role: str
     port: str | None = None
@@ -103,6 +113,8 @@ class HaproxySchema:
     statement_rules: list[StatementRule] = field(default_factory=list)
     sample_fetches: dict[str, SampleFunction] = field(default_factory=dict)
     sample_converters: dict[str, SampleFunction] = field(default_factory=dict)
+    logformat_aliases: dict[str, LogformatAlias] = field(default_factory=dict)
+    logformat_slots: list[dict[str, object]] = field(default_factory=list)
     line_layout: dict[str, object] = field(default_factory=dict)
     tokens: dict[str, list[str]] = field(
         default_factory=lambda: {
@@ -249,6 +261,19 @@ class HaproxySchema:
                 )
             return out
 
+        def _load_logformat_aliases(raw: dict[str, Any]) -> dict[str, LogformatAlias]:
+            out: dict[str, LogformatAlias] = {}
+            for name, item in raw.items():
+                out[name] = LogformatAlias(
+                    name=item.get("name", name),
+                    field_name=item.get("field_name", ""),
+                    sample_fetch=item.get("sample_fetch", ""),
+                    type=item.get("type", ""),
+                    restrictions=item.get("restrictions", ""),
+                    category=item.get("category", ""),
+                )
+            return out
+
         return cls(
             version=data.get("version", "unknown"),
             sections=sections,
@@ -258,6 +283,8 @@ class HaproxySchema:
             statement_rules=statement_rules,
             sample_fetches=_load_sample_funcs(data.get("sample_fetches", {})),
             sample_converters=_load_sample_funcs(data.get("sample_converters", {})),
+            logformat_aliases=_load_logformat_aliases(data.get("logformat_aliases", {})),
+            logformat_slots=data.get("logformat_slots", []),
             line_layout=data.get("line_layout", {}),
             tokens=data.get("tokens", {}),
         )

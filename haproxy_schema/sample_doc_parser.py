@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 
 from .dconv_bridge import extract_keyword_name, match_dconv_keyword_line
+from .example_docs import ExampleDoc, extract_example_blocks
 
 
 @dataclass
@@ -12,6 +13,7 @@ class SampleDoc:
     name: str
     signature: str = ""
     description: str = ""
+    examples: list[ExampleDoc] = field(default_factory=list)
     chapter: str = ""
     input_type: str = ""
     output_type: str = ""
@@ -208,6 +210,7 @@ def _merge_details(
                 break
             block_end += 1
         description = _extract_description(lines, scan, block_end)
+        example_docs = extract_example_blocks(lines, scan, block_end)
         for header, deprecated in header_chain:
             name = _sample_name(header)
             if not name:
@@ -226,6 +229,8 @@ def _merge_details(
                     entry.signature = f"{entry.signature} (deprecated)"
             if description and not entry.description:
                 entry.description = description
+            if example_docs and not entry.examples:
+                entry.examples = list(example_docs)
         idx = block_end
 
 
@@ -267,6 +272,9 @@ def _fill_missing_descriptions(
             description = _extract_description(lines, idx + 1, block_end)
             if description:
                 item.description = description
+            example_docs = extract_example_blocks(lines, idx, block_end)
+            if example_docs and not item.examples:
+                item.examples = list(example_docs)
             break
 
 

@@ -14,11 +14,13 @@ from .schema import (
     HaproxySchema,
     Keyword,
     KeywordVariant,
+    LogformatAlias,
     SampleFunction,
     Section,
     StatementRule,
 )
 from .line_layout import build_line_layout
+from .logformat_slots import collect_logformat_slots
 from .options_metadata import collect_options_with_value
 from .signature_model import attach_argument_models
 from .slot_model import enrich_statement_rules
@@ -361,6 +363,19 @@ def merge_schema(
         for name, info in dkall.sample_converters_structured.items()
     }
 
+    schema.logformat_aliases = {
+        name: LogformatAlias(
+            name=item.name,
+            field_name=item.field_name,
+            sample_fetch=item.sample_fetch,
+            type=item.type,
+            restrictions=item.restrictions,
+            category=item.category,
+        )
+        for name, item in doc.logformat_reference.aliases.items()
+    }
+    schema.logformat_slots = collect_logformat_slots(schema.keywords)
+
     schema.line_layout = build_line_layout(schema.keywords.keys())
 
     apply_hapee_extensions(schema)
@@ -374,6 +389,7 @@ def merge_schema(
     schema.tokens["acl_int_operators"] = sorted(acl.int_operators.keys())
     schema.tokens["acl_string_match_methods"] = sorted(acl.string_match_methods.keys())
     schema.tokens["acl_predefined"] = sorted(acl.predefined_acls.keys())
+    schema.tokens["logformat_flags"] = sorted(doc.logformat_reference.flags.keys())
 
     return schema
 
