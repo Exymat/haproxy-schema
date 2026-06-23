@@ -113,7 +113,7 @@ GitHub Actions workflow [`.github/workflows/test.yml`](.github/workflows/test.ym
 | **Build** (matrix: 2.6, 2.8, 3.0, 3.2, 3.4) | Clones upstream HAProxy source, builds schema/language/grammar artifacts, runs `check-grammar` |
 | **Tests** | Clones all five HAProxy trees, builds schemas, runs the full pytest suite with coverage |
 
-CI uses [actions/setup-python](https://github.com/actions/setup-python) with `.python-version`, [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) (uv **0.11.19**, locked sync, cache enabled), and uploads `coverage.xml` to Codecov. Upstream HAProxy sources are fetched from `git.haproxy.org` at job time; no sibling checkout is required on the runner beyond what the workflow creates under `../haproxy_git/` and `../haproxy-vscode/schemas/`.
+CI uses [actions/setup-python](https://github.com/actions/setup-python) with `.python-version`, [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) (uv **0.11.19**, locked sync, cache enabled), and uploads `coverage.xml` to Codecov. Upstream HAProxy sources are fetched from `git.haproxy.org` at job time; no sibling checkout is required on the runner beyond what the workflow creates under `../haproxy_git/`, `../haproxy-vscode/schemas/`, and `../haproxy-vscode/syntaxes/`.
 
 ## CLI
 
