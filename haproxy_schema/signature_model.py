@@ -242,13 +242,10 @@ def _parse_slot(part: str) -> list[ArgSlot]:
 
     if part.startswith("["):
         variadic = False
-        suffix = ""
         if part.endswith("..."):
-            suffix = "..."
             core = part[:-3]
             variadic = True
         elif part.endswith("*"):
-            suffix = "*"
             core = part[:-1]
             variadic = True
         else:
