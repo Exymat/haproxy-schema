@@ -146,6 +146,7 @@ def test_store_action_doc_merges_duplicate() -> None:
         name="deny",
         signature="deny",
         description="",
+        examples=[],
         rulesets=[],
         usable_in="",
         docs_keyword="",
@@ -155,6 +156,7 @@ def test_store_action_doc_merges_duplicate() -> None:
         name="deny",
         signature="deny [ status ]",
         description="Rejects request",
+        examples=[],
         rulesets=["http-request"],
         usable_in="HTTP Req",
         docs_keyword="deny",
@@ -883,13 +885,14 @@ def test_action_header_dash_only_and_single_token(tmp_path: Path) -> None:
 def test_store_action_doc_updates_signature_and_chapter() -> None:
     actions: dict[str, ActionDoc] = {}
     _store_action_doc(
-        actions, name="x", signature="x", description="", rulesets=[], usable_in="", docs_keyword=""
+        actions, name="x", signature="x", description="", examples=[], rulesets=[], usable_in="", docs_keyword=""
     )
     _store_action_doc(
         actions,
         name="x",
         signature="x <arg>",
         description="",
+        examples=[],
         rulesets=["a"],
         usable_in="",
         docs_keyword="x-docs",
