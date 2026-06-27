@@ -29,7 +29,6 @@ from .slot_model import enrich_statement_rules
 from .statement_rules import (
     BASE_STATEMENT_RULES,
     REFERENCE_PATTERNS,
-    reference_patterns_to_dict,
     statement_rules_from_dicts,
     statement_rules_to_dict,
 )
@@ -186,14 +185,6 @@ def _apply_line_option_semantics(
         kw = schema.keywords.get(option_name)
         if kw is None:
             continue
-        effective_chapter = next(
-            (
-                variant.chapter
-                for variant in kw.variants
-                if variant.chapter.startswith("4.") and variant.sections
-            ),
-            chapter,
-        )
         if any(
             item.parent_kind == parent_kind and item.option_group == option_group
             for item in kw.line_option_semantics
@@ -203,7 +194,7 @@ def _apply_line_option_semantics(
             LineOptionSemantic(
                 parent_kind=parent_kind,
                 option_group=option_group,
-                chapter=effective_chapter,
+                chapter=chapter,
                 takes_value=option_name in value_options,
             )
         )
@@ -425,10 +416,10 @@ def merge_schema(
             out_type=info.out_type,
             contexts=info.contexts,
             max_args=len(info.args) if info.args else 0,
-            signature=doc.sample_reference.fetches.get(name).signature if name in doc.sample_reference.fetches else "",
-            description=doc.sample_reference.fetches.get(name).description if name in doc.sample_reference.fetches else "",
-            chapter=doc.sample_reference.fetches.get(name).chapter if name in doc.sample_reference.fetches else "",
-            deprecated=doc.sample_reference.fetches.get(name).deprecated if name in doc.sample_reference.fetches else False,
+            signature=doc.sample_reference.fetches[name].signature if name in doc.sample_reference.fetches else "",
+            description=doc.sample_reference.fetches[name].description if name in doc.sample_reference.fetches else "",
+            chapter=doc.sample_reference.fetches[name].chapter if name in doc.sample_reference.fetches else "",
+            deprecated=doc.sample_reference.fetches[name].deprecated if name in doc.sample_reference.fetches else False,
         )
         for name, info in dkall.sample_fetches_structured.items()
     }
@@ -439,10 +430,10 @@ def merge_schema(
             in_type=info.in_type,
             out_type=info.out_type,
             max_args=len(info.args) if info.args else None,
-            signature=doc.sample_reference.converters.get(name).signature if name in doc.sample_reference.converters else "",
-            description=doc.sample_reference.converters.get(name).description if name in doc.sample_reference.converters else "",
-            chapter=doc.sample_reference.converters.get(name).chapter if name in doc.sample_reference.converters else "",
-            deprecated=doc.sample_reference.converters.get(name).deprecated if name in doc.sample_reference.converters else False,
+            signature=doc.sample_reference.converters[name].signature if name in doc.sample_reference.converters else "",
+            description=doc.sample_reference.converters[name].description if name in doc.sample_reference.converters else "",
+            chapter=doc.sample_reference.converters[name].chapter if name in doc.sample_reference.converters else "",
+            deprecated=doc.sample_reference.converters[name].deprecated if name in doc.sample_reference.converters else False,
         )
         for name, info in dkall.sample_converters_structured.items()
     }
