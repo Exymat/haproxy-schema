@@ -82,6 +82,17 @@ def test_optional_pipe_enum_in_brackets_splits_alternatives() -> None:
     assert set(model.slots[0].enum) == {"none", "required"}
 
 
+def test_userlist_user_password_alternatives_split_with_value_slot() -> None:
+    model = build_argument_model(
+        "user",
+        ["user <username> [password|insecure-password <password>] [groups <group>,<group>,(...)]"],
+    )
+    assert model is not None
+    assert set(model.slots[1].enum) == {"password", "insecure-password"}
+    assert model.slots[2].optional is True
+    assert model.slots[2].enum == []
+
+
 def test_optional_literal_in_brackets_becomes_enum() -> None:
     model = build_argument_model(
         "balance url_param",

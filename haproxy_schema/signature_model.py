@@ -193,6 +193,16 @@ def _literal_slot(part: str, *, optional: bool = False, variadic: bool = False) 
         return ArgSlot(optional=optional, variadic=True)
     if cleaned == "...":
         return ArgSlot(optional=optional, variadic=True)
+    if (
+        "|" in cleaned
+        and "<" not in cleaned
+        and "{" not in cleaned
+        and "(" not in cleaned
+        and "[" not in cleaned
+    ):
+        enum = [piece.strip().lower() for piece in _split_top_level(cleaned, "|") if piece.strip()]
+        if len(enum) > 1:
+            return ArgSlot(optional=optional, variadic=variadic, enum=enum, value_kind="enum")
     return ArgSlot(optional=optional, variadic=variadic, enum=[cleaned.lower()], value_kind="enum")
 
 
