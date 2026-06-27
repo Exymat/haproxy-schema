@@ -64,6 +64,17 @@ def test_trace_args_ellipsis() -> None:
     assert model.max_args is None
 
 
+def test_optional_bracket_args_ellipsis_is_variadic() -> None:
+    model = build_argument_model(
+        "stick-table type",
+        ["stick-table type <type> size <size> [expire <expire>] [args...]"],
+    )
+    assert model is not None
+    assert model.max_args is None
+    assert model.slots[-1].variadic is True
+    assert model.slots[-1].enum == []
+
+
 def test_optional_pipe_enum_in_brackets_splits_alternatives() -> None:
     model = build_argument_model("ssl-server-verify", ["ssl-server-verify [none|required]"])
     assert model is not None

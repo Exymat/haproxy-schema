@@ -10,6 +10,18 @@ from .dconv_bridge import extract_keyword_name
 
 _ENUM_RE = re.compile(r"^\{(.+)\}$")
 _CONDITIONAL_TAIL = re.compile(r"^\[\s*\{\s*if\s*\|\s*unless\s*\}", re.I)
+_VARIADIC_CATCHALLS = frozenset(
+    {
+        "param*",
+        "params*",
+        "arg*",
+        "args*",
+        "param...",
+        "params...",
+        "arg...",
+        "args...",
+    }
+)
 @dataclass
 class ArgSlot:
     optional: bool = False
@@ -177,7 +189,7 @@ def _literal_slot(part: str, *, optional: bool = False, variadic: bool = False) 
         return None
     if cleaned.startswith("(") and "<" in cleaned:
         return ArgSlot(optional=optional, variadic=variadic)
-    if cleaned.lower() in {"param*", "params*", "arg*", "args*"}:
+    if cleaned.lower() in _VARIADIC_CATCHALLS:
         return ArgSlot(optional=optional, variadic=True)
     if cleaned == "...":
         return ArgSlot(optional=optional, variadic=True)
@@ -270,7 +282,7 @@ def _parse_slot(part: str) -> list[ArgSlot]:
                 if variadic and merged.slots:
                     merged.slots[-1].variadic = True
                 return list(merged.slots)
-        if inner.lower() in {"param*", "params*", "arg*", "args*"}:
+        if inner.lower() in _VARIADIC_CATCHALLS:
             return [ArgSlot(optional=True, variadic=True)]
         if (
             "|" in inner
