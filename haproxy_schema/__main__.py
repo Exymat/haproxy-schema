@@ -67,6 +67,12 @@ def _schema_fidelity_audit_cmd(args: argparse.Namespace) -> int:
         f"Sample functions: {report.sample_fetches.structured_count}/{report.sample_fetches.total_count} fetches, "
         f"{report.sample_converters.structured_count}/{report.sample_converters.total_count} converters structured"
     )
+    print(
+        f"Consumer fallback gaps: {len(report.consumer_fallback_required)} total "
+        f"({len(report.line_option_semantic_gaps)} line-option, "
+        f"{len(report.statement_rule_semantic_gaps)} statement-rule, "
+        f"{len(report.reference_pattern_gaps)} reference-pattern)"
+    )
     return 0
 
 

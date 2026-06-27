@@ -47,3 +47,6 @@ def test_schema_fidelity_audit_smoke() -> None:
     assert report.sample_fetches.structured_count > 0
     assert any(item.keyword == "server" for item in report.keywords)
     assert any(item.group == "server_options" for item in report.group_items)
+    assert report.line_option_semantic_gaps == []
+    assert report.statement_rule_semantic_gaps == []
+    assert report.reference_pattern_gaps == []

@@ -53,3 +53,17 @@ def test_bind_and_server_slots_have_address_policy(schema_dict: dict) -> None:
         address_slots = [slot for slot in slots if slot.get("role") == "address"]
         assert address_slots, f"{rule['keyword']} should define address slots"
         assert all(slot.get("address_policy") for slot in address_slots)
+
+
+def test_statement_rules_have_semantic_match_metadata(schema_dict: dict) -> None:
+    for rule in schema_dict.get("statement_rules", []):
+        assert rule.get("match_tokens"), f"statement rule missing match_tokens: {rule.get('keyword')}"
+        assert "minimum_token_index" in rule, (
+            f"statement rule missing minimum_token_index: {rule.get('keyword')}"
+        )
+
+
+def test_schema_has_reference_patterns(schema_dict: dict) -> None:
+    patterns = schema_dict.get("reference_patterns", [])
+    assert patterns
+    assert any(pattern.get("reference_kind") == "resolvers" for pattern in patterns)

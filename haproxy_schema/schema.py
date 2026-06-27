@@ -37,6 +37,14 @@ class KeywordVariant:
 
 
 @dataclass
+class LineOptionSemantic:
+    parent_kind: str
+    option_group: str
+    chapter: str
+    takes_value: bool = False
+
+
+@dataclass
 class Keyword:
     name: str
     sections: list[str] = field(default_factory=list)
@@ -46,6 +54,7 @@ class Keyword:
     variants: list[KeywordVariant] = field(default_factory=list)
     argument_model: ArgumentModel | None = None
     arguments: list[ArgumentParamDoc] = field(default_factory=list)
+    line_option_semantics: list[LineOptionSemantic] = field(default_factory=list)
 
 
 @dataclass
@@ -91,6 +100,8 @@ class StatementRule:
     keyword: str
     kind: str
     group: str | None = None
+    match_tokens: list[str] = field(default_factory=list)
+    minimum_token_index: int | None = None
     value_token_index: int | None = None
     action_token_index: int | None = None
     phase_token_index: int | None = None
@@ -104,6 +115,15 @@ class StatementRule:
 
 
 @dataclass
+class ReferencePattern:
+    match_tokens: list[str]
+    reference_kind: str
+    target_token_index: int
+    scope: str = "global"
+    split: str | None = None
+
+
+@dataclass
 class HaproxySchema:
     version: str
     sections: dict[str, Section] = field(default_factory=dict)
@@ -111,6 +131,7 @@ class HaproxySchema:
     keyword_groups: dict[str, list[str]] = field(default_factory=dict)
     keyword_group_contexts: dict[str, dict[str, list[str]]] = field(default_factory=dict)
     statement_rules: list[StatementRule] = field(default_factory=list)
+    reference_patterns: list[ReferencePattern] = field(default_factory=list)
     sample_fetches: dict[str, SampleFunction] = field(default_factory=dict)
     sample_converters: dict[str, SampleFunction] = field(default_factory=dict)
     logformat_aliases: dict[str, LogformatAlias] = field(default_factory=dict)
@@ -213,6 +234,15 @@ class HaproxySchema:
                 variants=variants,
                 argument_model=argument_model,
                 arguments=arguments,
+                line_option_semantics=[
+                    LineOptionSemantic(
+                        parent_kind=item.get("parent_kind", ""),
+                        option_group=item.get("option_group", ""),
+                        chapter=item.get("chapter", ""),
+                        takes_value=item.get("takes_value", False),
+                    )
+                    for item in kw.get("line_option_semantics", [])
+                ],
             )
         statement_rules = []
         for rule in data.get("statement_rules", []):
@@ -230,6 +260,8 @@ class HaproxySchema:
                     keyword=rule.get("keyword", ""),
                     kind=rule.get("kind", ""),
                     group=rule.get("group"),
+                    match_tokens=rule.get("match_tokens", []),
+                    minimum_token_index=rule.get("minimum_token_index"),
                     value_token_index=rule.get("value_token_index"),
                     action_token_index=rule.get("action_token_index"),
                     phase_token_index=rule.get("phase_token_index"),
@@ -242,6 +274,17 @@ class HaproxySchema:
                     symbol_name_token_index=rule.get("symbol_name_token_index"),
                 )
             )
+
+        reference_patterns = [
+            ReferencePattern(
+                match_tokens=item.get("match_tokens", []),
+                reference_kind=item.get("reference_kind", ""),
+                target_token_index=item.get("target_token_index", 0),
+                scope=item.get("scope", "global"),
+                split=item.get("split"),
+            )
+            for item in data.get("reference_patterns", [])
+        ]
 
         def _load_sample_funcs(raw: dict[str, Any]) -> dict[str, SampleFunction]:
             out: dict[str, SampleFunction] = {}
@@ -281,6 +324,7 @@ class HaproxySchema:
             keyword_groups=data.get("keyword_groups", {}),
             keyword_group_contexts=data.get("keyword_group_contexts", {}),
             statement_rules=statement_rules,
+            reference_patterns=reference_patterns,
             sample_fetches=_load_sample_funcs(data.get("sample_fetches", {})),
             sample_converters=_load_sample_funcs(data.get("sample_converters", {})),
             logformat_aliases=_load_logformat_aliases(data.get("logformat_aliases", {})),

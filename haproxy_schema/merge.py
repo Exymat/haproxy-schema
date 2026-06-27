@@ -14,7 +14,9 @@ from .schema import (
     HaproxySchema,
     Keyword,
     KeywordVariant,
+    LineOptionSemantic,
     LogformatAlias,
+    ReferencePattern,
     SampleFunction,
     Section,
     StatementRule,
@@ -24,7 +26,13 @@ from .logformat_slots import collect_logformat_slots
 from .options_metadata import collect_options_with_value
 from .signature_model import attach_argument_models
 from .slot_model import enrich_statement_rules
-from .statement_rules import BASE_STATEMENT_RULES, statement_rules_from_dicts, statement_rules_to_dict
+from .statement_rules import (
+    BASE_STATEMENT_RULES,
+    REFERENCE_PATTERNS,
+    reference_patterns_to_dict,
+    statement_rules_from_dicts,
+    statement_rules_to_dict,
+)
 
 
 def _ensure_keyword(schema: HaproxySchema, keyword: str) -> Keyword:
@@ -165,6 +173,42 @@ def _merge_keyword_variant_docs(
                 kw.contexts.append(context)
 
 
+def _apply_line_option_semantics(
+    schema: HaproxySchema,
+    *,
+    parent_kind: str,
+    option_group: str,
+    chapter: str,
+    option_names: list[str],
+    value_options: set[str],
+) -> None:
+    for option_name in option_names:
+        kw = schema.keywords.get(option_name)
+        if kw is None:
+            continue
+        effective_chapter = next(
+            (
+                variant.chapter
+                for variant in kw.variants
+                if variant.chapter.startswith("4.") and variant.sections
+            ),
+            chapter,
+        )
+        if any(
+            item.parent_kind == parent_kind and item.option_group == option_group
+            for item in kw.line_option_semantics
+        ):
+            continue
+        kw.line_option_semantics.append(
+            LineOptionSemantic(
+                parent_kind=parent_kind,
+                option_group=option_group,
+                chapter=effective_chapter,
+                takes_value=option_name in value_options,
+            )
+        )
+
+
 def merge_schema(
     version: str,
     doc: DocParseResult,
@@ -238,6 +282,10 @@ def merge_schema(
             _add_keyword_to_section(schema, section, keyword)
             _mark_source(schema, keyword, "dkall")
 
+    for option_name in sorted(dkall.bind_options | dkall.server_options):
+        _ensure_keyword(schema, option_name)
+        _mark_source(schema, option_name, "dkall")
+
     _prune_compile_time_doc_keywords(schema, dkall)
 
     doc_options = _collect_doc_options(doc)
@@ -286,6 +334,29 @@ def merge_schema(
         },
     }
 
+    bind_options_with_value = set(
+        collect_options_with_value(sorted(dkall.bind_options), bind_signature_map)
+    )
+    server_options_with_value = set(
+        collect_options_with_value(sorted(dkall.server_options), server_signature_map)
+    )
+    _apply_line_option_semantics(
+        schema,
+        parent_kind="bind",
+        option_group="bind_options",
+        chapter="5.1",
+        option_names=sorted(dkall.bind_options),
+        value_options=bind_options_with_value,
+    )
+    _apply_line_option_semantics(
+        schema,
+        parent_kind="server",
+        option_group="server_options",
+        chapter="5.2",
+        option_names=sorted(dkall.server_options),
+        value_options=server_options_with_value,
+    )
+
     for section in schema.sections.values():
         section.keywords.sort()
     for keyword in schema.keywords.values():
@@ -293,6 +364,7 @@ def merge_schema(
         keyword.contexts.sort()
         keyword.signatures.sort()
         keyword.sources.sort()
+        keyword.line_option_semantics.sort(key=lambda item: (item.parent_kind, item.option_group))
         keyword.variants.sort(key=lambda variant: variant.chapter)
         for variant in keyword.variants:
             variant.sections.sort()
@@ -310,6 +382,8 @@ def merge_schema(
             keyword=rule.keyword,
             kind=rule.kind,
             group=rule.group,
+            match_tokens=list(rule.match_tokens),
+            minimum_token_index=rule.minimum_token_index,
             value_token_index=rule.value_token_index,
             action_token_index=rule.action_token_index,
             phase_token_index=rule.phase_token_index,
@@ -329,6 +403,16 @@ def merge_schema(
             symbol_name_token_index=rule.symbol_name_token_index,
         )
         for rule in statement_rules_from_dicts(enriched_rules)
+    ]
+    schema.reference_patterns = [
+        ReferencePattern(
+            match_tokens=list(pattern.match_tokens),
+            reference_kind=pattern.reference_kind,
+            target_token_index=pattern.target_token_index,
+            scope=pattern.scope,
+            split=pattern.split,
+        )
+        for pattern in REFERENCE_PATTERNS
     ]
     for section in sorted(dkall.section_keywords.keys()):
         if section not in schema.sections:

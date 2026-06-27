@@ -125,9 +125,14 @@ def test_built_schema_has_core_invariants(version: str) -> None:
 
     by_keyword = {rule.keyword: rule for rule in schema.statement_rules}
     assert by_keyword["use_backend"].reference_kind == "proxy-section"
+    assert by_keyword["use_backend"].match_tokens == ["use_backend"]
+    assert by_keyword["use_backend"].minimum_token_index == 1
     assert by_keyword["server"].definition_kind == "server"
+    assert by_keyword["server"].match_tokens == ["server"]
+    assert by_keyword["server"].minimum_token_index == 3
     assert len(schema.sample_fetches) > 20
     assert len(schema.sample_converters) > 10
+    assert any(pattern.reference_kind == "resolvers" for pattern in schema.reference_patterns)
 
     layout = schema.line_layout
     keywords = list(schema.keywords.keys())
@@ -144,6 +149,7 @@ def test_checked_in_schema_artifact_invariants(version: str) -> None:
     options = schema_dict["keyword_groups"].get("options", [])
     with_value = schema_dict["keyword_groups"].get("options_with_value", [])
     assert set(with_value).issubset(set(options))
+    assert schema_dict.get("reference_patterns")
 
 
 @pytest.mark.parametrize("version", SUPPORTED_VERSIONS)

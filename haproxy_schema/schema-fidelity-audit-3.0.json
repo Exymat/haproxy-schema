@@ -42,6 +42,7 @@
       "keyword": "accept-netscaler-cip",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -71,6 +72,7 @@
       "keyword": "accept-proxy",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -191,6 +193,7 @@
       "keyword": "addr",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -220,6 +223,7 @@
       "keyword": "agent-addr",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -249,6 +253,7 @@
       "keyword": "agent-check",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -271,6 +276,7 @@
       "keyword": "agent-inter",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -300,6 +306,7 @@
       "keyword": "agent-port",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -329,6 +336,7 @@
       "keyword": "agent-send",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -520,6 +528,7 @@
         "log-forward"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -551,6 +560,7 @@
       "keyword": "backup",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -822,6 +832,7 @@
       "keyword": "ca-ignore-err",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -859,6 +870,7 @@
       "keyword": "ca-sign-file",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -888,6 +900,7 @@
       "keyword": "ca-sign-pass",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -1126,6 +1139,7 @@
       "keyword": "check",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -1148,6 +1162,7 @@
       "keyword": "check-alpn",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -1177,6 +1192,7 @@
       "keyword": "check-proto",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -1206,6 +1222,7 @@
       "keyword": "check-send-proxy",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -1228,6 +1245,7 @@
       "keyword": "check-sni",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -1257,6 +1275,7 @@
       "keyword": "check-ssl",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -1279,6 +1298,7 @@
       "keyword": "check-via-socks4",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -1938,6 +1958,7 @@
         "listen"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -2195,6 +2216,7 @@
         "crt-store"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -2261,6 +2283,7 @@
       "keyword": "crt-ignore-err",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -2290,6 +2313,7 @@
       "keyword": "crt-list",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -2485,6 +2509,7 @@
       "keyword": "default-crt",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -2623,6 +2648,7 @@
       "keyword": "defer-accept",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -2860,6 +2886,7 @@
         "peers"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -2951,6 +2978,7 @@
       "keyword": "downinter",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -3233,6 +3261,7 @@
         "peers"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -3257,6 +3286,7 @@
       "keyword": "error-limit",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -3589,6 +3619,7 @@
       "keyword": "expose-fd",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -3750,6 +3781,7 @@
       "keyword": "fall",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -3779,6 +3811,7 @@
       "keyword": "fastinter",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -3959,6 +3992,7 @@
       "keyword": "force-sslv3",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -3981,6 +4015,7 @@
       "keyword": "force-tlsv10",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -4003,6 +4038,7 @@
       "keyword": "force-tlsv11",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -4025,6 +4061,7 @@
       "keyword": "force-tlsv12",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -4047,6 +4084,7 @@
       "keyword": "force-tlsv13",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -4145,6 +4183,7 @@
       "keyword": "generate-certificates",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -4169,6 +4208,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -4238,6 +4278,7 @@
         "userlist"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 2,
@@ -4306,6 +4347,7 @@
       "keyword": "guid-prefix",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -4632,6 +4674,7 @@
       "keyword": "hash-key",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -6137,6 +6180,7 @@
         "listen"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -6244,6 +6288,7 @@
       "keyword": "init-addr",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -6335,6 +6380,7 @@
       "keyword": "inter",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -6364,6 +6410,7 @@
       "keyword": "interface",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -6530,6 +6577,7 @@
       "keyword": "level",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -6894,6 +6942,7 @@
       "keyword": "log-bufsize",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -7026,6 +7075,7 @@
       "keyword": "log-proto",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -7603,6 +7653,7 @@
       "keyword": "max-reuse",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -7805,6 +7856,7 @@
         "log-forward"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 2,
@@ -7936,6 +7988,7 @@
       "keyword": "maxqueue",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -8098,6 +8151,7 @@
       "keyword": "minconn",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -8132,6 +8186,7 @@
         "listen"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -8293,6 +8348,7 @@
       "keyword": "mss",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -8356,6 +8412,7 @@
       "keyword": "name",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -8430,6 +8487,7 @@
       "keyword": "namespace",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -8459,6 +8517,7 @@
       "keyword": "nbconn",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -8530,6 +8589,7 @@
       "keyword": "nice",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -9745,6 +9805,7 @@
       "keyword": "no-agent-check",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -9792,6 +9853,7 @@
       "keyword": "no-backup",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -9839,6 +9901,7 @@
       "keyword": "no-check",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -9858,9 +9921,32 @@
       "issues": []
     },
     {
+      "keyword": "no-check-send-proxy",
+      "sections": [],
+      "sources": [
+        "dkall"
+      ],
+      "signature_count": 0,
+      "description_present": false,
+      "doc_argument_count": 0,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [],
+      "argument_model_present": false,
+      "argument_model_min_args": null,
+      "argument_model_max_args": null,
+      "argument_model_slot_count": 0,
+      "argument_model_slots": [],
+      "issues": []
+    },
+    {
       "keyword": "no-check-ssl",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -9936,6 +10022,7 @@
       "keyword": "no-send-proxy",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -9958,6 +10045,7 @@
       "keyword": "no-send-proxy-v2",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -9980,6 +10068,7 @@
       "keyword": "no-send-proxy-v2-ssl",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10002,6 +10091,7 @@
       "keyword": "no-send-proxy-v2-ssl-cn",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10024,6 +10114,7 @@
       "keyword": "no-ssl",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10046,6 +10137,7 @@
       "keyword": "no-ssl-reuse",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10068,6 +10160,7 @@
       "keyword": "no-sslv3",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10090,6 +10183,7 @@
       "keyword": "no-tfo",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10112,6 +10206,7 @@
       "keyword": "no-tls-tickets",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10134,6 +10229,7 @@
       "keyword": "no-tlsv10",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10156,6 +10252,7 @@
       "keyword": "no-tlsv11",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10178,6 +10275,7 @@
       "keyword": "no-tlsv12",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10200,6 +10298,7 @@
       "keyword": "no-tlsv13",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10381,6 +10480,7 @@
       "keyword": "non-stick",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10539,6 +10639,7 @@
       "keyword": "observe",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10815,6 +10916,7 @@
       "keyword": "on-error",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10844,6 +10946,7 @@
       "keyword": "on-marked-down",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -10873,6 +10976,7 @@
       "keyword": "on-marked-up",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13185,6 +13289,7 @@
       "keyword": "pool-conn-name",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13214,6 +13319,7 @@
       "keyword": "pool-low-conn",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13243,6 +13349,7 @@
       "keyword": "pool-max-conn",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13272,6 +13379,7 @@
       "keyword": "pool-purge-delay",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13301,6 +13409,7 @@
       "keyword": "port",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13384,6 +13493,7 @@
       "keyword": "prefer-client-ciphers",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13439,6 +13549,28 @@
           "value_kind": "generic"
         }
       ],
+      "issues": []
+    },
+    {
+      "keyword": "process",
+      "sections": [],
+      "sources": [
+        "dkall"
+      ],
+      "signature_count": 0,
+      "description_present": false,
+      "doc_argument_count": 0,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [],
+      "argument_model_present": false,
+      "argument_model_min_args": null,
+      "argument_model_max_args": null,
+      "argument_model_slot_count": 0,
+      "argument_model_slots": [],
       "issues": []
     },
     {
@@ -13585,6 +13717,7 @@
       "keyword": "proto",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13614,6 +13747,7 @@
       "keyword": "proxy-v2-options",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13649,6 +13783,7 @@
       "keyword": "quic-cc-algo",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13689,6 +13824,7 @@
       "keyword": "quic-force-retry",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13711,6 +13847,7 @@
       "keyword": "quic-socket",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13854,6 +13991,7 @@
       "keyword": "redir",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -14081,6 +14219,7 @@
       "keyword": "resolve-net",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -14120,6 +14259,7 @@
       "keyword": "resolve-opts",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -14155,6 +14295,7 @@
       "keyword": "resolve-prefer",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -14219,6 +14360,7 @@
         "resolvers"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -14362,6 +14504,7 @@
       "keyword": "rise",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -14449,6 +14592,7 @@
       "keyword": "send-proxy",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -14471,6 +14615,7 @@
       "keyword": "send-proxy-v2",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -14493,6 +14638,7 @@
       "keyword": "send-proxy-v2-ssl",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -14515,6 +14661,7 @@
       "keyword": "send-proxy-v2-ssl-cn",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -14826,6 +14973,7 @@
       "keyword": "set-proxy-v2-tlv-fmt",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -15020,6 +15168,7 @@
       "keyword": "severity-output",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -15049,6 +15198,7 @@
       "keyword": "shard",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -15080,6 +15230,7 @@
         "peers"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15176,6 +15327,7 @@
       "keyword": "slowstart",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -15205,6 +15357,7 @@
       "keyword": "sni",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -15234,6 +15387,7 @@
       "keyword": "socks4",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -15267,6 +15421,7 @@
         "listen"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 3,
@@ -15496,6 +15651,7 @@
       "keyword": "ssl",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -16281,6 +16437,7 @@
       "keyword": "ssl-reuse",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -17034,6 +17191,7 @@
       "keyword": "stick",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -17406,6 +17564,7 @@
       "keyword": "strict-sni",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -18516,6 +18675,7 @@
       "keyword": "tcp-ut",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -18545,6 +18705,7 @@
       "keyword": "tfo",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -18567,6 +18728,7 @@
       "keyword": "thread",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -19215,6 +19377,7 @@
       "keyword": "tls-ticket-keys",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -19244,6 +19407,7 @@
       "keyword": "tls-tickets",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -19333,6 +19497,7 @@
       "keyword": "track",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -19373,6 +19538,7 @@
         "listen"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -22665,6 +22831,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -23066,6 +23233,7 @@
         "userlist"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 2,
@@ -23128,9 +23296,32 @@
       "issues": []
     },
     {
+      "keyword": "usesrc",
+      "sections": [],
+      "sources": [
+        "dkall"
+      ],
+      "signature_count": 0,
+      "description_present": false,
+      "doc_argument_count": 0,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [],
+      "argument_model_present": false,
+      "argument_model_min_args": null,
+      "argument_model_max_args": null,
+      "argument_model_slot_count": 0,
+      "argument_model_slots": [],
+      "issues": []
+    },
+    {
       "keyword": "v4v6",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -23153,6 +23344,7 @@
       "keyword": "v6only",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -23211,6 +23403,7 @@
       "keyword": "verifyhost",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -23274,6 +23467,7 @@
       "keyword": "weight",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -23303,6 +23497,7 @@
       "keyword": "ws",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -33624,6 +33819,10 @@
   "bind_option_docs_missing_description": [],
   "server_option_docs_missing_signatures": [],
   "server_option_docs_missing_description": [],
+  "line_option_semantic_gaps": [],
+  "statement_rule_semantic_gaps": [],
+  "reference_pattern_gaps": [],
+  "consumer_fallback_required": [],
   "sample_fetches": {
     "total_count": 522,
     "structured_count": 522,

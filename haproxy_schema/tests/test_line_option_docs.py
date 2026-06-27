@@ -172,18 +172,25 @@ def test_merge_schema_promotes_line_option_signatures_to_keywords() -> None:
 
     source_kw = schema.keywords["source"]
     source_variant = next(variant for variant in source_kw.variants if variant.chapter == "5.2")
+    source_semantic = next(
+        item for item in source_kw.line_option_semantics if item.parent_kind == "server"
+    )
     assert any(
         signature.startswith("source <addr>") and "[interface <name>]" in signature
         for signature in source_variant.signatures
     )
     assert source_variant.sections == []
     assert source_variant.argument_model is not None
+    assert source_semantic.chapter == "5.2"
+    assert source_semantic.option_group == "server_options"
+    assert source_semantic.takes_value is True
 
     check_kw = schema.keywords["check"]
     check_variant = next(variant for variant in check_kw.variants if variant.chapter == "5.2")
     assert check_variant.signatures
     assert check_variant.sections == []
     assert check_variant.argument_model is not None
+    assert any(item.parent_kind == "server" for item in check_kw.line_option_semantics)
 
 
 def test_merge_schema_keeps_bind_unix_path_signature_from_doc_parser() -> None:

@@ -135,6 +135,10 @@ class SchemaFidelityReport:
     bind_option_docs_missing_description: list[str] = field(default_factory=list)
     server_option_docs_missing_signatures: list[str] = field(default_factory=list)
     server_option_docs_missing_description: list[str] = field(default_factory=list)
+    line_option_semantic_gaps: list[str] = field(default_factory=list)
+    statement_rule_semantic_gaps: list[str] = field(default_factory=list)
+    reference_pattern_gaps: list[str] = field(default_factory=list)
+    consumer_fallback_required: list[str] = field(default_factory=list)
     sample_fetches: StructuredFunctionAudit = field(default_factory=StructuredFunctionAudit)
     sample_converters: StructuredFunctionAudit = field(default_factory=StructuredFunctionAudit)
     sample_fetch_docs_count: int = 0
@@ -155,6 +159,10 @@ class SchemaFidelityReport:
             "bind_option_docs_missing_description": self.bind_option_docs_missing_description,
             "server_option_docs_missing_signatures": self.server_option_docs_missing_signatures,
             "server_option_docs_missing_description": self.server_option_docs_missing_description,
+            "line_option_semantic_gaps": self.line_option_semantic_gaps,
+            "statement_rule_semantic_gaps": self.statement_rule_semantic_gaps,
+            "reference_pattern_gaps": self.reference_pattern_gaps,
+            "consumer_fallback_required": self.consumer_fallback_required,
             "sample_fetches": self.sample_fetches.to_dict(),
             "sample_converters": self.sample_converters.to_dict(),
             "sample_fetch_docs_count": self.sample_fetch_docs_count,
@@ -517,6 +525,53 @@ def build_schema_fidelity_report(version: str, doc_path: Path, dkall_path: Path)
             )
         )
 
+    bind_missing_semantics = sorted(
+        name
+        for name in dkall.bind_options
+        if not any(
+            item.parent_kind == "bind" and item.option_group == "bind_options"
+            for item in schema.keywords.get(name, Keyword(name=name)).line_option_semantics
+        )
+    )
+    server_missing_semantics = sorted(
+        name
+        for name in dkall.server_options
+        if not any(
+            item.parent_kind == "server" and item.option_group == "server_options"
+            for item in schema.keywords.get(name, Keyword(name=name)).line_option_semantics
+        )
+    )
+    statement_rule_semantic_gaps = sorted(
+        rule.keyword
+        for rule in schema.statement_rules
+        if not rule.match_tokens or rule.minimum_token_index is None
+    )
+    expected_reference_patterns = {
+        ("resolvers", "resolvers"),
+        ("peers", "peers"),
+        ("cache-use", "cache"),
+        ("cache-store", "cache"),
+        ("filter cache", "cache"),
+        ("filter-sequence", "filter"),
+    }
+    actual_reference_patterns = {
+        (" ".join(pattern.match_tokens), pattern.reference_kind) for pattern in schema.reference_patterns
+    }
+    reference_pattern_gaps = sorted(
+        f"{tokens}->{kind}" for tokens, kind in expected_reference_patterns - actual_reference_patterns
+    )
+    line_option_semantic_gaps = [
+        *(f"bind:{name}" for name in bind_missing_semantics),
+        *(f"server:{name}" for name in server_missing_semantics),
+    ]
+    consumer_fallback_required = sorted(
+        {
+            *(f"line-option:{item}" for item in line_option_semantic_gaps),
+            *(f"statement-rule:{item}" for item in statement_rule_semantic_gaps),
+            *(f"reference-pattern:{item}" for item in reference_pattern_gaps),
+        }
+    )
+
     return SchemaFidelityReport(
         version=version,
         keywords_with_signatures_count=len(keyword_names_with_signatures),
@@ -541,6 +596,10 @@ def build_schema_fidelity_report(version: str, doc_path: Path, dkall_path: Path)
         server_option_docs_missing_description=sorted(
             name for name, item in doc.server_option_docs.items() if not item.description
         ),
+        line_option_semantic_gaps=line_option_semantic_gaps,
+        statement_rule_semantic_gaps=statement_rule_semantic_gaps,
+        reference_pattern_gaps=reference_pattern_gaps,
+        consumer_fallback_required=consumer_fallback_required,
         sample_fetches=_structured_function_audit(set(dkall.sample_fetches), dkall.sample_fetches_structured),
         sample_converters=_structured_function_audit(
             set(dkall.sample_converters), dkall.sample_converters_structured
