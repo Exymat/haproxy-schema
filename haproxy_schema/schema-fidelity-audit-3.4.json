@@ -20003,7 +20003,7 @@
       ],
       "argument_model_present": true,
       "argument_model_min_args": 3,
-      "argument_model_max_args": 6,
+      "argument_model_max_args": null,
       "argument_model_slot_count": 6,
       "argument_model_slots": [
         {
@@ -20042,11 +20042,9 @@
         },
         {
           "optional": true,
-          "variadic": false,
-          "enum": [
-            "args..."
-          ],
-          "value_kind": "enum"
+          "variadic": true,
+          "enum": [],
+          "value_kind": "generic"
         }
       ],
       "issues": []
@@ -23199,7 +23197,7 @@
       ],
       "argument_model_present": true,
       "argument_model_min_args": 1,
-      "argument_model_max_args": 2,
+      "argument_model_max_args": null,
       "argument_model_slot_count": 2,
       "argument_model_slots": [
         {
@@ -23210,11 +23208,9 @@
         },
         {
           "optional": true,
-          "variadic": false,
-          "enum": [
-            "args..."
-          ],
-          "value_kind": "enum"
+          "variadic": true,
+          "enum": [],
+          "value_kind": "generic"
         }
       ],
       "issues": []
