@@ -27,6 +27,7 @@ def test_build_line_layout_includes_known_families() -> None:
     ]
     layout = build_line_layout(keywords)
     assert layout["prefix_families"] == list(KNOWN_PREFIX_FAMILIES)
+    assert layout["section_headers"] == list(KNOWN_SECTION_HEADERS)
     assert "socket" in layout["prefix_subcommands"]["stats"]
     assert "content" in layout["tcp_request_phases"]
     assert layout["stats_socket_levels"] == ["admin", "operator", "user"]

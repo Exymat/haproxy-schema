@@ -64,6 +64,7 @@ def build_line_layout(keyword_names: Iterable[str]) -> dict:
     return {
         "prefix_families": active_families,
         "prefix_subcommands": prefix_subcommands_map,
+        "section_headers": list(KNOWN_SECTION_HEADERS),
         "tcp_request_phases": prefix_subcommands(names, "tcp-request"),
         "tcp_response_phases": prefix_subcommands(names, "tcp-response"),
         "stats_socket_levels": list(STATS_SOCKET_LEVELS),
