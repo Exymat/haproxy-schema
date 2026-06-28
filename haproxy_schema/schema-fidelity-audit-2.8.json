@@ -1,7 +1,7 @@
 {
   "version": "2.8",
-  "keywords_with_signatures_count": 473,
-  "keywords_with_argument_model_count": 473,
+  "keywords_with_signatures_count": 474,
+  "keywords_with_argument_model_count": 474,
   "keywords_without_argument_model": [],
   "keyword_argument_issues": [
     {
@@ -14857,8 +14857,8 @@
       ],
       "argument_model_present": true,
       "argument_model_min_args": 1,
-      "argument_model_max_args": 5,
-      "argument_model_slot_count": 5,
+      "argument_model_max_args": 4,
+      "argument_model_slot_count": 4,
       "argument_model_slots": [
         {
           "optional": false,
@@ -14889,13 +14889,7 @@
             "clientip",
             "hdr_ip"
           ],
-          "value_kind": "enum"
-        },
-        {
-          "optional": true,
-          "variadic": false,
-          "enum": [],
-          "value_kind": "generic"
+          "value_kind": "address"
         }
       ],
       "issues": []
@@ -21846,7 +21840,7 @@
       "sources": [
         "dkall"
       ],
-      "signature_count": 0,
+      "signature_count": 3,
       "description_present": false,
       "doc_argument_count": 0,
       "doc_argument_value_count": 0,
@@ -21854,12 +21848,33 @@
       "statement_rule_group": "",
       "nested_start_index": null,
       "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
+      "signatures": [
+        "usesrc <addr2>[:<port2>]",
+        "usesrc client|clientip",
+        "usesrc hdr_ip(<hdr>[,<occ>])"
+      ],
+      "argument_model_present": true,
+      "argument_model_min_args": 1,
+      "argument_model_max_args": 2,
+      "argument_model_slot_count": 2,
+      "argument_model_slots": [
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [
+            "client",
+            "clientip",
+            "hdr_ip"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        }
+      ],
       "issues": []
     },
     {
@@ -24043,10 +24058,11 @@
       "description_present": false,
       "contexts": [],
       "takes_value_expected": false,
-      "in_schema_value_group": false,
+      "in_schema_value_group": true,
       "issues": [
         "missing_signature",
-        "missing_description"
+        "missing_description",
+        "takes_value_mismatch"
       ]
     },
     {
@@ -30957,10 +30973,12 @@
     },
     {
       "name": "server_options_with_value",
-      "schema_count": 58,
+      "schema_count": 59,
       "source_count": 58,
       "missing_from_schema": [],
-      "extra_in_schema": []
+      "extra_in_schema": [
+        "usesrc"
+      ]
     }
   ],
   "bind_option_docs_missing_signatures": [],
