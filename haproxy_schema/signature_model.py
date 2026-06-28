@@ -533,12 +533,36 @@ def _patch_redirect_argument_model(model: ArgumentModel) -> None:
     model.max_args = None
 
 
+def _patch_source_argument_model(model: ArgumentModel) -> None:
+    """Collapse usesrc value alternatives into one trailing slot (address or keyword)."""
+    for idx, slot in enumerate(model.slots):
+        if "usesrc" not in slot.enum:
+            continue
+        if idx + 2 >= len(model.slots):
+            return
+        enum_slot = model.slots[idx + 1]
+        tail_slot = model.slots[idx + 2]
+        if not enum_slot.enum or tail_slot.enum:
+            return
+        model.slots[idx + 1] = ArgSlot(
+            optional=True,
+            enum=list(enum_slot.enum),
+            value_kind="address" if tail_slot.value_kind in {"address", "generic"} else tail_slot.value_kind,
+        )
+        del model.slots[idx + 2]
+        if isinstance(model.max_args, int):
+            model.max_args = len(model.slots)
+        return
+
+
 def _patch_argument_model(keyword: str, model: ArgumentModel) -> None:
     lower = keyword.lower()
     if lower == "log":
         _patch_log_argument_model(model)
     elif lower.startswith("redirect "):
         _patch_redirect_argument_model(model)
+    elif lower == "source":
+        _patch_source_argument_model(model)
 
 
 def _attach_argument_model_to_target(

@@ -5,6 +5,7 @@ from typing import Any, cast
 
 from .dkall_parser import DkallParseResult
 from .dkall_supplement import supplement_missing_tls_options
+from .usesrc_supplement import supplement_usesrc_metadata
 from .doc_parser import DocParseResult
 from .hapee_extensions import HAPEE_SECTION_KEYWORDS
 from .schema import (
@@ -290,6 +291,7 @@ def merge_schema(
     }
     bind_signature_map = _signatures_by_option(doc.bind_option_docs)
     server_signature_map = _signatures_by_option(doc.server_option_docs)
+    supplement_usesrc_metadata(schema, server_signature_map)
 
     schema.keyword_groups = {
         "bind_options": sorted(dkall.bind_options),

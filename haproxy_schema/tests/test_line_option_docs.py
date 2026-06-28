@@ -185,6 +185,17 @@ def test_merge_schema_promotes_line_option_signatures_to_keywords() -> None:
     assert source_semantic.option_group == "server_options"
     assert source_semantic.takes_value is True
 
+    usesrc_kw = schema.keywords["usesrc"]
+    assert usesrc_kw.signatures == [
+        "usesrc <addr2>[:<port2>]",
+        "usesrc client|clientip",
+        "usesrc hdr_ip(<hdr>[,<occ>])",
+    ]
+    assert usesrc_kw.argument_model is not None
+    usesrc_semantic = next(item for item in usesrc_kw.line_option_semantics if item.parent_kind == "server")
+    assert usesrc_semantic.takes_value is True
+    assert "usesrc" in schema.keyword_groups["server_options_with_value"]
+
     check_kw = schema.keywords["check"]
     check_variant = next(variant for variant in check_kw.variants if variant.chapter == "5.2")
     assert check_variant.signatures

@@ -186,3 +186,20 @@ def test_keyword_suffix_parenthesized_argument_is_parsed() -> None:
     assert model is not None
     assert model.min_args == 1
     assert model.slots[0].value_kind == "name"
+
+
+def test_source_argument_model_collapses_usesrc_value_slots() -> None:
+    model = build_argument_model(
+        "source",
+        [
+            "source <addr>[:<port>] [interface <name>]",
+            "source <addr>[:<port>] [usesrc { <addr2>[:<port2>] | client | clientip } ]",
+            "source <addr>[:<port>] [usesrc { <addr2>[:<port2>] | hdr_ip(<hdr>[,<occ>]) } ]",
+        ],
+    )
+    assert model is not None
+    _patch_argument_model("source", model)
+    assert model.max_args == 4
+    assert model.slots[2].enum == ["interface", "usesrc"]
+    assert set(model.slots[3].enum) == {"client", "clientip", "hdr_ip"}
+    assert model.slots[3].value_kind == "address"
