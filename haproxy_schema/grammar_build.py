@@ -245,7 +245,9 @@ def _captures(*scopes: str) -> dict[str, dict[str, str]]:
 def _boundary_alt(words: list[str], limit: int = 5000) -> str:
     if not words:
         return "(?!)never-match"
-    return rf"\b{alt_pattern(words, limit=limit)}\b"
+    # Reject prefix matches before a hyphen so e.g. "cache" does not match inside
+    # "cache-use" / "cache-store" (those are rule actions matched later).
+    return rf"\b{alt_pattern(words, limit=limit)}(?!-)\b"
 
 
 def _option_token(opt: str) -> str:

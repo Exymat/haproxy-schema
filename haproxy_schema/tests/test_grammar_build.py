@@ -49,6 +49,19 @@ def test_directives_exclude_log_prefix_ambiguity() -> None:
     assert "log" not in directives
 
 
+def test_boundary_alt_rejects_hyphenated_prefix_matches() -> None:
+    schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
+    grammar = build_tm_language(schema)
+    cache_match = grammar["repository"]["cache-keywords"]["patterns"][0]["match"]
+    assert "(?!-)" in cache_match
+
+    rule_actions = grammar["repository"]["rule-actions"]["patterns"]
+    http_request_rule = next(
+        p for p in rule_actions if r"\b(http\-request)\s+" in p.get("match", "")
+    )
+    assert r"cache\-use" in http_request_rule["match"]
+
+
 def test_distinct_name_scopes_for_theme_highlighting() -> None:
     schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
     grammar = build_tm_language(schema)

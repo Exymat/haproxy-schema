@@ -35,6 +35,27 @@ def test_extract_description() -> None:
     assert extract_description_after_header(lines, 0) == "Set the running mode or protocol of the instance"
 
 
+def test_extract_description_skips_contexts_before_sections() -> None:
+    lines = [
+        "http-request <action> [options...] [ { if | unless } <condition> ]",
+        "  Access control for Layer 7 requests",
+        "",
+        "  May be used in the following contexts: http",
+        "",
+        "  May be used in sections:   defaults | frontend | listen | backend",
+        "                               yes   |    yes   |   yes  |   yes",
+        "",
+        "  The http-request statement defines a set of rules which apply to layer 7",
+        "  processing.",
+        "",
+        "  Example:",
+        "        http-request deny",
+    ]
+    text = extract_description_after_header(lines, 0)
+    assert text.startswith("Access control for Layer 7 requests")
+    assert "The http-request statement defines" in text
+
+
 def test_extract_description_accepts_four_space_prose() -> None:
     lines = [
         "set-path <fmt>",

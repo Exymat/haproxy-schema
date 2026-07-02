@@ -270,7 +270,13 @@ def parse_contexts_blob(raw: str) -> list[str]:
 
 def is_skippable_metadata_line(line: str) -> bool:
     stripped = line.strip()
-    return stripped.startswith("Usable in:") or stripped.startswith("May be used in sections")
+    if stripped.startswith("Usable in:"):
+        return True
+    if stripped.startswith("May be used in sections"):
+        return True
+    if _CONTEXTS_HEADER_RE.match(line):
+        return True
+    return False
 
 
 def extract_sections_from_keyword_block(lines: list[str], header_idx: int, end_idx: int) -> list[str]:
