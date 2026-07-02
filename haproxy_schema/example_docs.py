@@ -120,10 +120,14 @@ def extract_example_blocks(lines: list[str], start_idx: int, end_idx: int) -> li
     idx = start_idx
     while idx < end_idx:
         if EXAMPLE_HEADER_RE.search(_line_at(lines, idx)):
-            parsed, next_idx = extract_example_at(lines, idx, end_idx)
-            if parsed is not None and parsed.code:
-                examples.append(parsed)
-            idx = max(next_idx, idx + 1)
+            extracted = extract_example_at(lines, idx, end_idx)
+            if extracted is not None:
+                parsed, next_idx = extracted
+                if parsed.code:
+                    examples.append(parsed)
+                idx = max(next_idx, idx + 1)
+            else:
+                idx += 1
             continue
         idx += 1
     return examples

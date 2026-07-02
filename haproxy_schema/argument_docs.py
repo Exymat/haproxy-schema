@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import re
 
 from .dconv_bridge import (
-    DESCRIPTION_STOP_PREFIXES,
+    ArgumentParamDoc,
+    ArgumentValueDoc,
     collect_signature_lines,
     is_description_stop_line,
-    is_skippable_metadata_line,
-    match_dconv_keyword_line,
+    match_dconv_keyword_line
 )
 
 _VALUE_LINE_RE = re.compile(
@@ -27,19 +26,6 @@ _LITERAL_PARAM_WITH_ARGS_RE = re.compile(
     re.I,
 )
 _ARGUMENTS_HEADER_RE = re.compile(r"^ {2}Arguments?\s*:\s*$", re.I)
-
-
-@dataclass
-class ArgumentValueDoc:
-    name: str
-    description: str = ""
-
-
-@dataclass
-class ArgumentParamDoc:
-    parameter: str
-    description: str = ""
-    values: list[ArgumentValueDoc] = field(default_factory=list)
 
 
 def _keyword_block_end(lines: list[str], header_idx: int) -> int:

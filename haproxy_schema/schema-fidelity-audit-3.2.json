@@ -1,7 +1,7 @@
 {
   "version": "3.2",
-  "keywords_with_signatures_count": 579,
-  "keywords_with_argument_model_count": 579,
+  "keywords_with_signatures_count": 587,
+  "keywords_with_argument_model_count": 587,
   "keywords_without_argument_model": [],
   "keyword_argument_issues": [
     {
@@ -232,7 +232,7 @@
         "doc"
       ],
       "signature_count": 1,
-      "description_present": false,
+      "description_present": true,
       "doc_argument_count": 0,
       "doc_argument_value_count": 0,
       "statement_rule_kind": "",
@@ -2782,7 +2782,7 @@
         "doc"
       ],
       "signature_count": 1,
-      "description_present": false,
+      "description_present": true,
       "doc_argument_count": 0,
       "doc_argument_value_count": 0,
       "statement_rule_kind": "",
@@ -4558,6 +4558,467 @@
           "variadic": true,
           "enum": [],
           "value_kind": "generic"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "keyword": "filter bwlim-in",
+      "sections": [
+        "backend",
+        "frontend",
+        "listen"
+      ],
+      "sources": [
+        "doc"
+      ],
+      "signature_count": 2,
+      "description_present": true,
+      "doc_argument_count": 6,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [
+        "filter bwlim-in  <name> default-limit <size> default-period <time> [min-size <sz>]",
+        "filter bwlim-in  <name> limit <size> key <pattern> [table <table>] [min-size <sz>]"
+      ],
+      "argument_model_present": true,
+      "argument_model_min_args": 5,
+      "argument_model_max_args": 9,
+      "argument_model_slot_count": 9,
+      "argument_model_slots": [
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "name"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [
+            "default-limit",
+            "limit"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [
+            "default-period",
+            "key"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
+            "min-size",
+            "table"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
+            "min-size"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "keyword": "filter bwlim-out",
+      "sections": [
+        "backend",
+        "frontend",
+        "listen"
+      ],
+      "sources": [
+        "doc"
+      ],
+      "signature_count": 2,
+      "description_present": true,
+      "doc_argument_count": 6,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [
+        "filter bwlim-out <name> default-limit <size> default-period <time> [min-size <sz>]",
+        "filter bwlim-out <name> limit <size> key <pattern> [table <table>] [min-size <sz>]"
+      ],
+      "argument_model_present": true,
+      "argument_model_min_args": 5,
+      "argument_model_max_args": 9,
+      "argument_model_slot_count": 9,
+      "argument_model_slots": [
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "name"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [
+            "default-limit",
+            "limit"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [
+            "default-period",
+            "key"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
+            "min-size",
+            "table"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
+            "min-size"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "keyword": "filter cache",
+      "sections": [
+        "backend",
+        "frontend",
+        "listen"
+      ],
+      "sources": [
+        "doc"
+      ],
+      "signature_count": 1,
+      "description_present": true,
+      "doc_argument_count": 1,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [
+        "filter cache <name>"
+      ],
+      "argument_model_present": true,
+      "argument_model_min_args": 1,
+      "argument_model_max_args": 1,
+      "argument_model_slot_count": 1,
+      "argument_model_slots": [
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "name"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "keyword": "filter compression",
+      "sections": [
+        "backend",
+        "frontend",
+        "listen"
+      ],
+      "sources": [
+        "doc"
+      ],
+      "signature_count": 1,
+      "description_present": true,
+      "doc_argument_count": 0,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [
+        "filter compression"
+      ],
+      "argument_model_present": true,
+      "argument_model_min_args": 0,
+      "argument_model_max_args": 0,
+      "argument_model_slot_count": 0,
+      "argument_model_slots": [],
+      "issues": []
+    },
+    {
+      "keyword": "filter fcgi-app",
+      "sections": [
+        "backend",
+        "frontend",
+        "listen"
+      ],
+      "sources": [
+        "doc"
+      ],
+      "signature_count": 1,
+      "description_present": true,
+      "doc_argument_count": 1,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [
+        "filter fcgi-app <name>"
+      ],
+      "argument_model_present": true,
+      "argument_model_min_args": 1,
+      "argument_model_max_args": 1,
+      "argument_model_slot_count": 1,
+      "argument_model_slots": [
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "name"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "keyword": "filter opentracing",
+      "sections": [
+        "backend",
+        "frontend",
+        "listen"
+      ],
+      "sources": [
+        "doc"
+      ],
+      "signature_count": 1,
+      "description_present": true,
+      "doc_argument_count": 2,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [
+        "filter opentracing [id <id>] config <file>"
+      ],
+      "argument_model_present": true,
+      "argument_model_min_args": 2,
+      "argument_model_max_args": 4,
+      "argument_model_slot_count": 4,
+      "argument_model_slots": [
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
+            "id"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "name"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [
+            "config"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "path"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "keyword": "filter spoe",
+      "sections": [
+        "backend",
+        "frontend",
+        "listen"
+      ],
+      "sources": [
+        "doc"
+      ],
+      "signature_count": 1,
+      "description_present": true,
+      "doc_argument_count": 2,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [
+        "filter spoe [engine <name>] config <file>"
+      ],
+      "argument_model_present": true,
+      "argument_model_min_args": 2,
+      "argument_model_max_args": 4,
+      "argument_model_slot_count": 4,
+      "argument_model_slots": [
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
+            "engine"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "name"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [
+            "config"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": false,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "path"
+        }
+      ],
+      "issues": []
+    },
+    {
+      "keyword": "filter trace",
+      "sections": [
+        "backend",
+        "frontend",
+        "listen"
+      ],
+      "sources": [
+        "doc"
+      ],
+      "signature_count": 1,
+      "description_present": true,
+      "doc_argument_count": 4,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [
+        "filter trace [name <name>] [random-forwarding] [hexdump]"
+      ],
+      "argument_model_present": true,
+      "argument_model_min_args": 0,
+      "argument_model_max_args": 4,
+      "argument_model_slot_count": 4,
+      "argument_model_slots": [
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
+            "name"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "name"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
+            "random-forwarding"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
+            "hexdump"
+          ],
+          "value_kind": "enum"
         }
       ],
       "issues": []

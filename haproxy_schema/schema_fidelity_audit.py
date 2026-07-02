@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .dkall_parser import DkallParseResult, parse_dkall
+from .dkall_parser import parse_dkall
 from .doc_parser import DocParseResult, parse_configuration
 from .merge import build_action_groups, merge_schema
 from .options_metadata import collect_options_with_value

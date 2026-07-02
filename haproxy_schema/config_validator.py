@@ -197,9 +197,9 @@ def _no_prefix_keywords(schema: HaproxySchema) -> set[str]:
 
 
 def _schema_prefix_families(schema: HaproxySchema) -> list[str]:
-    from_layout = schema.line_layout.get("prefix_families", [])
-    if from_layout:
-        return [entry.lower() for entry in from_layout]
+    from_layout = schema.line_layout.get("prefix_families")
+    if isinstance(from_layout, list) and from_layout:
+        return [entry.lower() for entry in from_layout if isinstance(entry, str)]
     return [entry.lower() for entry in KNOWN_PREFIX_FAMILIES]
 
 

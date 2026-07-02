@@ -378,7 +378,7 @@ def _is_unindented_prose_line(line: str) -> bool:
         return False
     if is_description_stop_line(line):
         return False
-    return get_indent(line) < 2
+    return get_indent(line) == 0
 
 
 def _looks_like_signature_fragment(stripped: str) -> bool:
