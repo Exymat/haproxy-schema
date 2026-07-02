@@ -272,8 +272,18 @@ def _is_top_level_keyword(keyword: Keyword) -> bool:
     return bool(keyword.sections)
 
 
+def _multiword_directive_prefixes(schema: HaproxySchema) -> set[str]:
+    """Prefixes of documented top-level directives with a space (e.g. filter cache)."""
+    prefixes: set[str] = set()
+    for name, kw in schema.keywords.items():
+        if not _is_top_level_keyword(kw) or " " not in name:
+            continue
+        prefixes.add(name.split(" ", 1)[0])
+    return prefixes
+
+
 def _group_multword_keywords(schema: HaproxySchema) -> dict[str, list[str]]:
-    skip = _statement_rule_keywords(schema)
+    skip = _statement_rule_keywords(schema) - _multiword_directive_prefixes(schema)
     groups: dict[str, list[str]] = {}
     for name, kw in schema.keywords.items():
         if not _is_top_level_keyword(kw):

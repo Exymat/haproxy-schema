@@ -6,6 +6,7 @@ import re
 
 from .dconv_bridge import (
     KeywordDoc,
+    _skip_arguments_block,
     collect_signature_lines,
     extract_contexts_from_keyword_block,
     extract_keyword_name,
@@ -97,8 +98,11 @@ def extract_line_option_description(lines: list[str], header_idx: int, end_idx: 
                 current = []
             idx += 1
             continue
-        if _ARGUMENTS_HEADER_RE.match(line) or _EXAMPLE_HEADER_RE.match(line) or _SEE_ALSO_RE.match(line):
+        if _EXAMPLE_HEADER_RE.match(line) or _SEE_ALSO_RE.match(line):
             break
+        if _ARGUMENTS_HEADER_RE.match(line):
+            idx = _skip_arguments_block(lines, idx, end_idx)
+            continue
         if _is_metadata_line(line):
             if current:
                 paragraphs.append(" ".join(current).strip())

@@ -1,26 +1,22 @@
 {
   "version": "2.6",
-  "keyword_docs_count": 443,
-  "signature_keywords_count": 443,
-  "signatures_total_count": 465,
+  "keyword_docs_count": 449,
+  "signature_keywords_count": 449,
+  "signatures_total_count": 471,
   "section_keywords_count": 10,
   "action_reference_count": 65,
-  "language_keywords_count": 443,
+  "language_keywords_count": 449,
   "keywords_missing_description": [
-    "docroot",
-    "http-check connect"
+    "docroot"
   ],
   "keywords_missing_signatures": [],
   "signature_keywords_missing_keyword_doc": [],
   "keyword_docs_missing_language_payload": [],
   "language_keywords_missing_doc_source": [],
   "language_keywords_empty_description": [
-    "docroot",
-    "http-check connect"
+    "docroot"
   ],
-  "actions_missing_description": [
-    "return"
-  ],
+  "actions_missing_description": [],
   "actions_without_rulesets": [],
   "action_reference_only": [],
   "action_matrix_only": [],

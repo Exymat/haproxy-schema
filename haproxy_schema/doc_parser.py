@@ -183,6 +183,20 @@ def _walk_chapter_section(lines: list[str], section_id: str) -> dict[str, Keywor
     return _filter_keyword_docs(walk_keyword_docs(lines, start, end, section_id))
 
 
+def _walk_filter_directive_docs(lines: list[str]) -> dict[str, KeywordDoc]:
+    """Extract proxy filter directives documented in chapter 9 (e.g. filter cache)."""
+    start = _find_body_section(lines, "9")
+    if start < 0:
+        return {}
+    end = _find_subsection_end(lines, "9", start)
+    raw = walk_keyword_docs(lines, start, end, "9")
+    return {
+        name: doc
+        for name, doc in raw.items()
+        if name.startswith("filter ") and is_valid_keyword_name(name)
+    }
+
+
 def _walk_chapter3_globals(lines: list[str]) -> dict[str, KeywordDoc]:
     """Global-section keywords from doc chapters 3.1-3.3, each with its own chapter id."""
     merged: dict[str, KeywordDoc] = {}
@@ -582,6 +596,11 @@ def parse_configuration(path: Path) -> DocParseResult:
     _merge_keyword_docs(result.keyword_docs, other_chapter3_docs)
     _merge_keyword_docs(result.keyword_docs, proxy_docs, prefer_source_description=True)
 
+    filter_directive_docs = _walk_filter_directive_docs(lines)
+    if filter_directive_docs:
+        _merge_keyword_docs(result.keyword_docs, filter_directive_docs, prefer_source_description=True)
+        result.proxy_keywords.update(filter_directive_docs.keys())
+
     result.section_keywords, standalone_docs, standalone_section_chapters = _parse_standalone_sections(lines)
     standalone_docs = _filter_keyword_docs(standalone_docs)
     _merge_keyword_docs(result.keyword_docs, standalone_docs)
@@ -601,27 +620,39 @@ def parse_configuration(path: Path) -> DocParseResult:
             )
         if not doc.sections and " " in name and name in result.proxy_keywords:
             prefix = name.split()[0]
-            sibling_sections: list[str] = []
-            for sibling_name, sibling_doc in result.keyword_docs.items():
-                if sibling_name.startswith(f"{prefix} "):
-                    for sibling_variant in sibling_doc.variants:
-                        if sibling_variant.chapter == "4.2" and sibling_variant.sections:
-                            sibling_sections = list(sibling_variant.sections)
-                            break
-                if sibling_sections:
-                    break
-            if sibling_sections:
-                proxy_variant = doc.variant_for("4.2")
-                proxy_variant.sections = _sections_for_variant(
-                    name,
-                    proxy_variant,
-                    result.global_keywords,
-                    matrix_41,
-                    result.section_keywords,
-                    standalone_section_chapters,
-                )
-                if not proxy_variant.sections:
-                    proxy_variant.sections = list(sibling_sections)
+            inherited_sections: list[str] = []
+            prefix_doc = result.keyword_docs.get(prefix)
+            if prefix_doc:
+                for prefix_variant in prefix_doc.variants:
+                    if prefix_variant.sections:
+                        inherited_sections = list(prefix_variant.sections)
+                        break
+            if not inherited_sections:
+                for sibling_name, sibling_doc in result.keyword_docs.items():
+                    if sibling_name.startswith(f"{prefix} "):
+                        for sibling_variant in sibling_doc.variants:
+                            if sibling_variant.chapter == "4.2" and sibling_variant.sections:
+                                inherited_sections = list(sibling_variant.sections)
+                                break
+                    if inherited_sections:
+                        break
+            if inherited_sections:
+                for variant in doc.variants:
+                    if not variant.sections:
+                        variant.sections = list(inherited_sections)
+                proxy_variants = [variant for variant in doc.variants if variant.chapter == "4.2"]
+                if proxy_variants:
+                    proxy_variant = proxy_variants[0]
+                    proxy_variant.sections = _sections_for_variant(
+                        name,
+                        proxy_variant,
+                        result.global_keywords,
+                        matrix_41,
+                        result.section_keywords,
+                        standalone_section_chapters,
+                    )
+                    if not proxy_variant.sections:
+                        proxy_variant.sections = list(inherited_sections)
 
     # Section 4.2 is authoritative for proxy keyword inventory and section applicability.
     result.matrix_keywords = _matrix_from_proxy_docs(

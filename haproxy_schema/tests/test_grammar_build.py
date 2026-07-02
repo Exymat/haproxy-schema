@@ -24,6 +24,18 @@ def test_multword_timeout_generated() -> None:
     assert "http-keep-alive" in match or r"http\-keep\-alive" in match
 
 
+def test_multword_filter_directives_generated() -> None:
+    schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
+    if "filter cache" not in schema.keywords:
+        return
+    grammar = build_tm_language(schema)
+    multi = grammar["repository"]["directives-multiword"]["patterns"]
+    filter_rules = [p for p in multi if r"\b(filter)\s+" in p.get("match", "")]
+    assert filter_rules, "expected filter multi-word rules"
+    match = filter_rules[0]["match"]
+    assert "cache" in match
+
+
 def test_rule_actions_include_http_after_response() -> None:
     schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
     grammar = build_tm_language(schema)

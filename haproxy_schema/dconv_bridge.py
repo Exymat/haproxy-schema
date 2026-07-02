@@ -262,6 +262,8 @@ def extract_keyword_name(signature: str) -> str:
 _SECTIONS_MATRIX = ("defaults", "frontend", "listen", "backend")
 _SECTIONS_HEADER_RE = re.compile(r"^\s*May be used in sections\s*:\s*(.+)$", re.I)
 _CONTEXTS_HEADER_RE = re.compile(r"^\s*May be used in the following contexts\s*:\s*(.+)$", re.I)
+_USABLE_IN_HEADER_RE = re.compile(r"^\s*Usable in:\s*(.+)$", re.I)
+_USABLE_IN_MARKS_RE = re.compile(r"^\s+[-Xx| ]+\s*$")
 
 
 def parse_contexts_blob(raw: str) -> list[str]:
@@ -277,6 +279,30 @@ def is_skippable_metadata_line(line: str) -> bool:
     if _CONTEXTS_HEADER_RE.match(line):
         return True
     return False
+
+
+def _advance_past_metadata(lines: list[str], idx: int) -> int:
+    """Advance past one metadata unit without consuming prose or example blocks."""
+    if idx >= len(lines):
+        return idx
+    line = lines[idx]
+    if _CONTEXTS_HEADER_RE.match(line):
+        return idx + 1
+    if _USABLE_IN_HEADER_RE.match(line):
+        next_idx = idx + 1
+        while next_idx < len(lines) and not lines[next_idx].strip():
+            next_idx += 1
+        if next_idx < len(lines) and _USABLE_IN_MARKS_RE.match(lines[next_idx]):
+            return next_idx + 1
+        return idx + 1
+    if _SECTIONS_HEADER_RE.match(line):
+        next_idx = idx + 1
+        while next_idx < len(lines) and not lines[next_idx].strip():
+            next_idx += 1
+        if next_idx < len(lines) and lines[next_idx].startswith(" ") and "|" in lines[next_idx]:
+            return next_idx + 1
+        return next_idx
+    return idx + 1
 
 
 def extract_sections_from_keyword_block(lines: list[str], header_idx: int, end_idx: int) -> list[str]:
@@ -322,6 +348,37 @@ def is_description_stop_line(line: str) -> bool:
 
 _SIGNATURE_CONTINUATION_RE = re.compile(r"^[\[<{]")
 _SIGNATURE_SYNTAX_RE = re.compile(r"[<|\[\]{}]|]\*|\]\s*\*")
+_ARGUMENTS_HEADER_RE = re.compile(r"^ {2}Arguments?\s*:", re.I)
+_SECTION_HEADER_RE = re.compile(r"^\d+(?:\.\d+)*\.\s+\S")
+
+
+def _skip_arguments_block(lines: list[str], idx: int, end_idx: int | None = None) -> int:
+    """Advance past an Arguments section and its indented parameter lines."""
+    limit = len(lines) if end_idx is None else end_idx
+    idx += 1
+    while idx < limit:
+        line = lines[idx]
+        if not line.strip():
+            idx += 1
+            continue
+        if match_dconv_keyword_line(line) or _SECTION_HEADER_RE.match(line.strip()):
+            return idx
+        indent = get_indent(line)
+        if indent <= 2:
+            return idx
+        idx += 1
+    return idx
+
+
+def _is_unindented_prose_line(line: str) -> bool:
+    stripped = line.strip()
+    if not stripped:
+        return False
+    if match_dconv_keyword_line(line) or _SECTION_HEADER_RE.match(stripped):
+        return False
+    if is_description_stop_line(line):
+        return False
+    return get_indent(line) < 2
 
 
 def _looks_like_signature_fragment(stripped: str) -> bool:
@@ -364,8 +421,6 @@ def extract_description_after_header(lines: list[str], header_idx: int) -> str:
         line = lines[idx]
         if match_dconv_keyword_line(line):
             break
-        if line.strip() and not line.startswith(" "):
-            break
         if not line.strip():
             if current:
                 paragraphs.append(" ".join(current).strip())
@@ -373,6 +428,13 @@ def extract_description_after_header(lines: list[str], header_idx: int) -> str:
             idx += 1
             continue
         if get_indent(line) < 2:
+            if _is_unindented_prose_line(line):
+                current.append(line.strip())
+                idx += 1
+                while idx < len(lines) and _is_unindented_prose_line(lines[idx]):
+                    current.append(lines[idx].strip())
+                    idx += 1
+                continue
             break
         stripped = line.strip()
         if get_indent(line) >= 4 and _SIGNATURE_CONTINUATION_RE.match(stripped):
@@ -381,11 +443,12 @@ def extract_description_after_header(lines: list[str], header_idx: int) -> str:
             if current:
                 paragraphs.append(" ".join(current).strip())
                 current = []
-            idx += 1
-            while idx < len(lines) and lines[idx].startswith(" ") and lines[idx].strip():
-                idx += 1
+            idx = _advance_past_metadata(lines, idx)
             continue
         if is_description_stop_line(line):
+            if _ARGUMENTS_HEADER_RE.match(line):
+                idx = _skip_arguments_block(lines, idx)
+                continue
             break
         current.append(line.strip())
         idx += 1

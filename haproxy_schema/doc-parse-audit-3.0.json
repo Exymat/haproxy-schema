@@ -1,11 +1,11 @@
 {
   "version": "3.0",
-  "keyword_docs_count": 521,
-  "signature_keywords_count": 521,
-  "signatures_total_count": 543,
+  "keyword_docs_count": 529,
+  "signature_keywords_count": 529,
+  "signatures_total_count": 553,
   "section_keywords_count": 12,
   "action_reference_count": 84,
-  "language_keywords_count": 521,
+  "language_keywords_count": 529,
   "keywords_missing_description": [
     "docroot"
   ],

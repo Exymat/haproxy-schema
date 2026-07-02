@@ -1,7 +1,7 @@
 from pathlib import Path
+import re
 
 import pytest
-
 from haproxy_schema.dconv_bridge import (
     collect_signature_lines,
     extract_description_after_header,
@@ -80,6 +80,114 @@ def test_extract_description_keeps_multiple_paragraphs() -> None:
         "  Arguments: none",
     ]
     assert extract_description_after_header(lines, 0) == "The first paragraph.\n\nThe second paragraph."
+
+
+def test_extract_description_after_arguments_block() -> None:
+    lines = [
+        "filter cache <name>",
+        "",
+        "  Arguments :",
+        "",
+        "    <name>      is name of the cache section this filter will use.",
+        "",
+        "The cache uses a filter to store cacheable responses.",
+        "",
+        "See also : section 9.2 about the compression filter.",
+    ]
+    text = extract_description_after_header(lines, 0)
+    assert "cache uses a filter" in text
+    assert "See also" not in text
+
+
+def test_extract_description_after_indented_arguments_block() -> None:
+    lines = [
+        "capture request header <name> len <length>",
+        "  Capture and log the last occurrence of the specified request header.",
+        "",
+        "  May be used in the following contexts: http",
+        "",
+        "  May be used in sections :   defaults | frontend | listen | backend",
+        "                                  no   |    yes   |   yes  |   no",
+        "",
+        "  Arguments :",
+        "    <name>    is the name of the header to capture.",
+        "",
+        "    <length>  is the maximum number of characters to extract from the value.",
+        "",
+        "  The complete value of the last occurrence of the header is captured.",
+        "",
+        "  Note that when capturing headers such as \"User-agent\", some spaces may be",
+        "  logged, making the log analysis more difficult.",
+        "",
+        "  Example:",
+        "        capture request header Host len 15",
+    ]
+    text = extract_description_after_header(lines, 0)
+    assert text.startswith("Capture and log the last occurrence")
+    assert "complete value of the last occurrence" in text
+    assert "User-agent" in text
+    assert "capture request header Host len 15" not in text
+
+
+@pytest.mark.parametrize("version", ("3.0", "3.2", "3.4"))
+def test_configuration_txt_preserves_prose_after_arguments(version: str) -> None:
+    doc_path = haproxy_configuration_txt(version)
+    if not doc_path.is_file():
+        pytest.skip(f"missing HAProxy doc source: {doc_path}")
+
+    lines = doc_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    start = next((idx for idx, line in enumerate(lines) if line.startswith("4.2.")), -1)
+    end = next((idx for idx, line in enumerate(lines) if line.startswith("4.3.")), len(lines))
+    if start < 0:
+        pytest.skip(f"missing section 4.2 in {version}")
+
+    failures: list[str] = []
+    idx = start
+    while idx < end:
+        if not match_dconv_keyword_line(lines[idx]):
+            idx += 1
+            continue
+        header_idx = idx
+        signatures, next_idx = collect_signature_lines(lines, idx)
+        block_end = next(
+            (
+                scan
+                for scan in range(next_idx, end)
+                if match_dconv_keyword_line(lines[scan])
+                or (lines[scan].strip() and not lines[scan].startswith(" "))
+            ),
+            end,
+        )
+        args_idx = next(
+            (
+                scan
+                for scan in range(header_idx, block_end)
+                if re.match(r"^ {2}Arguments?\s*:", lines[scan], re.I)
+            ),
+            -1,
+        )
+        if args_idx >= 0:
+            prose_idx = next(
+                (
+                    scan
+                    for scan in range(args_idx + 1, block_end)
+                    if lines[scan].startswith("  ")
+                    and not lines[scan].startswith("   ")
+                    and lines[scan].strip()
+                    and not re.match(r"^ {2}Arguments?\s*:", lines[scan], re.I)
+                    and not lines[scan].strip().startswith(("Example", "See also", "May be used"))
+                ),
+                -1,
+            )
+            if prose_idx >= 0:
+                probe = lines[prose_idx].strip()[:48]
+                description = extract_description_after_header(lines, header_idx)
+                if probe not in description:
+                    failures.append(f"{version} L{header_idx + 1} {signatures[0]} missing {probe!r}")
+
+        idx = max(next_idx, idx + 1)
+
+    assert not failures, "Missing prose after Arguments blocks:\n" + "\n".join(failures[:25])
 
 
 def test_walk_keyword_docs() -> None:

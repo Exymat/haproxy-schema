@@ -1,14 +1,12 @@
 {
   "version": "3.4",
-  "keyword_docs_count": 640,
-  "signature_keywords_count": 640,
-  "signatures_total_count": 665,
+  "keyword_docs_count": 650,
+  "signature_keywords_count": 650,
+  "signatures_total_count": 677,
   "section_keywords_count": 15,
   "action_reference_count": 92,
-  "language_keywords_count": 640,
+  "language_keywords_count": 650,
   "keywords_missing_description": [
-    "acme",
-    "crt-store",
     "docroot"
   ],
   "keywords_missing_signatures": [],
@@ -16,8 +14,6 @@
   "keyword_docs_missing_language_payload": [],
   "language_keywords_missing_doc_source": [],
   "language_keywords_empty_description": [
-    "acme",
-    "crt-store",
     "docroot"
   ],
   "actions_missing_description": [],

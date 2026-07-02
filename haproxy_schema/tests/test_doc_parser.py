@@ -616,3 +616,18 @@ def test_parse_configuration_real_docs_cover_late_sections_and_healthchecks() ->
     assert "program" in result32.section_keywords
     assert "command" in result32.section_keywords["program"]
     assert "healthcheck" not in result32.section_keywords
+
+
+def test_parse_configuration_extracts_filter_directive_keywords() -> None:
+    doc30 = haproxy_configuration_txt("3.0")
+    if not doc30.is_file():
+        return
+
+    result = parse_configuration(doc30)
+    assert "filter cache" in result.proxy_keywords
+    assert "filter cache" in result.keyword_docs
+    cache_doc = result.keyword_docs["filter cache"]
+    assert any("filter cache <name>" in sig for sig in cache_doc.signatures)
+    assert cache_doc.description.strip()
+    assert "frontend" in cache_doc.sections
+    assert "backend" in cache_doc.sections
