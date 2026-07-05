@@ -555,10 +555,20 @@ def _patch_source_argument_model(model: ArgumentModel) -> None:
         return
 
 
+def _patch_balance_url_param_argument_model(model: ArgumentModel) -> None:
+    """Allow legacy ignored <max_wait> tokens after check_post (see backend.c)."""
+    if len(model.slots) < 2:
+        return
+    model.slots.append(ArgSlot(optional=True, variadic=True, value_kind="generic"))
+    model.max_args = None
+
+
 def _patch_argument_model(keyword: str, model: ArgumentModel) -> None:
     lower = keyword.lower()
     if lower == "log":
         _patch_log_argument_model(model)
+    elif lower == "balance url_param":
+        _patch_balance_url_param_argument_model(model)
     elif lower.startswith("redirect "):
         _patch_redirect_argument_model(model)
     elif lower == "source":

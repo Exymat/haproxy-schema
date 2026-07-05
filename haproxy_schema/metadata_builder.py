@@ -11,8 +11,10 @@ from .source_metadata_extractors import (
     extract_address_policies,
     extract_cookie_modes,
     extract_http_send_name_header_rule,
+    extract_log_address_skip,
     extract_mysql_check_rule,
     extract_sample_casts,
+    extract_sample_fetch_references,
     extract_sample_min_args,
     extract_sample_types,
 )
@@ -179,6 +181,29 @@ def _derive_semantic_groups(schema: HaproxySchema) -> tuple[dict[str, Any], dict
     return groups, {"origin": "derived", "rule": "keyword_groups and line_option_semantics"}
 
 
+def _derive_balance_variant_algorithms(schema: HaproxySchema) -> dict[str, str]:
+    """Map balance algorithm tokens to sibling keywords with dedicated argument models."""
+    balance_kw = schema.keywords.get("balance")
+    if balance_kw is None or balance_kw.argument_model is None:
+        return {}
+    slots = balance_kw.argument_model.slots
+    if not slots:
+        return {}
+    algorithms = {value.lower() for value in slots[0].get("enum", []) if value}
+    if not algorithms:
+        return {}
+    prefix = "balance "
+    variant_algorithms: dict[str, str] = {}
+    for name, keyword in sorted(schema.keywords.items()):
+        if not name.startswith(prefix):
+            continue
+        algorithm = name[len(prefix) :]
+        if algorithm not in algorithms or keyword.argument_model is None:
+            continue
+        variant_algorithms[algorithm] = name
+    return variant_algorithms
+
+
 def _derive_validation_rules(schema: HaproxySchema) -> tuple[dict[str, Any], dict[str, Any]]:
     rule_keywords = {rule.keyword for rule in schema.statement_rules}
     skip_candidates = (
@@ -230,7 +255,18 @@ def _derive_validation_rules(schema: HaproxySchema) -> tuple[dict[str, Any], dic
         },
         "special_argument_rules": {},
     }
-    return rules, {"origin": "derived", "rule": "statement_rules and address policy names"}
+    provenance: dict[str, Any] = {
+        "origin": "derived",
+        "rule": "statement_rules and address policy names",
+    }
+    balance_variants = _derive_balance_variant_algorithms(schema)
+    if balance_variants:
+        rules["special_argument_rules"]["balance"] = {"variant_algorithms": balance_variants}
+        provenance["validation_rules.special_argument_rules.balance"] = {
+            "origin": "derived",
+            "rule": "balance sibling keywords with dedicated argument models",
+        }
+    return rules, provenance
 
 
 def _extract_runtime_metadata(version: str, haproxy_root: Path | None) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -247,9 +283,17 @@ def _extract_runtime_metadata(version: str, haproxy_root: Path | None) -> tuple[
     metadata["sample_casts"] = sample_casts
     provenance["sample_casts"] = sample_casts_provenance
 
+    sample_fetch_references, sample_fetch_references_provenance = extract_sample_fetch_references(haproxy_root)
+    metadata["symbols"] = {"sample_fetch_references": sample_fetch_references}
+    provenance["symbols.sample_fetch_references"] = sample_fetch_references_provenance
+
     address_policies, address_provenance = extract_address_policies(haproxy_root)
     metadata["address_policies"] = address_policies
     provenance["address_policies"] = address_provenance
+
+    log_address_skip, log_address_skip_provenance = extract_log_address_skip(haproxy_root)
+    metadata["validation_rules"]["log_address_skip"] = log_address_skip
+    provenance["validation_rules.log_address_skip"] = log_address_skip_provenance
 
     cookie_modes, cookie_provenance = extract_cookie_modes(haproxy_root)
     metadata["validation_rules"]["special_argument_rules"]["cookie"] = {"modes": cookie_modes}

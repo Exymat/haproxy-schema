@@ -99,10 +99,13 @@ def test_optional_literal_in_brackets_becomes_enum() -> None:
         ["balance url_param <param> [check_post]"],
     )
     assert model is not None
+    _patch_argument_model("balance url_param", model)
     assert model.min_args == 1
-    assert model.max_args == 2
+    assert model.max_args is None
     assert model.slots[1].optional is True
     assert model.slots[1].enum == ["check_post"]
+    assert model.slots[2].optional is True
+    assert model.slots[2].variadic is True
 
 
 def test_log_signature_includes_facility_tail() -> None:

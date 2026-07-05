@@ -1,18 +1,5 @@
 {
-  "curated_runtime": {
-    "symbols.sample_fetch_references": {
-      "accepted": true,
-      "reason": "The fetch argument target kind is not exposed by dkall; extract from sample parser internals in a later pass."
-    },
-    "validation_rules.log_address_skip": {
-      "accepted": true,
-      "reason": "Special log targets are parser literals in log parsing; extract from log.c target parser in a later pass."
-    },
-    "validation_rules.special_argument_rules.balance": {
-      "accepted": true,
-      "reason": "The url_param algorithm variant is parser behavior not yet represented structurally in generated argument models."
-    }
-  },
+  "curated_runtime": {},
   "missing_required_fields": [],
   "ok": true,
   "provenance": {
@@ -314,10 +301,18 @@
       "reason": "Editor expression parsing needs explicit boolean condition operator tokens."
     },
     "symbols.sample_fetch_references": {
-      "accepted": true,
-      "category": "curated_runtime",
-      "origin": "curated_runtime",
-      "reason": "The fetch argument target kind is not exposed by dkall; extract from sample parser internals in a later pass."
+      "http_auth": {
+        "argument_type": "USR",
+        "origin": "extracted",
+        "source": "..\\haproxy_git\\haproxy-3.2\\src\\http_fetch.c",
+        "symbol": "http_auth"
+      },
+      "http_auth_group": {
+        "argument_type": "USR",
+        "origin": "extracted",
+        "source": "..\\haproxy_git\\haproxy-3.2\\src\\http_fetch.c",
+        "symbol": "http_auth_group"
+      }
     },
     "symbols.self_reference_keywords": {
       "accepted": false,
@@ -327,25 +322,23 @@
     },
     "validation_rules": {
       "origin": "derived",
-      "rule": "statement_rules and address policy names"
+      "rule": "statement_rules and address policy names",
+      "validation_rules.special_argument_rules.balance": {
+        "origin": "derived",
+        "rule": "balance sibling keywords with dedicated argument models"
+      }
     },
     "validation_rules.log_address_skip": {
-      "accepted": true,
-      "category": "curated_runtime",
-      "origin": "curated_runtime",
-      "reason": "Special log targets are parser literals in log parsing; extract from log.c target parser in a later pass."
+      "origin": "extracted",
+      "parser": "parse_logger",
+      "rule": "string literals compared against args[1] are log target aliases",
+      "source": "..\\haproxy_git\\haproxy-3.2\\src\\log.c"
     },
     "validation_rules.logformat_stop_tokens": {
       "accepted": false,
       "category": "derived_hint",
       "origin": "curated",
       "reason": "These tokens terminate editor log-format regions; they are derived from directive signatures but kept as a curated hint until slot-level derivation is complete."
-    },
-    "validation_rules.special_argument_rules.balance": {
-      "accepted": true,
-      "category": "curated_runtime",
-      "origin": "curated_runtime",
-      "reason": "The url_param algorithm variant is parser behavior not yet represented structurally in generated argument models."
     },
     "validation_rules.special_argument_rules.cookie": {
       "origin": "extracted",

@@ -7,15 +7,17 @@ import pytest
 from haproxy_schema.doc_parser import parse_configuration
 from haproxy_schema.dkall_parser import parse_dkall
 from haproxy_schema.merge import merge_schema
-from haproxy_schema.metadata_builder import build_schema_metadata
+from haproxy_schema.metadata_builder import _derive_balance_variant_algorithms, build_schema_metadata
 from haproxy_schema.schema import HaproxySchema
 from haproxy_schema.schema_metadata import iter_curated_entries, load_curated_metadata
 from haproxy_schema.source_metadata_extractors import (
     extract_address_policies,
     extract_cookie_modes,
     extract_http_send_name_header_rule,
+    extract_log_address_skip,
     extract_mysql_check_rule,
     extract_sample_casts,
+    extract_sample_fetch_references,
     extract_sample_min_args,
     extract_sample_types,
 )
@@ -51,6 +53,11 @@ int str2listener(void) {
     )
     (root / "src" / "log.c").write_text(
         """
+int parse_logger(char **args, void *loggers) {
+  if (*(args[1]) && *(args[2]) == 0 && strcmp(args[1], "global") == 0) {}
+  if (strcmp(args[1], "stdout") == 0) {}
+  else if (strcmp(args[1], "stderr") == 0) {}
+}
 /* parse the target address */
 sk = str2sa_range(raw, NULL, &port1, &port2, &fd, &proto, NULL,
                   err, NULL, NULL, NULL, PA_O_PORT_OK);
@@ -117,6 +124,13 @@ else if (strcmp(args[cur_arg], "addr") == 0) {
         '{ "map_str", sample_conv_map, ARG2(1,STR,STR), sample_load_map, SMP_T_STR, SMP_T_STR },',
         encoding="utf-8",
     )
+    (root / "src" / "http_fetch.c").write_text(
+        """
+{ "http_auth",       smp_fetch_http_auth,     ARG1(1,USR), NULL, SMP_T_BOOL, SMP_USE_HRQHV },
+{ "http_auth_group", smp_fetch_http_auth_grp, ARG1(1,USR), NULL, SMP_T_STR,  SMP_USE_HRQHV },
+""",
+        encoding="utf-8",
+    )
     return root
 
 
@@ -141,10 +155,47 @@ def test_source_extractors_parse_c_fixtures(tmp_path: Path) -> None:
     assert extract_http_send_name_header_rule(root, "3.4")[0] == {
         "forbidden_first_arg_by_min_version": {"3.4": ["connection", "host"]}
     }
+    assert extract_log_address_skip(root)[0] == ["global", "stdout", "stderr"]
+    assert extract_sample_fetch_references(root)[0] == {
+        "http_auth": {"reference_kind": "userlist", "argument_index": 0, "scope": "global"},
+        "http_auth_group": {"reference_kind": "userlist", "argument_index": 0, "scope": "global"},
+    }
     fetch_min, converter_min, _ = extract_sample_min_args(root)
     assert fetch_min["payload_lv"] == 2
     assert converter_min["ipmask"] == 1
     assert converter_min["map_str"] == 1
+
+
+@pytest.mark.parametrize("version", SUPPORTED_VERSIONS)
+def test_balance_url_param_accepts_legacy_max_wait_example(version: str) -> None:
+    mono = monorepo_root()
+    if mono is None:
+        pytest.skip("missing monorepo HAProxy source checkouts")
+    doc_path = haproxy_configuration_txt(version)
+    dkall_path = dkall_dump(version)
+    doc = parse_configuration(doc_path)
+    dkall = parse_dkall(dkall_path)
+    schema = merge_schema(version, doc, dkall, dkall_package_dir=dkall_path.parent)
+    variant = schema.keywords["balance url_param"]
+    model = variant.argument_model
+    assert model is not None
+    assert model.max_args is None
+    assert len(model.slots) == 3
+    assert model.slots[2]["variadic"] is True
+
+
+@pytest.mark.parametrize("version", SUPPORTED_VERSIONS)
+def test_derive_balance_variant_algorithms(version: str) -> None:
+    mono = monorepo_root()
+    if mono is None:
+        pytest.skip("missing monorepo HAProxy source checkouts")
+    doc_path = haproxy_configuration_txt(version)
+    dkall_path = dkall_dump(version)
+    doc = parse_configuration(doc_path)
+    dkall = parse_dkall(dkall_path)
+    schema = merge_schema(version, doc, dkall, dkall_package_dir=dkall_path.parent)
+    variants = _derive_balance_variant_algorithms(schema)
+    assert variants == {"url_param": "balance url_param"}
 
 
 def test_curated_metadata_requires_provenance_and_acceptance() -> None:
@@ -152,7 +203,6 @@ def test_curated_metadata_requires_provenance_and_acceptance() -> None:
     entries = iter_curated_entries(curated)
     assert entries
     runtime = [entry for entry in entries if entry[1] == "curated_runtime"]
-    assert runtime
     assert all(entry[3] and entry[4] for entry in runtime)
 
 
@@ -171,6 +221,15 @@ def test_generated_metadata_has_provenance_for_every_supported_version(version: 
     assert report["missing_required_fields"] == []
     assert report["provenance"]["sample_types"]["origin"] == "extracted"
     assert report["provenance"]["sample_casts"]["origin"] == "extracted"
+    assert report["provenance"]["symbols.sample_fetch_references"]["http_auth"]["origin"] == "extracted"
+    assert report["provenance"]["validation_rules.log_address_skip"]["origin"] == "extracted"
+    assert "symbols.sample_fetch_references" not in report["curated_runtime"]
+    assert "validation_rules.log_address_skip" not in report["curated_runtime"]
+    assert "validation_rules.special_argument_rules.balance" not in report["curated_runtime"]
+    assert (
+        schema.validation_rules["special_argument_rules"]["balance"]["variant_algorithms"]["url_param"]
+        == "balance url_param"
+    )
     assert schema.address_policies["bind"]["portMandatory"] is True
     assert schema.sample_types
     assert len(schema.sample_casts) == len(schema.sample_types)

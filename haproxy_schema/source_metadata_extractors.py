@@ -124,6 +124,25 @@ def _block_after(text: str, anchor: str, end_anchor: str | None = None) -> str:
     return text[start:end] if end >= 0 else text[start:]
 
 
+def _function_body(text: str, name: str) -> str:
+    start = text.find(name)
+    if start < 0:
+        return ""
+    brace = text.find("{", start)
+    if brace < 0:
+        return ""
+    depth = 0
+    for idx in range(brace, len(text)):
+        char = text[idx]
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return text[brace + 1 : idx]
+    return ""
+
+
 def extract_cookie_modes(haproxy_root: Path) -> tuple[list[str], dict[str, Any]]:
     source = haproxy_root / "src" / "cfgparse-listen.c"
     block = _block_after(_read(source), 'strcmp(args[0], "cookie") == 0', "}/* end else if")
@@ -182,3 +201,50 @@ def extract_sample_min_args(haproxy_root: Path) -> tuple[dict[str, int], dict[st
                     "symbol": name,
                 }
     return fetches, converters, provenance
+
+
+def extract_log_address_skip(haproxy_root: Path) -> tuple[list[str], dict[str, Any]]:
+    source = haproxy_root / "src" / "log.c"
+    text = _read(source)
+    parser = "parse_logger"
+    block = _function_body(text, "parse_logger(")
+    if not block:
+        parser = "parse_logsrv"
+        block = _function_body(text, "parse_logsrv(")
+    values: list[str] = []
+    for value in re.findall(r"strcmp\(args\[1\], \"([^\"]+)\"\)", block):
+        if value not in values:
+            values.append(value)
+    return values, {
+        "origin": "extracted",
+        "source": str(source),
+        "parser": parser,
+        "rule": "string literals compared against args[1] are log target aliases",
+    }
+
+
+def extract_sample_fetch_references(haproxy_root: Path) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    references: dict[str, dict[str, Any]] = {}
+    provenance: dict[str, Any] = {}
+    for source in sorted((haproxy_root / "src").glob("*.c")):
+        text = _read(source)
+        for match in re.finditer(r'\{\s*"([^"]+)"\s*,[^\n{]*?\bARG\d+\(([^)]*)\)', text):
+            name = match.group(1)
+            parts = [part.strip() for part in match.group(2).split(",")]
+            arg_types = parts[1:]
+            try:
+                argument_index = arg_types.index("USR")
+            except ValueError:
+                continue
+            references[name] = {
+                "reference_kind": "userlist",
+                "argument_index": argument_index,
+                "scope": "global",
+            }
+            provenance[name] = {
+                "origin": "extracted",
+                "source": str(source),
+                "symbol": name,
+                "argument_type": "USR",
+            }
+    return dict(sorted(references.items())), provenance
