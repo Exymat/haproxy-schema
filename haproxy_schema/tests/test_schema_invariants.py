@@ -67,3 +67,32 @@ def test_schema_has_reference_patterns(schema_dict: dict) -> None:
     patterns = schema_dict.get("reference_patterns", [])
     assert patterns
     assert any(pattern.get("reference_kind") == "resolvers" for pattern in patterns)
+
+
+def test_schema_has_source_metadata_payloads(schema_dict: dict) -> None:
+    assert schema_dict.get("address_policies", {}).get("bind") == {
+        "portMandatory": True,
+        "portOffset": False,
+        "portOk": True,
+        "portRange": True,
+    }
+    assert schema_dict.get("sample_types") == [
+        "any",
+        "same",
+        "bool",
+        "sint",
+        "addr",
+        "ipv4",
+        "ipv6",
+        "str",
+        "bin",
+        "meth",
+    ]
+    assert len(schema_dict.get("sample_casts", [])) == len(schema_dict["sample_types"])
+    assert schema_dict.get("symbols", {}).get("proxy_sections") == [
+        "frontend",
+        "backend",
+        "listen",
+    ]
+    assert "completion_kind_to_action_group" in schema_dict.get("semantic_groups", {})
+    assert "logformat_stop_tokens" in schema_dict.get("validation_rules", {})

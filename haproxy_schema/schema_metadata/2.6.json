@@ -1,0 +1,90 @@
+{
+  "address_policies": {
+    "bind": { "portOk": true, "portMandatory": true, "portRange": true, "portOffset": false },
+    "log": { "portOk": true, "portMandatory": false, "portRange": false, "portOffset": false },
+    "source": { "portOk": true, "portMandatory": false, "portRange": false, "portOffset": false },
+    "server": { "portOk": true, "portMandatory": false, "portRange": false, "portOffset": true },
+    "serverSource": { "portOk": true, "portMandatory": false, "portRange": true, "portOffset": false },
+    "serverUsesrc": { "portOk": true, "portMandatory": false, "portRange": false, "portOffset": false },
+    "serverSocks4": { "portOk": true, "portMandatory": true, "portRange": false, "portOffset": false },
+    "tcpCheckAddr": { "portOk": true, "portMandatory": false, "portRange": false, "portOffset": false }
+  },
+  "sample_types": ["any", "same", "bool", "sint", "addr", "ipv4", "ipv6", "str", "bin", "meth"],
+  "sample_casts": [
+    [true, false, true, true, true, true, true, true, true, true],
+    [false, false, false, false, false, false, false, false, false, false],
+    [true, false, true, true, false, false, false, true, true, false],
+    [true, false, true, true, true, true, true, true, true, false],
+    [true, false, false, false, true, true, true, true, true, false],
+    [true, false, false, true, true, true, true, true, true, false],
+    [true, false, false, false, true, true, true, true, true, false],
+    [true, false, true, true, true, true, true, true, false, true],
+    [true, false, false, false, false, false, false, true, true, true],
+    [true, false, false, false, false, false, false, true, true, true]
+  ],
+  "symbols": {
+    "proxy_sections": ["frontend", "backend", "listen"],
+    "entry_point_sections": ["frontend", "listen"],
+    "named_sections": ["frontend", "backend", "listen", "defaults", "peers", "userlist"],
+    "bind_detect_keywords": ["bind", "bind-process"],
+    "runtime_modes": ["tcp", "http", "log", "spop", "haterm"],
+    "section_definition_kinds": {
+      "frontend": "proxy-section",
+      "backend": "proxy-section",
+      "listen": "proxy-section",
+      "defaults": "defaults-profile",
+      "cache": "cache",
+      "userlist": "userlist",
+      "resolvers": "resolvers",
+      "peers": "peers"
+    },
+    "scoped_symbol_kinds": ["server", "acl", "filter"],
+    "acl_condition_operators": ["&&", "||"],
+    "sample_fetch_references": {
+      "http_auth": { "reference_kind": "userlist", "argument_index": 0, "scope": "global" },
+      "http_auth_group": { "reference_kind": "userlist", "argument_index": 0, "scope": "global" }
+    },
+    "self_reference_keywords": {
+      "filter": { "reference_kind": "filter", "token_index": 1, "scope": "section" }
+    }
+  },
+  "semantic_groups": {
+    "action_groups": ["http_request_actions", "http_response_actions", "http_after_response_actions", "tcp_request_actions", "tcp_response_actions"],
+    "deprecated_action_groups": ["http_request_actions", "http_response_actions", "http_after_response_actions", "tcp_request_actions", "tcp_response_actions", "quic_initial_actions"],
+    "completion_kind_to_action_group": {
+      "http-request": "http_request_actions",
+      "http-response": "http_response_actions",
+      "http-after-response": "http_after_response_actions",
+      "tcp-request": "tcp_request_actions",
+      "tcp-response": "tcp_response_actions"
+    },
+    "line_option_group_for_kind": { "bind": "bind_options", "server": "server_options" },
+    "sample_expression_group_for_kind": { "expression-fetch": "sample_fetches", "expression-converter": "sample_converters" },
+    "acl_criterion_groups": ["acl_criteria", "sample_fetches"],
+    "log_format_groups": { "flags": "logformat_flags", "aliases": "logformat_aliases" },
+    "common_language_groups": { "options": "options", "services": "services", "filters": "filters" },
+    "dynamic_action_prefixes": ["lua."],
+    "use_service": {
+      "rule_kinds": ["http-request", "http-response", "tcp-request", "tcp-response"],
+      "action": "use-service",
+      "service_group": "services",
+      "allow_prefixes": ["lua."]
+    }
+  },
+  "validation_rules": {
+    "argument_model_skip_keywords": ["bind", "server", "acl", "option", "stats", "http-request", "http-response", "tcp-request", "tcp-response", "http-after-response", "http-check", "tcp-check"],
+    "nested_diagnostic_keywords": ["option", "no", "acl", "stats", "tcp-request", "tcp-response", "http-request", "http-response", "http-after-response", "mode", "balance", "bind", "server"],
+    "statement_rule_keywords": ["mode", "balance", "bind", "server"],
+    "server_address_option_policies": { "source": "serverSource", "usesrc": "serverUsesrc", "socks4": "serverSocks4" },
+    "log_address_skip": ["global", "stdout", "stderr"],
+    "logformat_stop_tokens": ["-m", "body", "body-lf", "comment", "content-type", "default-errorfiles", "errorfile", "errorfiles", "error-status", "file", "fhdr", "hdr", "if", "lf-file", "lf-string", "meth", "min-recv", "name", "name-lf", "ok-status", "on-error", "on-success", "send-binary-lf", "send-lf", "status", "status-code", "string", "string-lf", "tout-status", "unless", "uri", "uri-lf", "value", "value-lf", "ver"],
+    "fetch_min_args": { "payload_lv": 2 },
+    "converter_min_args": { "ipmask": 1, "map": 1, "map_str": 1, "map_beg": 1, "map_end": 1, "map_sub": 1, "map_dir": 1 },
+    "special_argument_rules": {
+      "cookie": { "modes": ["indirect", "insert", "nocache", "prefix", "rewrite", "postonly", "preserve", "httponly", "secure", "domain", "attr"] },
+      "option mysql-check": { "values": ["user", "post-41", "pre-41"], "modes": ["post-41", "pre-41"] },
+      "http-send-name-header": { "forbidden_first_arg_by_min_version": {} },
+      "balance": { "variant_algorithms": { "url_param": "balance url_param" } }
+    }
+  }
+}

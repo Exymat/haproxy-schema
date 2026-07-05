@@ -686,7 +686,10 @@ def _build_log_format_prefix_patterns(schema: HaproxySchema) -> dict[str, Any]:
                 "match": rf"\b({prefix_pat})\s+(\S+)",
                 "captures": {
                     "1": _scope(_OPTION),
-                    "2": {"patterns": [{"include": "#log-format-content"}]},
+                    "2": {
+                        "name": _STRING,
+                        "patterns": [{"include": "#log-format-content"}],
+                    },
                 },
             }
         ]
@@ -707,7 +710,10 @@ def _build_log_line(schema: HaproxySchema) -> dict[str, Any]:
                 "match": rf"\b({fmt_directives})\s+(.+)$",
                 "captures": {
                     "1": _scope(_DIRECTIVE),
-                    "2": {"patterns": [{"include": "#log-format-content"}]},
+                    "2": {
+                        "name": _STRING,
+                        "patterns": [{"include": "#log-format-content"}],
+                    },
                 },
             },
         ]

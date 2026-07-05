@@ -113,7 +113,12 @@ def _build_cmd(args: argparse.Namespace) -> int:
     dkall_path = Path(args.dkall)
     dkall = parse_dkall(dkall_path)
     dkall_dir = dkall_path.parent
-    schema = merge_schema(args.version, doc, dkall, dkall_package_dir=dkall_dir)
+    schema = merge_schema(
+        args.version,
+        doc,
+        dkall,
+        dkall_package_dir=dkall_dir,
+    )
     schema.write(Path(args.out))
 
     if args.language_data_out:

@@ -27,6 +27,7 @@ from .logformat_slots import collect_logformat_slots
 from .options_metadata import collect_options_with_value
 from .signature_model import attach_argument_models
 from .slot_model import enrich_statement_rules
+from .schema_metadata import apply_schema_metadata, load_schema_metadata
 from .statement_rules import (
     BASE_STATEMENT_RULES,
     REFERENCE_PATTERNS,
@@ -212,6 +213,7 @@ def merge_schema(
         supplement_missing_tls_options(dkall, dkall_package_dir)
 
     schema = HaproxySchema(version=version)
+    apply_schema_metadata(schema, load_schema_metadata(version))
 
     # Doc is authoritative for top-level section applicability.
     for keyword in doc.global_keywords:

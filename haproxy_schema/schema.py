@@ -128,6 +128,12 @@ class HaproxySchema:
     version: str
     sections: dict[str, Section] = field(default_factory=dict)
     keywords: dict[str, Keyword] = field(default_factory=dict)
+    address_policies: dict[str, dict[str, bool]] = field(default_factory=dict)
+    sample_types: list[str] = field(default_factory=list)
+    sample_casts: list[list[bool]] = field(default_factory=list)
+    symbols: dict[str, Any] = field(default_factory=dict)
+    semantic_groups: dict[str, Any] = field(default_factory=dict)
+    validation_rules: dict[str, Any] = field(default_factory=dict)
     keyword_groups: dict[str, list[str]] = field(default_factory=dict)
     keyword_group_contexts: dict[str, dict[str, list[str]]] = field(default_factory=dict)
     statement_rules: list[StatementRule] = field(default_factory=list)
@@ -321,6 +327,12 @@ class HaproxySchema:
             version=data.get("version", "unknown"),
             sections=sections,
             keywords=keywords,
+            address_policies=data.get("address_policies", {}),
+            sample_types=data.get("sample_types", []),
+            sample_casts=data.get("sample_casts", []),
+            symbols=data.get("symbols", {}),
+            semantic_groups=data.get("semantic_groups", {}),
+            validation_rules=data.get("validation_rules", {}),
             keyword_groups=data.get("keyword_groups", {}),
             keyword_group_contexts=data.get("keyword_group_contexts", {}),
             statement_rules=statement_rules,
