@@ -1,0 +1,50 @@
+{
+  "symbols.acl_condition_operators": {
+    "category": "editor",
+    "reason": "Editor expression parsing needs explicit boolean condition operator tokens.",
+    "value": ["&&", "||"]
+  },
+  "symbols.sample_fetch_references": {
+    "category": "curated_runtime",
+    "accepted": true,
+    "reason": "The fetch argument target kind is not exposed by dkall; extract from sample parser internals in a later pass.",
+    "value": {
+      "http_auth": { "reference_kind": "userlist", "argument_index": 0, "scope": "global" },
+      "http_auth_group": { "reference_kind": "userlist", "argument_index": 0, "scope": "global" }
+    }
+  },
+  "symbols.self_reference_keywords": {
+    "category": "editor",
+    "reason": "Symbol navigation needs to suppress self-reference counts for directives whose first argument is also their local symbol.",
+    "value": {
+      "filter": { "reference_kind": "filter", "token_index": 1, "scope": "section" }
+    }
+  },
+  "semantic_groups.dynamic_action_prefixes": {
+    "category": "editor",
+    "reason": "Lua dynamic action prefixes are editor completion behavior layered on top of registered service names.",
+    "value": ["lua."]
+  },
+  "semantic_groups.use_service.allow_prefixes": {
+    "category": "editor",
+    "reason": "Lua service prefixes are accepted as dynamic editor completions even when not enumerated in dkall.",
+    "value": ["lua."]
+  },
+  "validation_rules.log_address_skip": {
+    "category": "curated_runtime",
+    "accepted": true,
+    "reason": "Special log targets are parser literals in log parsing; extract from log.c target parser in a later pass.",
+    "value": ["global", "stdout", "stderr"]
+  },
+  "validation_rules.logformat_stop_tokens": {
+    "category": "derived_hint",
+    "reason": "These tokens terminate editor log-format regions; they are derived from directive signatures but kept as a curated hint until slot-level derivation is complete.",
+    "value": ["-m", "body", "body-lf", "comment", "content-type", "default-errorfiles", "errorfile", "errorfiles", "error-status", "file", "fhdr", "hdr", "if", "lf-file", "lf-string", "meth", "min-recv", "name", "name-lf", "ok-status", "on-error", "on-success", "send-binary-lf", "send-lf", "status", "status-code", "string", "string-lf", "tout-status", "unless", "uri", "uri-lf", "value", "value-lf", "ver"]
+  },
+  "validation_rules.special_argument_rules.balance": {
+    "category": "curated_runtime",
+    "accepted": true,
+    "reason": "The url_param algorithm variant is parser behavior not yet represented structurally in generated argument models.",
+    "value": { "variant_algorithms": { "url_param": "balance url_param" } }
+  }
+}

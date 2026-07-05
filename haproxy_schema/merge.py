@@ -24,10 +24,10 @@ from .schema import (
 )
 from .line_layout import build_line_layout
 from .logformat_slots import collect_logformat_slots
+from .metadata_builder import apply_built_schema_metadata, build_schema_metadata, infer_haproxy_root
 from .options_metadata import collect_options_with_value
 from .signature_model import attach_argument_models
 from .slot_model import enrich_statement_rules
-from .schema_metadata import apply_schema_metadata, load_schema_metadata
 from .statement_rules import (
     BASE_STATEMENT_RULES,
     REFERENCE_PATTERNS,
@@ -208,12 +208,12 @@ def merge_schema(
     dkall: DkallParseResult,
     *,
     dkall_package_dir: Path | None = None,
+    haproxy_root: Path | None = None,
 ) -> HaproxySchema:
     if dkall_package_dir is not None:
         supplement_missing_tls_options(dkall, dkall_package_dir)
 
     schema = HaproxySchema(version=version)
-    apply_schema_metadata(schema, load_schema_metadata(version))
 
     # Doc is authoritative for top-level section applicability.
     for keyword in doc.global_keywords:
@@ -469,6 +469,13 @@ def merge_schema(
     schema.tokens["acl_string_match_methods"] = sorted(acl.string_match_methods.keys())
     schema.tokens["acl_predefined"] = sorted(acl.predefined_acls.keys())
     schema.tokens["logformat_flags"] = sorted(doc.logformat_reference.flags.keys())
+
+    metadata_build = build_schema_metadata(
+        version,
+        haproxy_root if haproxy_root is not None else infer_haproxy_root(version),
+        schema,
+    )
+    apply_built_schema_metadata(schema, metadata_build)
 
     return schema
 

@@ -118,8 +118,16 @@ def _build_cmd(args: argparse.Namespace) -> int:
         doc,
         dkall,
         dkall_package_dir=dkall_dir,
+        haproxy_root=doc_path.parent.parent if doc_path.name == "configuration.txt" else None,
     )
     schema.write(Path(args.out))
+    if args.metadata_provenance_out:
+        report = getattr(schema, "_metadata_provenance_report", None)
+        if report is not None:
+            Path(args.metadata_provenance_out).write_text(
+                json.dumps(report, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
 
     if args.language_data_out:
         actions = doc.action_reference or parse_actions(doc_path)
@@ -168,6 +176,11 @@ def make_parser() -> argparse.ArgumentParser:
         "--coverage-out",
         default="",
         help="Output coverage report JSON path",
+    )
+    build.add_argument(
+        "--metadata-provenance-out",
+        default="",
+        help="Output internal schema metadata provenance audit JSON path",
     )
     build.add_argument("--version", default="3.2", help="HAProxy version string")
     build.add_argument(

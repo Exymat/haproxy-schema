@@ -22,7 +22,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["haproxy_schema"]
-artifacts = ["haproxy_schema/schema_metadata/*.json"]
+artifacts = ["haproxy_schema/curated_metadata/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["haproxy_schema/tests"]

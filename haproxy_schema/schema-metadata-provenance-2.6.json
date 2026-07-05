@@ -1,0 +1,322 @@
+{
+  "curated_runtime": {
+    "symbols.sample_fetch_references": {
+      "accepted": true,
+      "reason": "The fetch argument target kind is not exposed by dkall; extract from sample parser internals in a later pass."
+    },
+    "validation_rules.log_address_skip": {
+      "accepted": true,
+      "reason": "Special log targets are parser literals in log parsing; extract from log.c target parser in a later pass."
+    },
+    "validation_rules.special_argument_rules.balance": {
+      "accepted": true,
+      "reason": "The url_param algorithm variant is parser behavior not yet represented structurally in generated argument models."
+    }
+  },
+  "missing_required_fields": [],
+  "ok": true,
+  "provenance": {
+    "address_policies": {
+      "bind": {
+        "anchor": "int str2listener(",
+        "origin": "extracted",
+        "source": "..\\haproxy_git\\haproxy-2.6\\src\\cfgparse.c",
+        "symbol": "str2sa_range"
+      },
+      "log": {
+        "anchor": "LOG_TARGET_DGRAM",
+        "origin": "extracted",
+        "source": "..\\haproxy_git\\haproxy-2.6\\src\\log.c",
+        "symbol": "str2sa_range"
+      },
+      "server": {
+        "anchor": "several ways to check the port component",
+        "origin": "extracted",
+        "source": "..\\haproxy_git\\haproxy-2.6\\src\\server.c",
+        "symbol": "str2sa_range"
+      },
+      "serverSocks4": {
+        "anchor": "Parse the \"socks4\" server keyword",
+        "origin": "extracted",
+        "source": "..\\haproxy_git\\haproxy-2.6\\src\\server.c",
+        "symbol": "str2sa_range"
+      },
+      "serverSource": {
+        "anchor": "Parse the \"source\" server keyword",
+        "origin": "extracted",
+        "source": "..\\haproxy_git\\haproxy-2.6\\src\\server.c",
+        "symbol": "str2sa_range"
+      },
+      "serverUsesrc": {
+        "anchor": "strcmp(args[*cur_arg + 1], \"clientip\")",
+        "origin": "extracted",
+        "source": "..\\haproxy_git\\haproxy-2.6\\src\\server.c",
+        "symbol": "str2sa_range"
+      },
+      "source": {
+        "anchor": "\"source\", \"usesrc\", \"interface\"",
+        "origin": "extracted",
+        "source": "..\\haproxy_git\\haproxy-2.6\\src\\cfgparse-listen.c",
+        "symbol": "str2sa_range"
+      },
+      "tcpCheckAddr": {
+        "anchor": "strcmp(args[cur_arg], \"addr\") == 0",
+        "origin": "extracted",
+        "source": "..\\haproxy_git\\haproxy-2.6\\src\\tcpcheck.c",
+        "symbol": "str2sa_range"
+      }
+    },
+    "converter_min_args.ipmask": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\sample.c",
+      "symbol": "ipmask"
+    },
+    "converter_min_args.map": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map"
+    },
+    "converter_min_args.map_beg": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_beg"
+    },
+    "converter_min_args.map_beg_int": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_beg_int"
+    },
+    "converter_min_args.map_beg_ip": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_beg_ip"
+    },
+    "converter_min_args.map_dir": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_dir"
+    },
+    "converter_min_args.map_dir_int": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_dir_int"
+    },
+    "converter_min_args.map_dir_ip": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_dir_ip"
+    },
+    "converter_min_args.map_dom": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_dom"
+    },
+    "converter_min_args.map_dom_int": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_dom_int"
+    },
+    "converter_min_args.map_dom_ip": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_dom_ip"
+    },
+    "converter_min_args.map_end": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_end"
+    },
+    "converter_min_args.map_end_int": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_end_int"
+    },
+    "converter_min_args.map_end_ip": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_end_ip"
+    },
+    "converter_min_args.map_int": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_int"
+    },
+    "converter_min_args.map_int_int": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_int_int"
+    },
+    "converter_min_args.map_int_ip": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_int_ip"
+    },
+    "converter_min_args.map_ip": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_ip"
+    },
+    "converter_min_args.map_ip_int": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_ip_int"
+    },
+    "converter_min_args.map_ip_ip": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_ip_ip"
+    },
+    "converter_min_args.map_reg": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_reg"
+    },
+    "converter_min_args.map_reg_int": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_reg_int"
+    },
+    "converter_min_args.map_reg_ip": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_reg_ip"
+    },
+    "converter_min_args.map_regm": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_regm"
+    },
+    "converter_min_args.map_str": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_str"
+    },
+    "converter_min_args.map_str_int": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_str_int"
+    },
+    "converter_min_args.map_str_ip": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_str_ip"
+    },
+    "converter_min_args.map_sub": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_sub"
+    },
+    "converter_min_args.map_sub_int": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_sub_int"
+    },
+    "converter_min_args.map_sub_ip": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\map.c",
+      "symbol": "map_sub_ip"
+    },
+    "fetch_min_args.payload_lv": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\payload.c",
+      "symbol": "payload_lv"
+    },
+    "fetch_min_args.req.payload_lv": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\payload.c",
+      "symbol": "req.payload_lv"
+    },
+    "fetch_min_args.res.payload_lv": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\payload.c",
+      "symbol": "res.payload_lv"
+    },
+    "sample_casts": {
+      "origin": "extracted",
+      "rule": "non-NULL matrix cells are legal casts; c_none is a no-op legal cast",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\sample.c",
+      "symbol": "sample_casts"
+    },
+    "sample_types": {
+      "origin": "extracted",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\sample.c",
+      "symbol": "smp_to_type"
+    },
+    "semantic_groups": {
+      "origin": "derived",
+      "rule": "keyword_groups and line_option_semantics"
+    },
+    "semantic_groups.dynamic_action_prefixes": {
+      "accepted": false,
+      "category": "editor",
+      "origin": "curated",
+      "reason": "Lua dynamic action prefixes are editor completion behavior layered on top of registered service names."
+    },
+    "semantic_groups.use_service.allow_prefixes": {
+      "accepted": false,
+      "category": "editor",
+      "origin": "curated",
+      "reason": "Lua service prefixes are accepted as dynamic editor completions even when not enumerated in dkall."
+    },
+    "symbols": {
+      "origin": "derived",
+      "rule": "sections, statement_rules, and mode docs"
+    },
+    "symbols.acl_condition_operators": {
+      "accepted": false,
+      "category": "editor",
+      "origin": "curated",
+      "reason": "Editor expression parsing needs explicit boolean condition operator tokens."
+    },
+    "symbols.sample_fetch_references": {
+      "accepted": true,
+      "category": "curated_runtime",
+      "origin": "curated_runtime",
+      "reason": "The fetch argument target kind is not exposed by dkall; extract from sample parser internals in a later pass."
+    },
+    "symbols.self_reference_keywords": {
+      "accepted": false,
+      "category": "editor",
+      "origin": "curated",
+      "reason": "Symbol navigation needs to suppress self-reference counts for directives whose first argument is also their local symbol."
+    },
+    "validation_rules": {
+      "origin": "derived",
+      "rule": "statement_rules and address policy names"
+    },
+    "validation_rules.log_address_skip": {
+      "accepted": true,
+      "category": "curated_runtime",
+      "origin": "curated_runtime",
+      "reason": "Special log targets are parser literals in log parsing; extract from log.c target parser in a later pass."
+    },
+    "validation_rules.logformat_stop_tokens": {
+      "accepted": false,
+      "category": "derived_hint",
+      "origin": "curated",
+      "reason": "These tokens terminate editor log-format regions; they are derived from directive signatures but kept as a curated hint until slot-level derivation is complete."
+    },
+    "validation_rules.special_argument_rules.balance": {
+      "accepted": true,
+      "category": "curated_runtime",
+      "origin": "curated_runtime",
+      "reason": "The url_param algorithm variant is parser behavior not yet represented structurally in generated argument models."
+    },
+    "validation_rules.special_argument_rules.cookie": {
+      "origin": "extracted",
+      "parser": "cookie",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\cfgparse-listen.c"
+    },
+    "validation_rules.special_argument_rules.http-send-name-header": {
+      "origin": "extracted",
+      "parser": "http-send-name-header",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\cfgparse-listen.c"
+    },
+    "validation_rules.special_argument_rules.option mysql-check": {
+      "origin": "extracted",
+      "parser": "proxy_parse_mysql_check_opt",
+      "source": "..\\haproxy_git\\haproxy-2.6\\src\\tcpcheck.c"
+    }
+  },
+  "version": "2.6"
+}

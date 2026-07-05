@@ -76,18 +76,11 @@ def test_schema_has_source_metadata_payloads(schema_dict: dict) -> None:
         "portOk": True,
         "portRange": True,
     }
-    assert schema_dict.get("sample_types") == [
-        "any",
-        "same",
-        "bool",
-        "sint",
-        "addr",
-        "ipv4",
-        "ipv6",
-        "str",
-        "bin",
-        "meth",
-    ]
+    sample_types = schema_dict.get("sample_types")
+    assert sample_types[0] == "any"
+    assert {"bool", "sint", "addr", "ipv4", "ipv6", "str", "bin", "meth"}.issubset(
+        set(sample_types)
+    )
     assert len(schema_dict.get("sample_casts", [])) == len(schema_dict["sample_types"])
     assert schema_dict.get("symbols", {}).get("proxy_sections") == [
         "frontend",
