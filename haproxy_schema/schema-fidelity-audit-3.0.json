@@ -657,8 +657,8 @@
       ],
       "argument_model_present": true,
       "argument_model_min_args": 1,
-      "argument_model_max_args": 2,
-      "argument_model_slot_count": 2,
+      "argument_model_max_args": null,
+      "argument_model_slot_count": 3,
       "argument_model_slots": [
         {
           "optional": false,
@@ -673,6 +673,12 @@
             "check_post"
           ],
           "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": true,
+          "enum": [],
+          "value_kind": "generic"
         }
       ],
       "issues": []
