@@ -80,8 +80,9 @@ class HaproxyLanguageData:
         return json.dumps(self.to_json_dict(), indent=indent, sort_keys=True)
 
     def write(self, path: Path) -> None:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(self.to_json() + "\n", encoding="utf-8")
+        from .io_util import write_text_lf
+
+        write_text_lf(path, self.to_json() + "\n")
 
 
 def docs_anchor(keyword: str, chapter: str = "") -> str:

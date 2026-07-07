@@ -11,6 +11,7 @@ from .doc_parse_audit import build_doc_parse_audit_report
 from .doc_parser import parse_configuration
 from .grammar_coverage import report_from_paths
 from .grammar_emitter import write_tm_language
+from .io_util import write_text_lf
 from .language_data import build_language_data
 from .doc_audit import build_doc_audit_report
 from .merge import merge_schema
@@ -21,7 +22,7 @@ from .schema import HaproxySchema
 def _audit_docs_cmd(args: argparse.Namespace) -> int:
     report = build_doc_audit_report(args.version, Path(args.doc), Path(args.dkall))
     if args.out:
-        Path(args.out).write_text(json.dumps(report.to_dict(), indent=2) + "\n", encoding="utf-8")
+        write_text_lf(Path(args.out), json.dumps(report.to_dict(), indent=2) + "\n")
     print(f"Proxy options missing hover docs: {len(report.proxy_options_missing)}")
     if report.proxy_options_missing:
         print("  " + ", ".join(report.proxy_options_missing))
@@ -37,7 +38,7 @@ def _audit_docs_cmd(args: argparse.Namespace) -> int:
 def _doc_parse_audit_cmd(args: argparse.Namespace) -> int:
     report = build_doc_parse_audit_report(args.version, Path(args.doc), Path(args.dkall))
     if args.out:
-        Path(args.out).write_text(json.dumps(report.to_dict(), indent=2) + "\n", encoding="utf-8")
+        write_text_lf(Path(args.out), json.dumps(report.to_dict(), indent=2) + "\n")
     print(
         f"Doc parse audit: {report.keyword_docs_count} keyword docs, "
         f"{report.signature_keywords_count} signature keywords, "
@@ -57,7 +58,7 @@ def _doc_parse_audit_cmd(args: argparse.Namespace) -> int:
 def _schema_fidelity_audit_cmd(args: argparse.Namespace) -> int:
     report = build_schema_fidelity_report(args.version, Path(args.doc), Path(args.dkall))
     if args.out:
-        Path(args.out).write_text(json.dumps(report.to_dict(), indent=2) + "\n", encoding="utf-8")
+        write_text_lf(Path(args.out), json.dumps(report.to_dict(), indent=2) + "\n")
     print(
         f"Schema fidelity: {report.keywords_with_argument_model_count}/"
         f"{report.keywords_with_signatures_count} keywords with argument_model, "
@@ -81,7 +82,7 @@ def _check_grammar_cmd(args: argparse.Namespace) -> int:
     grammar_path = Path(args.grammar) if args.grammar else None
     report = report_from_paths(schema_path, grammar_path or schema_path)
     if args.report_out:
-        Path(args.report_out).write_text(json.dumps(report.to_dict(), indent=2) + "\n", encoding="utf-8")
+        write_text_lf(Path(args.report_out), json.dumps(report.to_dict(), indent=2) + "\n")
     if not report.ok:
         for word in report.missing_in_grammar[:20]:
             print(f"missing directive in grammar: {word}")
@@ -124,9 +125,9 @@ def _build_cmd(args: argparse.Namespace) -> int:
     if args.metadata_provenance_out:
         report = getattr(schema, "_metadata_provenance_report", None)
         if report is not None:
-            Path(args.metadata_provenance_out).write_text(
+            write_text_lf(
+                Path(args.metadata_provenance_out),
                 json.dumps(report, indent=2, sort_keys=True) + "\n",
-                encoding="utf-8",
             )
 
     if args.language_data_out:
@@ -140,7 +141,7 @@ def _build_cmd(args: argparse.Namespace) -> int:
 
     if args.coverage_out:
         report = build_coverage_report(args.version, doc, dkall, schema)
-        Path(args.coverage_out).write_text(json.dumps(report.to_dict(), indent=2) + "\n", encoding="utf-8")
+        write_text_lf(Path(args.coverage_out), json.dumps(report.to_dict(), indent=2) + "\n")
         print(
             f"Coverage: {len(report.doc_only_keywords)} doc-only keywords, "
             f"{len(report.dkall_only_keywords)} dkall-only, "
