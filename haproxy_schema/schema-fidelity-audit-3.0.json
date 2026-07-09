@@ -8686,54 +8686,6 @@
       "issues": []
     },
     {
-      "keyword": "module-load",
-      "sections": [
-        "global"
-      ],
-      "sources": [
-        "hapee"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
-      "keyword": "module-path",
-      "sections": [
-        "global"
-      ],
-      "sources": [
-        "hapee"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
       "keyword": "monitor fail",
       "sections": [
         "frontend",
@@ -14995,30 +14947,6 @@
           "value_kind": "generic"
         }
       ],
-      "issues": []
-    },
-    {
-      "keyword": "saml-sso-load",
-      "sections": [
-        "global"
-      ],
-      "sources": [
-        "hapee"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
       "issues": []
     },
     {
