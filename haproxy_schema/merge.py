@@ -7,7 +7,6 @@ from .dkall_parser import DkallParseResult
 from .dkall_supplement import supplement_missing_tls_options
 from .usesrc_supplement import supplement_usesrc_metadata
 from .doc_parser import DocParseResult
-from .hapee_extensions import HAPEE_SECTION_KEYWORDS
 from .schema import (
     ArgumentParamDoc,
     ArgumentValueDoc,
@@ -457,8 +456,6 @@ def merge_schema(
 
     schema.line_layout = build_line_layout(schema.keywords.keys())
 
-    apply_hapee_extensions(schema)
-
     schema.tokens["no_prefix_keywords"] = sorted(doc.no_prefix_keywords)
     schema.tokens["named_defaults_keywords"] = sorted(doc.named_defaults_keywords)
 
@@ -495,8 +492,3 @@ def _prune_compile_time_doc_keywords(schema: HaproxySchema, dkall: DkallParseRes
         section.keywords = [keyword for keyword in section.keywords if keyword not in to_remove]
 
 
-def apply_hapee_extensions(schema: HaproxySchema) -> None:
-    for section, keywords in HAPEE_SECTION_KEYWORDS.items():
-        for keyword in keywords:
-            _add_keyword_to_section(schema, section, keyword)
-            _mark_source(schema, keyword, "hapee")

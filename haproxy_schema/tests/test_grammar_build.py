@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import tempfile
 from copy import deepcopy
 from pathlib import Path
@@ -54,16 +55,24 @@ def test_bind_options_from_schema() -> None:
     assert "process(?!-)" in combined or "process" in combined
 
 
-def test_directives_exclude_log_prefix_ambiguity() -> None:
+def test_directives_include_hyphen_prefix_keywords() -> None:
     schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
     directives = collect_directive_keywords(schema)
+    assert "h1-case-adjust" in directives
+    assert "h1-case-adjust-file" in directives
     assert "log-format-sd" in directives or "log_format_sd" in directives
-    assert "log" not in directives
+    assert "log" in directives
 
 
 def test_boundary_alt_rejects_hyphenated_prefix_matches() -> None:
     schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
     grammar = build_tm_language(schema)
+    schema_match = grammar["repository"]["schema-directives"]["patterns"][0]["match"]
+    assert "(?!-)" in schema_match
+    assert re.search(schema_match, "h1-case-adjust from to")
+    assert re.search(schema_match, "h1-case-adjust-file /tmp/headers")
+    assert re.search(schema_match, "log-format %ci:%cp").group(0) == "log-format"
+
     cache_match = grammar["repository"]["cache-keywords"]["patterns"][0]["match"]
     assert "(?!-)" in cache_match
 

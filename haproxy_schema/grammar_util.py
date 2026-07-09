@@ -75,13 +75,4 @@ def collect_directive_keywords(schema: HaproxySchema) -> list[str]:
         if is_directive_token(rule.keyword):
             words.add(rule.keyword)
 
-    filtered: list[str] = []
-    sorted_words = canonical_pattern_words(words)
-    for word in sorted_words:
-        if any(
-            other != word and len(other) > len(word) and other.startswith(f"{word}-")
-            for other in words
-        ):
-            continue
-        filtered.append(word)
-    return canonical_pattern_words(filtered)
+    return canonical_pattern_words(words)

@@ -83,6 +83,10 @@ def test_merge_schema(version: str) -> None:
     assert schema.keyword_groups.get("http_request_actions")
     assert schema.keyword_groups.get("bind_options") is not None
     assert schema.line_layout.get("prefix_families")
+    assert "module-load" not in schema.keywords
+    assert "module-path" not in schema.keywords
+    assert "module-load" not in schema.sections["global"].keywords
+    assert "module-path" not in schema.sections["global"].keywords
 
 
 @pytest.mark.parametrize("version", SUPPORTED_VERSIONS)

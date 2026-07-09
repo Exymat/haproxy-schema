@@ -26,6 +26,15 @@ def test_schema_has_line_layout(schema_dict: dict) -> None:
     assert layout.get("stats_socket_levels") == ["admin", "operator", "user"]
 
 
+def test_schema_excludes_hapee_only_module_keywords(schema_dict: dict) -> None:
+    keywords = schema_dict["keywords"]
+    global_keywords = schema_dict["sections"]["global"]["keywords"]
+    assert "module-load" not in keywords
+    assert "module-path" not in keywords
+    assert "module-load" not in global_keywords
+    assert "module-path" not in global_keywords
+
+
 def test_tcp_phases_match_keywords(schema_dict: dict) -> None:
     layout = schema_dict["line_layout"]
     keywords = list(schema_dict["keywords"].keys())

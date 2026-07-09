@@ -56,6 +56,11 @@ def _extract_repo_literals(repo: dict[str, Any], repo_key: str) -> set[str]:
     return words
 
 
+def _repo_patterns_have_hyphen_guard(repo: dict[str, Any], repo_key: str) -> bool:
+    patterns = repo.get(repo_key, {}).get("patterns", [])
+    return bool(patterns) and all("(?!-)" in entry.get("match", "") for entry in patterns)
+
+
 def _prefix_conflicts(words: set[str]) -> list[tuple[str, str]]:
     conflicts: list[tuple[str, str]] = []
     ordered = sorted(words, key=len)
@@ -128,6 +133,13 @@ def build_grammar_coverage_report(
         if "-" in word and word.replace("-", "_") in schema_keys and word not in schema_keys
     )
 
+    prefix_conflicts = (
+        []
+        if _repo_patterns_have_hyphen_guard(repo, "schema-directives")
+        and _repo_patterns_have_hyphen_guard(repo, "cache-keywords")
+        else _prefix_conflicts(in_grammar | in_cache)
+    )
+
     return GrammarCoverageReport(
         version=schema.version,
         schema_directive_count=len(expected),
@@ -137,7 +149,7 @@ def build_grammar_coverage_report(
         missing_in_grammar=sorted(expected - in_grammar),
         extra_in_grammar=sorted(in_grammar - expected),
         missing_cache_in_grammar=sorted(expected_cache - in_cache),
-        prefix_conflicts_in_grammar=_prefix_conflicts(in_grammar | in_cache),
+        prefix_conflicts_in_grammar=prefix_conflicts,
         legacy_only_not_in_schema=legacy_stale[:50],
         legacy_hyphen_when_schema_underscore=legacy_hyphen,
     )

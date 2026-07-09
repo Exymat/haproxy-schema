@@ -40,7 +40,7 @@ def test_use_backend_in_schema_and_directive_list(schema: HaproxySchema) -> None
     assert "use_backend" in schema.keywords
     directives = collect_directive_keywords(schema)
     assert "use_backend" in directives
-    assert "log" not in directives
+    assert "log" in directives
     assert "process" not in directives
 
 
