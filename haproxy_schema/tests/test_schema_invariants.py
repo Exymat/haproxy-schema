@@ -78,6 +78,26 @@ def test_schema_has_reference_patterns(schema_dict: dict) -> None:
     assert any(pattern.get("reference_kind") == "resolvers" for pattern in patterns)
 
 
+def test_schema_kind_sets_are_stable_across_versions() -> None:
+    reference_path = PACKAGE_DIR.parent / ".." / "haproxy-vscode" / "schemas" / "haproxy-3.2.schema.json"
+    reference = json.loads(reference_path.read_text(encoding="utf-8"))
+    reference_rule_kinds = sorted({rule["kind"] for rule in reference.get("statement_rules", [])})
+    reference_action_kinds = sorted(
+        reference.get("semantic_groups", {}).get("completion_kind_to_action_group", {}).keys()
+    )
+    for version in VERSIONS:
+        path = PACKAGE_DIR.parent / ".." / "haproxy-vscode" / "schemas" / f"haproxy-{version}.schema.json"
+        if not path.exists():
+            continue
+        schema = json.loads(path.read_text(encoding="utf-8"))
+        rule_kinds = sorted({rule["kind"] for rule in schema.get("statement_rules", [])})
+        action_kinds = sorted(
+            schema.get("semantic_groups", {}).get("completion_kind_to_action_group", {}).keys()
+        )
+        assert rule_kinds == reference_rule_kinds, version
+        assert action_kinds == reference_action_kinds, version
+
+
 def test_schema_has_source_metadata_payloads(schema_dict: dict) -> None:
     assert schema_dict.get("address_policies", {}).get("bind") == {
         "portMandatory": True,

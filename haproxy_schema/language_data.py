@@ -67,11 +67,64 @@ class LanguageKeyword:
 
 
 @dataclass
+class ConditionalDirective:
+    name: str
+    signature: str
+    description: str
+    docsChapter: str = "2.4"
+
+
+CONDITIONAL_DIRECTIVES: list[ConditionalDirective] = [
+    ConditionalDirective(
+        ".if",
+        ".if <condition>",
+        "Start a nested conditional block. The following lines are included only when the expression is true.",
+    ),
+    ConditionalDirective(
+        ".elif",
+        ".elif <condition>",
+        "Alternate branch at the same nesting level as the preceding .if or .elif.",
+    ),
+    ConditionalDirective(
+        ".else",
+        ".else",
+        "Final alternate branch for the current .if block (at most one .else per .if).",
+    ),
+    ConditionalDirective(
+        ".endif",
+        ".endif",
+        "Close one nesting level opened by .if.",
+    ),
+    ConditionalDirective(
+        ".diag",
+        '.diag "message"',
+        "Emit a message only when HAProxy runs in diagnostic mode (-dD).",
+    ),
+    ConditionalDirective(
+        ".notice",
+        '.notice "message"',
+        "Emit a message at log level NOTICE during configuration parsing.",
+    ),
+    ConditionalDirective(
+        ".warning",
+        '.warning "message"',
+        "Emit a message at log level WARNING during parsing (may fail startup when zero-warning is enabled).",
+    ),
+    ConditionalDirective(
+        ".alert",
+        '.alert "message"',
+        "Emit a message at log level ALERT during parsing (always causes a fatal error).",
+    ),
+]
+
+
+@dataclass
 class HaproxyLanguageData:
     version: str
     docsBaseUrl: str
     keywords: dict[str, LanguageKeyword] = field(default_factory=dict)
     groups: dict[str, list[GroupItem]] = field(default_factory=dict)
+    conditionalDirectives: list[ConditionalDirective] = field(default_factory=list)
 
     def to_json_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -345,6 +398,8 @@ def build_language_data(
             )
         ],
     }
+
+    data.conditionalDirectives = list(CONDITIONAL_DIRECTIVES)
 
     return data
 

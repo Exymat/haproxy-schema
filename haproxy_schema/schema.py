@@ -112,6 +112,7 @@ class StatementRule:
     reference_kind: str | None = None
     definition_kind: str | None = None
     symbol_name_token_index: int | None = None
+    symbol_name_token_from_index: int | None = None
 
 
 @dataclass
@@ -278,6 +279,7 @@ class HaproxySchema:
                     reference_kind=rule.get("reference_kind"),
                     definition_kind=rule.get("definition_kind"),
                     symbol_name_token_index=rule.get("symbol_name_token_index"),
+                    symbol_name_token_from_index=rule.get("symbol_name_token_from_index"),
                 )
             )
 

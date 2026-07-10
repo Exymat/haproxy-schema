@@ -146,7 +146,8 @@ def _keyword_signatures(keywords: dict, name: str) -> list[str]:
 
 def enrich_statement_rules(rules: list[dict], keywords: dict) -> list[dict]:
     """Attach fixed_slots to statement_rules entries when signatures define them."""
-    by_keyword: dict[str, dict] = {rule["keyword"]: rule for rule in rules}
+    enriched = [dict(rule) for rule in rules]
+    by_keyword: dict[str, dict] = {rule["keyword"]: rule for rule in enriched}
     for layout_keyword in ("server", "bind", "nameserver"):
         signatures = _keyword_signatures(keywords, layout_keyword)
         layout = pick_best_layout(layout_keyword, signatures)
@@ -160,4 +161,4 @@ def enrich_statement_rules(rules: list[dict], keywords: dict) -> list[dict]:
             rule["nested_start_index"] = layout.nested_start_index
         if layout.nested_group and not rule.get("group"):
             rule["group"] = layout.nested_group
-    return list(by_keyword.values())
+    return enriched

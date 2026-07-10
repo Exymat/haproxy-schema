@@ -130,8 +130,37 @@ def _derive_symbols(schema: HaproxySchema) -> tuple[dict[str, Any], dict[str, An
             keyword for keyword in ("bind", "bind-process") if keyword == "bind-process" or keyword in schema.keywords
         ),
         "runtime_modes": _mode_values(schema),
+        "runtime_mode_context_values": ["http", "tcp"],
         "section_definition_kinds": section_definition_kinds,
         "scoped_symbol_kinds": sorted(definition_kinds),
+        "defaults_section_name": "defaults",
+        "entry_point_labels": {"listen": "Listen", "frontend": "Frontend"},
+        "conventional_defaults_profile_names": ["default"],
+        "unused_symbol_section_block_kinds": [
+            "proxy-section",
+            "defaults-profile",
+            "cache",
+            "userlist",
+            "resolvers",
+            "peers",
+        ],
+        "unused_symbol_skipped_kinds": ["filter", "server"],
+        "duplicate_section_kinds": [
+            "proxy-section",
+            "defaults-profile",
+            "cache",
+            "userlist",
+            "resolvers",
+            "peers",
+        ],
+        "symbol_kind_labels": {
+            "proxy-section": "Proxy section",
+            "defaults-profile": "Defaults profile",
+            "userlist": "Userlist",
+            "cache": "cache section",
+            "resolvers": "resolvers section",
+            "peers": "peers section",
+        },
     }
     return symbols, {"origin": "derived", "rule": "sections, statement_rules, and mode docs"}
 
@@ -171,6 +200,17 @@ def _derive_semantic_groups(schema: HaproxySchema) -> tuple[dict[str, Any], dict
             for group in ("options", "services", "filters")
             if group in schema.keyword_groups
         },
+        "acl_ref_groups": [
+            group
+            for group in (
+                "acl_flags",
+                "acl_match_methods",
+                "acl_int_operators",
+                "acl_string_match_methods",
+                "acl_predefined",
+            )
+            if group in schema.keyword_groups
+        ],
         "use_service": {
             "rule_kinds": sorted(use_service_rule_kinds),
             "action": "use-service",
@@ -254,6 +294,37 @@ def _derive_validation_rules(schema: HaproxySchema) -> tuple[dict[str, Any], dic
             "socks4": "serverSocks4",
         },
         "special_argument_rules": {},
+        "entry_point_no_bind_message": (
+            "{label} '{name}' has no bind directive and cannot accept connections"
+        ),
+        "address_directives": {
+            "log": "log",
+            "source": "source",
+            "tcp-check": "tcpCheckAddr",
+            "http-check": "tcpCheckAddr",
+        },
+        "nested_keyword_skip_patterns": [
+            {"match_tokens": ["tcp-request", "inspect-delay"]},
+            {"match_tokens": ["tcp-response", "inspect-delay"]},
+        ],
+        "unused_symbol_messages": {
+            "acl": "ACL '{name}' is defined but never referenced in this section",
+            "proxy-section": (
+                "Backend '{name}' is never referenced by use_backend or default_backend"
+            ),
+            "defaults-profile": "Defaults profile '{name}' is never referenced by 'from'",
+            "cache": "Cache '{name}' is never referenced",
+            "userlist": "Userlist '{name}' is never referenced",
+            "resolvers": "Resolvers '{name}' is never referenced",
+            "peers": "Peers section '{name}' is never referenced",
+            "default": "'{name}' appears unused",
+        },
+        "unused_symbol_codes": {
+            "acl": "unused-acl",
+            "proxy-section": "unused-section",
+            "defaults-profile": "unused-defaults-profile",
+            "default": "unused-symbol",
+        },
     }
     provenance: dict[str, Any] = {
         "origin": "derived",
@@ -272,7 +343,8 @@ def _derive_validation_rules(schema: HaproxySchema) -> tuple[dict[str, Any], dic
 def _extract_runtime_metadata(version: str, haproxy_root: Path | None) -> tuple[dict[str, Any], dict[str, Any]]:
     if haproxy_root is None or not haproxy_root.is_dir():
         return {}, {"missing_haproxy_root": str(haproxy_root) if haproxy_root else ""}
-    metadata: dict[str, Any] = {"validation_rules": {"special_argument_rules": {}}}
+    validation_rules: dict[str, Any] = {"special_argument_rules": {}}
+    metadata: dict[str, Any] = {"validation_rules": validation_rules}
     provenance: dict[str, Any] = {}
 
     sample_types, sample_types_provenance = extract_sample_types(haproxy_root)
@@ -292,24 +364,24 @@ def _extract_runtime_metadata(version: str, haproxy_root: Path | None) -> tuple[
     provenance["address_policies"] = address_provenance
 
     log_address_skip, log_address_skip_provenance = extract_log_address_skip(haproxy_root)
-    metadata["validation_rules"]["log_address_skip"] = log_address_skip
+    validation_rules["log_address_skip"] = log_address_skip
     provenance["validation_rules.log_address_skip"] = log_address_skip_provenance
 
     cookie_modes, cookie_provenance = extract_cookie_modes(haproxy_root)
-    metadata["validation_rules"]["special_argument_rules"]["cookie"] = {"modes": cookie_modes}
+    validation_rules["special_argument_rules"]["cookie"] = {"modes": cookie_modes}
     provenance["validation_rules.special_argument_rules.cookie"] = cookie_provenance
 
     mysql_rule, mysql_provenance = extract_mysql_check_rule(haproxy_root)
-    metadata["validation_rules"]["special_argument_rules"]["option mysql-check"] = mysql_rule
+    validation_rules["special_argument_rules"]["option mysql-check"] = mysql_rule
     provenance["validation_rules.special_argument_rules.option mysql-check"] = mysql_provenance
 
     header_rule, header_provenance = extract_http_send_name_header_rule(haproxy_root, version)
-    metadata["validation_rules"]["special_argument_rules"]["http-send-name-header"] = header_rule
+    validation_rules["special_argument_rules"]["http-send-name-header"] = header_rule
     provenance["validation_rules.special_argument_rules.http-send-name-header"] = header_provenance
 
     fetch_min, converter_min, min_provenance = extract_sample_min_args(haproxy_root)
-    metadata["validation_rules"]["fetch_min_args"] = fetch_min
-    metadata["validation_rules"]["converter_min_args"] = converter_min
+    validation_rules["fetch_min_args"] = fetch_min
+    validation_rules["converter_min_args"] = converter_min
     provenance.update(min_provenance)
     return metadata, provenance
 

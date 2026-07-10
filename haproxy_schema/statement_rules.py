@@ -29,6 +29,7 @@ class StatementRule:
     reference_kind: str | None = None
     definition_kind: str | None = None
     symbol_name_token_index: int | None = None
+    symbol_name_token_from_index: int | None = None
 
 
 @dataclass(frozen=True)
@@ -190,10 +191,48 @@ BASE_STATEMENT_RULES: list[StatementRule] = [
         minimum_token_index=1,
         value_token_index=1,
     ),
+    StatementRule(
+        keyword="setenv",
+        kind="directive",
+        match_tokens=["setenv"],
+        minimum_token_index=1,
+        definition_kind="environment-variable",
+        symbol_name_token_index=1,
+    ),
+    StatementRule(
+        keyword="presetenv",
+        kind="directive",
+        match_tokens=["presetenv"],
+        minimum_token_index=1,
+        definition_kind="environment-variable",
+        symbol_name_token_index=1,
+    ),
+    StatementRule(
+        keyword="unsetenv",
+        kind="directive",
+        match_tokens=["unsetenv"],
+        minimum_token_index=1,
+        reference_kind="environment-variable",
+        symbol_name_token_from_index=1,
+    ),
+    StatementRule(
+        keyword="resetenv",
+        kind="directive",
+        match_tokens=["resetenv"],
+        minimum_token_index=1,
+        reference_kind="environment-variable",
+        symbol_name_token_from_index=1,
+    ),
 ]
 
 
 REFERENCE_PATTERNS: list[ReferencePattern] = [
+    ReferencePattern(
+        match_tokens=["*", "*", "from"],
+        reference_kind="defaults-profile",
+        target_token_index=3,
+        scope="section-header",
+    ),
     ReferencePattern(match_tokens=["resolvers"], reference_kind="resolvers", target_token_index=1),
     ReferencePattern(match_tokens=["peers"], reference_kind="peers", target_token_index=1),
     ReferencePattern(match_tokens=["cache-use"], reference_kind="cache", target_token_index=1),
@@ -241,6 +280,7 @@ def statement_rules_from_dicts(rules: list[dict]) -> list[StatementRule]:
                 reference_kind=rule.get("reference_kind"),
                 definition_kind=rule.get("definition_kind"),
                 symbol_name_token_index=rule.get("symbol_name_token_index"),
+                symbol_name_token_from_index=rule.get("symbol_name_token_from_index"),
             )
         )
     return out
@@ -283,6 +323,8 @@ def statement_rules_to_dict(rules: list[StatementRule]) -> list[dict]:
             item["definition_kind"] = rule.definition_kind
         if rule.symbol_name_token_index is not None:
             item["symbol_name_token_index"] = rule.symbol_name_token_index
+        if rule.symbol_name_token_from_index is not None:
+            item["symbol_name_token_from_index"] = rule.symbol_name_token_from_index
         out.append(item)
     return out
 

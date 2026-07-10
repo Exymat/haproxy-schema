@@ -395,6 +395,7 @@ def merge_schema(
             reference_kind=rule.reference_kind,
             definition_kind=rule.definition_kind,
             symbol_name_token_index=rule.symbol_name_token_index,
+            symbol_name_token_from_index=rule.symbol_name_token_from_index,
         )
         for rule in statement_rules_from_dicts(enriched_rules)
     ]
@@ -454,7 +455,7 @@ def merge_schema(
     }
     schema.logformat_slots = collect_logformat_slots(schema.keywords)
 
-    schema.line_layout = build_line_layout(schema.keywords.keys())
+    schema.line_layout = build_line_layout(schema.keywords.keys(), schema.sections.keys())
 
     schema.tokens["no_prefix_keywords"] = sorted(doc.no_prefix_keywords)
     schema.tokens["named_defaults_keywords"] = sorted(doc.named_defaults_keywords)
