@@ -11,6 +11,7 @@ from ._paths import hapee_root, haproxy_vscode_root, monorepo_root
 
 _MONO = monorepo_root()
 VERSIONS = ("2.6", "2.8", "3.0", "3.2", "3.4")
+_HAPEE_ONLY_GLOBAL_KEYWORDS = {"module-load", "module-path", "saml-sso-load"}
 
 
 def _schema_path(version: str) -> Path:
@@ -36,6 +37,15 @@ def _cfg_test_id(path: Path) -> str:
     return path.name
 
 
+def _is_expected_hapee_only_keyword(path: Path, keyword: str) -> bool:
+    hapee = hapee_root()
+    return (
+        hapee is not None
+        and path.is_relative_to(hapee)
+        and keyword.split(maxsplit=1)[0].lower() in _HAPEE_ONLY_GLOBAL_KEYWORDS
+    )
+
+
 @pytest.mark.parametrize("version", VERSIONS)
 def test_valid_config_has_no_unknown_keyword(version: str) -> None:
     schema_path = _schema_path(version)
@@ -49,7 +59,11 @@ def test_valid_config_has_no_unknown_keyword(version: str) -> None:
     failures: list[str] = []
     for cfg_path in cfg_files:
         result = validate_config_file(cfg_path, schema)
-        unknown = result.unknown_keyword_issues
+        unknown = [
+            issue
+            for issue in result.unknown_keyword_issues
+            if not _is_expected_hapee_only_keyword(cfg_path, issue.keyword)
+        ]
         if not unknown:
             continue
         sample = "\n".join(f"    L{i.line + 1}: {i.message}" for i in unknown[:3])
