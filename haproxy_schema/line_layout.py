@@ -75,8 +75,11 @@ def build_line_layout(
             prefix_subcommands_map[prefix] = subs
             active_families.append(prefix)
     section_headers = sorted(
-        set(section_names or []) | set(KNOWN_SECTION_HEADERS),
-        key=lambda value: (KNOWN_SECTION_HEADERS.index(value) if value in KNOWN_SECTION_HEADERS else 999, value),
+        set(section_names if section_names is not None else KNOWN_SECTION_HEADERS),
+        key=lambda value: (
+            KNOWN_SECTION_HEADERS.index(value) if value in KNOWN_SECTION_HEADERS else 999,
+            value,
+        ),
     )
     return {
         "prefix_families": active_families,

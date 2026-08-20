@@ -23,9 +23,22 @@ def test_schema_contains_statement_rules_and_samples() -> None:
     assert by_keyword["server"].definition_kind == "server"
     assert by_keyword["server"].match_tokens == ["server"]
     assert by_keyword["server"].minimum_token_index == 3
+    assert by_keyword["server-template"].minimum_token_index == 4
+    assert by_keyword["server-template"].nested_start_index == 4
+    assert [slot.role for slot in by_keyword["server-template"].fixed_slots] == [
+        "name",
+        "count-or-range",
+        "address",
+    ]
     assert by_keyword["acl"].definition_kind == "acl"
     assert by_keyword["filter"].definition_kind == "filter"
     assert any(pattern.reference_kind == "resolvers" for pattern in schema.reference_patterns)
+    assert any(
+        pattern.reference_kind == "ring" and pattern.target_prefix == "ring@"
+        for pattern in schema.reference_patterns
+    )
+    assert by_keyword.get("quic-initial") is not None
+    assert by_keyword["quic-initial"].group == "quic_initial_actions"
     assert len(schema.sample_fetches) > 50
     assert len(schema.sample_converters) > 20
     assert "resolvers" in schema.sections or "crt-store" in schema.sections

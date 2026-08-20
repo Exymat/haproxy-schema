@@ -97,7 +97,25 @@ def _mode_values(schema: HaproxySchema) -> list[str]:
 
 def _derive_symbols(schema: HaproxySchema) -> tuple[dict[str, Any], dict[str, Any]]:
     sections = set(schema.sections)
-    named_section_order = ("frontend", "backend", "listen", "defaults", "peers", "userlist")
+    named_section_order = (
+        "frontend",
+        "backend",
+        "listen",
+        "defaults",
+        "peers",
+        "userlist",
+        "mailers",
+        "http-errors",
+        "ring",
+        "fcgi-app",
+        "healthcheck",
+        "acme",
+        "log-profile",
+        "log-forward",
+        "crt-store",
+        "traces",
+        "program",
+    )
     section_kind_order = (
         ("frontend", "proxy-section"),
         ("backend", "proxy-section"),
@@ -107,6 +125,17 @@ def _derive_symbols(schema: HaproxySchema) -> tuple[dict[str, Any], dict[str, An
         ("userlist", "userlist"),
         ("resolvers", "resolvers"),
         ("peers", "peers"),
+        ("mailers", "mailers"),
+        ("http-errors", "http-errors"),
+        ("ring", "ring"),
+        ("fcgi-app", "fcgi-app"),
+        ("healthcheck", "healthcheck"),
+        ("acme", "acme"),
+        ("log-profile", "log-profile"),
+        ("log-forward", "log-forward"),
+        ("crt-store", "crt-store"),
+        ("traces", "traces"),
+        ("program", "program"),
     )
     section_definition_kinds = {
         section: kind for section, kind in section_kind_order if section in sections
@@ -143,8 +172,32 @@ def _derive_symbols(schema: HaproxySchema) -> tuple[dict[str, Any], dict[str, An
             "userlist",
             "resolvers",
             "peers",
+            "mailers",
+            "http-errors",
+            "ring",
+            "fcgi-app",
+            "healthcheck",
+            "acme",
+            "log-profile",
+            "log-forward",
+            "crt-store",
+            "traces",
+            "program",
         ],
-        "unused_symbol_skipped_kinds": ["filter", "server"],
+        "unused_symbol_skipped_kinds": [
+            "filter",
+            "server",
+            "server-template",
+            "peer",
+            "mailer",
+            "nameserver",
+            "acme",
+            "crt-store",
+            "log-forward",
+            "log-profile",
+            "program",
+            "traces",
+        ],
         "duplicate_section_kinds": [
             "proxy-section",
             "defaults-profile",
@@ -152,6 +205,17 @@ def _derive_symbols(schema: HaproxySchema) -> tuple[dict[str, Any], dict[str, An
             "userlist",
             "resolvers",
             "peers",
+            "mailers",
+            "http-errors",
+            "ring",
+            "fcgi-app",
+            "healthcheck",
+            "acme",
+            "log-profile",
+            "log-forward",
+            "crt-store",
+            "traces",
+            "program",
         ],
         "symbol_kind_labels": {
             "proxy-section": "Proxy section",
@@ -160,6 +224,22 @@ def _derive_symbols(schema: HaproxySchema) -> tuple[dict[str, Any], dict[str, An
             "cache": "cache section",
             "resolvers": "resolvers section",
             "peers": "peers section",
+            "mailers": "mailers section",
+            "http-errors": "http-errors section",
+            "ring": "ring section",
+            "fcgi-app": "fcgi-app section",
+            "healthcheck": "healthcheck section",
+            "acme": "acme section",
+            "log-profile": "log-profile section",
+            "log-forward": "log-forward section",
+            "crt-store": "crt-store section",
+            "traces": "traces section",
+            "program": "program section",
+            "server-template": "server template",
+            "peer": "peer",
+            "mailer": "mailer",
+            "nameserver": "nameserver",
+            "stick-table": "stick-table",
         },
     }
     return symbols, {"origin": "derived", "rule": "sections, statement_rules, and mode docs"}
@@ -169,8 +249,6 @@ def _derive_semantic_groups(schema: HaproxySchema) -> tuple[dict[str, Any], dict
     action_groups = sorted(name for name in schema.keyword_groups if name.endswith("_actions"))
     completion_map: dict[str, str] = {}
     for group in action_groups:
-        if group == "quic_initial_actions":
-            continue
         kind = group.removesuffix("_actions").replace("_", "-")
         completion_map[kind] = group
     line_option_groups: dict[str, str] = {}
@@ -257,6 +335,7 @@ def _derive_validation_rules(schema: HaproxySchema) -> tuple[dict[str, Any], dic
         "tcp-request",
         "tcp-response",
         "http-after-response",
+        "quic-initial",
         "http-check",
         "tcp-check",
     )
@@ -270,6 +349,7 @@ def _derive_validation_rules(schema: HaproxySchema) -> tuple[dict[str, Any], dic
         "http-request",
         "http-response",
         "http-after-response",
+        "quic-initial",
         "mode",
         "balance",
         "bind",
@@ -317,6 +397,17 @@ def _derive_validation_rules(schema: HaproxySchema) -> tuple[dict[str, Any], dic
             "userlist": "Userlist '{name}' is never referenced",
             "resolvers": "Resolvers '{name}' is never referenced",
             "peers": "Peers section '{name}' is never referenced",
+            "mailers": "Mailers section '{name}' is never referenced",
+            "http-errors": "HTTP errors section '{name}' is never referenced",
+            "ring": "Ring section '{name}' is never referenced",
+            "fcgi-app": "FCGI app section '{name}' is never referenced",
+            "healthcheck": "Healthcheck section '{name}' is never referenced",
+            "acme": "ACME section '{name}' is never referenced",
+            "log-profile": "Log profile section '{name}' is never referenced",
+            "log-forward": "Log-forward section '{name}' is never referenced",
+            "crt-store": "CRT store section '{name}' is never referenced",
+            "traces": "Traces section '{name}' is never referenced",
+            "program": "Program section '{name}' is never referenced",
             "default": "'{name}' appears unused",
         },
         "unused_symbol_codes": {

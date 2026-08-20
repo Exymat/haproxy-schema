@@ -27,7 +27,7 @@ def test_build_line_layout_includes_known_families() -> None:
     ]
     layout = build_line_layout(keywords)
     assert layout["prefix_families"] == list(KNOWN_PREFIX_FAMILIES)
-    assert layout["section_headers"] == list(KNOWN_SECTION_HEADERS)
+    assert "global" in layout["section_headers"]
     assert "socket" in layout["prefix_subcommands"]["stats"]
     assert "content" in layout["tcp_request_phases"]
     assert layout["stats_socket_levels"] == ["admin", "operator", "user"]
@@ -40,6 +40,18 @@ def test_option_takes_value_heuristics() -> None:
         ["httplog", "crt"],
         {"httplog": ["httplog"], "crt": ["crt <path>"]},
     )
+
+
+def test_build_line_layout_uses_only_provided_sections() -> None:
+    keywords = ["stats socket", "mode"]
+    layout = build_line_layout(keywords, section_names=["global", "frontend", "backend"])
+    assert layout["section_headers"] == ["global", "frontend", "backend"]
+
+
+def test_build_line_layout_defaults_to_known_headers_without_sections() -> None:
+    layout = build_line_layout(["mode"])
+    assert "global" in layout["section_headers"]
+    assert "frontend" in layout["section_headers"]
 
 
 def test_known_section_headers_include_compatibility_shims() -> None:

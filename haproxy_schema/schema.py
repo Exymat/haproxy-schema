@@ -122,6 +122,7 @@ class ReferencePattern:
     target_token_index: int
     scope: str = "global"
     split: str | None = None
+    target_prefix: str | None = None
 
 
 @dataclass
@@ -290,6 +291,7 @@ class HaproxySchema:
                 target_token_index=item.get("target_token_index", 0),
                 scope=item.get("scope", "global"),
                 split=item.get("split"),
+                target_prefix=item.get("target_prefix"),
             )
             for item in data.get("reference_patterns", [])
         ]

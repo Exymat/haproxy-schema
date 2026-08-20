@@ -301,6 +301,20 @@ def build_language_data(
 
     action_groups = build_action_groups(doc, dkall)
 
+    acl_criteria_desc: dict[str, str] = {}
+    acl_criteria_sigs: dict[str, str] = {}
+    for name in dkall.acl_criteria:
+        fetch = doc.sample_reference.fetches.get(name)
+        if fetch is None and "_" in name:
+            base = name.rsplit("_", 1)[0]
+            fetch = doc.sample_reference.fetches.get(base)
+        if fetch is None:
+            continue
+        if fetch.description:
+            acl_criteria_desc[name] = fetch.description
+        if fetch.signature:
+            acl_criteria_sigs[name] = fetch.signature if fetch.name == name else f"{name} ..."
+
     option_desc = {
         name: doc.description for name, doc in doc.bind_option_docs.items() if doc.description
     }
@@ -361,7 +375,12 @@ def build_language_data(
         "tcp_request_actions": action_group_items(action_groups["tcp_request_actions"]),
         "tcp_response_actions": action_group_items(action_groups["tcp_response_actions"]),
         "quic_initial_actions": action_group_items(action_groups["quic_initial_actions"]),
-        "acl_criteria": group_items(sorted(dkall.acl_criteria), {}, {}),
+        "acl_criteria": group_items(
+            sorted(dkall.acl_criteria),
+            acl_criteria_desc,
+            acl_criteria_sigs,
+            docs_chapter="7.3.2",
+        ),
         "sample_fetches": group_items(
             sorted(dkall.sample_fetches),
             {name: item.description for name, item in doc.sample_reference.fetches.items() if item.description},

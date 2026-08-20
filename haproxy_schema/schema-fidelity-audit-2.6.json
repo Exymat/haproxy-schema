@@ -31,6 +31,13 @@
       ]
     },
     {
+      "keyword": "server-template",
+      "issues": [
+        "fixed_slot_0_name_kind_mismatch",
+        "fixed_slot_2_address_kind_mismatch"
+      ]
+    },
+    {
       "keyword": "stats bind-process",
       "issues": [
         "enum_contains_signature_syntax"
@@ -7152,7 +7159,7 @@
       "description_present": true,
       "doc_argument_count": 0,
       "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
+      "statement_rule_kind": "directive",
       "statement_rule_group": "",
       "nested_start_index": null,
       "fixed_slots": [],
@@ -8100,10 +8107,21 @@
       "description_present": true,
       "doc_argument_count": 0,
       "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
+      "statement_rule_kind": "directive",
       "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
+      "nested_start_index": 3,
+      "fixed_slots": [
+        {
+          "role": "name",
+          "port": null,
+          "address_policy": null
+        },
+        {
+          "role": "address",
+          "port": "optional",
+          "address_policy": "server"
+        }
+      ],
       "signatures": [
         "nameserver <name> <address>[:port] [param*]"
       ],
@@ -12322,7 +12340,7 @@
       "description_present": true,
       "doc_argument_count": 0,
       "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
+      "statement_rule_kind": "directive",
       "statement_rule_group": "",
       "nested_start_index": null,
       "fixed_slots": [],
@@ -13916,10 +13934,26 @@
       "description_present": true,
       "doc_argument_count": 5,
       "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
+      "statement_rule_kind": "server",
+      "statement_rule_group": "server_options",
+      "nested_start_index": 4,
+      "fixed_slots": [
+        {
+          "role": "name",
+          "port": null,
+          "address_policy": null
+        },
+        {
+          "role": "count-or-range",
+          "port": null,
+          "address_policy": null
+        },
+        {
+          "role": "address",
+          "port": "optional",
+          "address_policy": "server"
+        }
+      ],
       "signatures": [
         "server-template <prefix> <num | range> <fqdn>[:<port>] [params*]"
       ],
@@ -13959,7 +13993,10 @@
           "value_kind": "generic"
         }
       ],
-      "issues": []
+      "issues": [
+        "fixed_slot_0_name_kind_mismatch",
+        "fixed_slot_2_address_kind_mismatch"
+      ]
     },
     {
       "keyword": "set-dumpable",

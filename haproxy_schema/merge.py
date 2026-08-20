@@ -406,6 +406,7 @@ def merge_schema(
             target_token_index=pattern.target_token_index,
             scope=pattern.scope,
             split=pattern.split,
+            target_prefix=pattern.target_prefix,
         )
         for pattern in REFERENCE_PATTERNS
     ]

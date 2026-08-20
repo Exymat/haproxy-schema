@@ -39,6 +39,7 @@ class ReferencePattern:
     target_token_index: int
     scope: str = "global"
     split: str | None = None
+    target_prefix: str | None = None
 
 
 # Static rules for nested / composite statements (merged into schema at build time).
@@ -92,6 +93,45 @@ BASE_STATEMENT_RULES: list[StatementRule] = [
         symbol_name_token_index=1,
     ),
     StatementRule(
+        keyword="server-template",
+        kind="server",
+        group="server_options",
+        match_tokens=["server-template"],
+        minimum_token_index=4,
+        nested_start_index=4,
+        fixed_slots=[
+            FixedSlotSpec(role="name"),
+            FixedSlotSpec(role="count-or-range"),
+            FixedSlotSpec(role="address", port="optional", address_policy="server"),
+        ],
+        definition_kind="server-template",
+        symbol_name_token_index=1,
+    ),
+    StatementRule(
+        keyword="peer",
+        kind="directive",
+        match_tokens=["peer"],
+        minimum_token_index=2,
+        definition_kind="peer",
+        symbol_name_token_index=1,
+    ),
+    StatementRule(
+        keyword="mailer",
+        kind="directive",
+        match_tokens=["mailer"],
+        minimum_token_index=2,
+        definition_kind="mailer",
+        symbol_name_token_index=1,
+    ),
+    StatementRule(
+        keyword="nameserver",
+        kind="directive",
+        match_tokens=["nameserver"],
+        minimum_token_index=2,
+        definition_kind="nameserver",
+        symbol_name_token_index=1,
+    ),
+    StatementRule(
         keyword="http-request",
         kind="http-request",
         group="http_request_actions",
@@ -132,6 +172,14 @@ BASE_STATEMENT_RULES: list[StatementRule] = [
         minimum_token_index=1,
         phase_token_index=1,
         action_token_index=2,
+    ),
+    StatementRule(
+        keyword="quic-initial",
+        kind="quic-initial",
+        group="quic_initial_actions",
+        match_tokens=["quic-initial"],
+        minimum_token_index=1,
+        action_token_index=1,
     ),
     StatementRule(
         keyword="acl",
@@ -249,6 +297,35 @@ REFERENCE_PATTERNS: list[ReferencePattern] = [
         scope="section",
         split=",",
     ),
+    ReferencePattern(
+        match_tokens=["email-alert", "mailers"],
+        reference_kind="mailers",
+        target_token_index=2,
+    ),
+    ReferencePattern(match_tokens=["errorfiles"], reference_kind="http-errors", target_token_index=1),
+    ReferencePattern(match_tokens=["use-fcgi-app"], reference_kind="fcgi-app", target_token_index=1),
+    ReferencePattern(
+        match_tokens=["filter", "fcgi-app"],
+        reference_kind="fcgi-app",
+        target_token_index=2,
+    ),
+    ReferencePattern(
+        match_tokens=["healthcheck"],
+        reference_kind="healthcheck",
+        target_token_index=1,
+    ),
+    ReferencePattern(
+        match_tokens=["table"],
+        reference_kind="proxy-section",
+        target_token_index=1,
+        scope="section",
+    ),
+    ReferencePattern(
+        match_tokens=["log", "*"],
+        reference_kind="ring",
+        target_token_index=1,
+        target_prefix="ring@",
+    ),
 ]
 
 
@@ -337,6 +414,7 @@ def reference_patterns_to_dict(patterns: list[ReferencePattern]) -> list[dict]:
             "target_token_index": pattern.target_token_index,
             "scope": pattern.scope,
             **({"split": pattern.split} if pattern.split else {}),
+            **({"target_prefix": pattern.target_prefix} if pattern.target_prefix else {}),
         }
         for pattern in patterns
     ]
