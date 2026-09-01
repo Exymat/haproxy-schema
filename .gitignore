@@ -14,3 +14,6 @@ build/
 
 # Downloaded HAProxy binaries (see scripts/install-haproxy-binary.sh)
 haproxy_schema/bin/
+
+# Full HAPEE HTML manuals (fetched with build-hapee --fetch; not committed)
+haproxy_schema/fixtures/hapee/*.html

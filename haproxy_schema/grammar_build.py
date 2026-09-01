@@ -498,6 +498,15 @@ def _build_directives_multiword(schema: HaproxySchema) -> dict[str, Any]:
 
 def _build_rule_actions(schema: HaproxySchema) -> dict[str, Any]:
     patterns: list[dict[str, Any]] = []
+
+    filters = schema.keyword_groups.get("filters", [])
+    if filters:
+        patterns.append(
+            {
+                "match": rf"\b(filter)\s+({alt_pattern(filters, limit=200)})\b",
+                "captures": _captures(_DIRECTIVE, _DIRECTIVE),
+            }
+        )
     phase_alt = alt_pattern(list(_TCP_PHASES))
 
     for group_key, rule_kw in (

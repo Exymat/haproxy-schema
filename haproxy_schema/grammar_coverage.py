@@ -159,7 +159,13 @@ def load_grammar(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def report_from_paths(schema_path: Path, grammar_path: Path, template_path: Path | None = None) -> GrammarCoverageReport:
+def report_from_paths(
+    schema_path: Path,
+    grammar_path: Path,
+    template_path: Path | None = None,
+    *,
+    strict_grammar: bool = False,
+) -> GrammarCoverageReport:
     del template_path
     schema = HaproxySchema.from_json(schema_path.read_text(encoding="utf-8"))
     if grammar_path.is_file():
@@ -167,7 +173,12 @@ def report_from_paths(schema_path: Path, grammar_path: Path, template_path: Path
             grammar = load_grammar(grammar_path)
             if grammar.get("repository", {}).get("schema-directives"):
                 return build_grammar_coverage_report(schema, grammar)
+            if strict_grammar:
+                raise ValueError(f"missing repository.schema-directives in {grammar_path}")
         except (json.JSONDecodeError, OSError):
-            pass
+            if strict_grammar:
+                raise
+    elif strict_grammar:
+        raise FileNotFoundError(f"grammar file not found: {grammar_path}")
     grammar = emit_tm_language(schema)
     return build_grammar_coverage_report(schema, grammar)

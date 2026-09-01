@@ -7,11 +7,10 @@ import pytest
 from haproxy_schema.config_validator import validate_config_file
 from haproxy_schema.schema import HaproxySchema
 
-from ._paths import hapee_root, haproxy_vscode_root, monorepo_root
+from ._paths import hapee_root, hapee_schema, haproxy_vscode_root, monorepo_root
 
 _MONO = monorepo_root()
 VERSIONS = ("2.6", "2.8", "3.0", "3.2", "3.4")
-_HAPEE_ONLY_GLOBAL_KEYWORDS = {"module-load", "module-path", "saml-sso-load"}
 
 
 def _schema_path(version: str) -> Path:
@@ -37,13 +36,17 @@ def _cfg_test_id(path: Path) -> str:
     return path.name
 
 
-def _is_expected_hapee_only_keyword(path: Path, keyword: str) -> bool:
+def _is_hapee_config(path: Path) -> bool:
     hapee = hapee_root()
-    return (
-        hapee is not None
-        and path.is_relative_to(hapee)
-        and keyword.split(maxsplit=1)[0].lower() in _HAPEE_ONLY_GLOBAL_KEYWORDS
-    )
+    return hapee is not None and path.is_relative_to(hapee)
+
+
+def _schema_for(version: str, cfg_path: Path, oss_schema: HaproxySchema) -> HaproxySchema:
+    if _is_hapee_config(cfg_path):
+        hapee_path = hapee_schema(version)
+        if hapee_path.is_file():
+            return HaproxySchema.from_json(hapee_path.read_text(encoding="utf-8"))
+    return oss_schema
 
 
 @pytest.mark.parametrize("version", VERSIONS)
@@ -55,15 +58,12 @@ def test_valid_config_has_no_unknown_keyword(version: str) -> None:
     if not cfg_files:
         pytest.skip(f"no conf corpus available for {version}")
 
-    schema = HaproxySchema.from_json(schema_path.read_text(encoding="utf-8"))
+    oss_schema = HaproxySchema.from_json(schema_path.read_text(encoding="utf-8"))
     failures: list[str] = []
     for cfg_path in cfg_files:
+        schema = _schema_for(version, cfg_path, oss_schema)
         result = validate_config_file(cfg_path, schema)
-        unknown = [
-            issue
-            for issue in result.unknown_keyword_issues
-            if not _is_expected_hapee_only_keyword(cfg_path, issue.keyword)
-        ]
+        unknown = list(result.unknown_keyword_issues)
         if not unknown:
             continue
         sample = "\n".join(f"    L{i.line + 1}: {i.message}" for i in unknown[:3])

@@ -15,3 +15,9 @@ def test_docs_url_builds_configuration_link() -> None:
     assert docs_url("3.4", "tune.vars.global-max-size", "3.2") == (
         "https://docs.haproxy.org/3.4/configuration.html#3.2-tune.vars.global-max-size"
     )
+
+
+def test_docs_url_accepts_custom_base() -> None:
+    assert docs_url("3.2", "module-load", "3.5", base="https://www.haproxy.com/documentation/haproxy-configuration-manual/3-2r1/") == (
+        "https://www.haproxy.com/documentation/haproxy-configuration-manual/3-2r1#3.5-module-load"
+    )

@@ -141,7 +141,7 @@ def test_main_check_grammar_failure(tmp_path: Path, capsys: pytest.CaptureFixtur
     assert "missing directive in grammar: daemon" in out
 
 
-def test_main_check_grammar_invalid_json_falls_back(
+def test_main_check_grammar_invalid_json_fails(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     schema_path = haproxy_vscode_root() / "schemas" / "haproxy-3.2.schema.json"
@@ -151,8 +151,39 @@ def test_main_check_grammar_invalid_json_falls_back(
     bad_grammar = tmp_path / "bad.json"
     bad_grammar.write_text("{not valid json", encoding="utf-8")
     code = main(["check-grammar", "--schema", str(schema_path), "--grammar", str(bad_grammar)])
-    assert code == 0
-    assert "Grammar OK:" in capsys.readouterr().out
+    assert code == 1
+    assert "invalid grammar:" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("option", "community_name", "kind"),
+    [
+        ("--out", "haproxy-3.2.schema.json", "schema"),
+        ("--language-data-out", "haproxy-3.2.language.json", "language data"),
+        ("--grammar-out", "haproxy-3.2.tmLanguage.json", "grammar"),
+        ("--grammar-out", "HAPROXY-3.2.TMLANGUAGE.JSON", "grammar"),
+        ("--grammar-out", "haproxy.tmLanguage.json", "grammar"),
+    ],
+)
+def test_main_build_hapee_refuses_community_artifact_targets(
+    tmp_path: Path, option: str, community_name: str, kind: str
+) -> None:
+    arguments = [
+        "build-hapee",
+        "--hapee-version",
+        "3.2r1",
+        "--dkall",
+        "unused-dkall.txt",
+        "--out",
+        str(tmp_path / "haproxy-3.2r1.schema.json"),
+    ]
+    if option == "--out":
+        arguments[-1] = str(tmp_path / community_name)
+    else:
+        arguments.extend([option, str(tmp_path / community_name)])
+
+    with pytest.raises(SystemExit, match=f"Refusing to overwrite Community {kind}"):
+        main(arguments)
 
 
 def test_main_audit_docs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -236,3 +267,66 @@ def test_main_schema_fidelity_audit(tmp_path: Path, capsys: pytest.CaptureFixtur
     captured = capsys.readouterr().out
     assert "Schema fidelity:" in captured
     assert "Sample functions:" in captured
+
+
+def test_make_parser_build_hapee() -> None:
+    args = make_parser().parse_args(
+        [
+            "build-hapee",
+            "--hapee-version",
+            "3.2r1",
+            "--dkall",
+            "dkall.txt",
+            "--out",
+            "haproxy-3.2r1.schema.json",
+            "--language-data-out",
+            "haproxy-3.2r1.language.json",
+        ]
+    )
+    assert args.hapee_version == "3.2r1"
+    assert args.out == "haproxy-3.2r1.schema.json"
+    assert args.language_data_out == "haproxy-3.2r1.language.json"
+
+
+def test_make_parser_build_hapee_requires_out() -> None:
+    with pytest.raises(SystemExit):
+        make_parser().parse_args(["build-hapee", "--hapee-version", "3.2r1", "--dkall", "dkall.txt"])
+
+
+def test_main_build_hapee_writes_schema(tmp_path: Path) -> None:
+    html = Path(__file__).parent / "fixtures" / "hapee-mini.html"
+    dkall_path = dkall_dump("3.2")
+    assert html.is_file()
+    assert dkall_path.is_file()
+
+    schema_out = tmp_path / "haproxy-3.2r1.schema.json"
+    language_out = tmp_path / "haproxy-3.2r1.language.json"
+    code = main(
+        [
+            "build-hapee",
+            "--hapee-version",
+            "3.2r1",
+            "--html",
+            str(html),
+            "--allow-unpinned-html",
+            "--dkall",
+            str(dkall_path),
+            "--out",
+            str(schema_out),
+            "--language-data-out",
+            str(language_out),
+        ]
+    )
+    assert code == 0
+    assert schema_out.is_file()
+    assert language_out.is_file()
+    data = json.loads(schema_out.read_text(encoding="utf-8"))
+    language = json.loads(language_out.read_text(encoding="utf-8"))
+    assert data["version"] == "3.2r1"
+    assert "module-load" in data["keywords"]
+    assert "module-path" in data["keywords"]
+    assert language["version"] == "3.2r1"
+    assert "module-load" in language["keywords"]
+    converters = data.get("sample_converters") or {}
+    if "has_ctl" in converters:
+        assert "has_ctl" in (data.get("keyword_groups") or {}).get("sample_converters", [])

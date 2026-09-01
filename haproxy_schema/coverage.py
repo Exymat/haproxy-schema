@@ -13,6 +13,7 @@ class CoverageReport:
     version: str
     doc_only_keywords: list[str] = field(default_factory=list)
     dkall_only_keywords: list[str] = field(default_factory=list)
+    hapee_doc_only_keywords: list[str] = field(default_factory=list)
     keywords_without_argument_model: list[str] = field(default_factory=list)
     sections_doc_only: list[str] = field(default_factory=list)
     sections_dkall_only: list[str] = field(default_factory=list)
@@ -29,6 +30,8 @@ def build_coverage_report(
     doc: DocParseResult,
     dkall: DkallParseResult,
     schema: HaproxySchema,
+    *,
+    edition: str = "oss",
 ) -> CoverageReport:
     doc_keywords: set[str] = set(doc.global_keywords) | set(doc.proxy_keywords)
     for keywords in doc.matrix_keywords.values():
@@ -61,6 +64,7 @@ def build_coverage_report(
         version=version,
         doc_only_keywords=doc_only,
         dkall_only_keywords=dkall_only,
+        hapee_doc_only_keywords=sorted(doc.hapee_only_keywords) if edition == "hapee" else [],
         keywords_without_argument_model=without_model,
         sections_doc_only=sorted(doc_sections - dkall_sections),
         sections_dkall_only=sorted(dkall_sections - doc_sections),

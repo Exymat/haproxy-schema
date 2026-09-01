@@ -120,6 +120,7 @@ CI uses [actions/setup-python](https://github.com/actions/setup-python) with `.p
 | Command | Description |
 | ------- | ----------- |
 | `build` | Merge `configuration.txt` + dkall dump into schema JSON; optionally emit language data, grammar, and coverage report |
+| `build-hapee` | Parse official HAPEE HTML docs and write full schema/language artifacts (`haproxy-X.Yr1.schema.json`) for LTS 2.6r1–3.2r1 |
 | `emit-grammar` | Regenerate a fully generated TextMate grammar from an existing schema JSON |
 | `check-grammar` | Verify an emitted grammar covers all schema directives (prefix conflicts, missing cache keywords, stale hyphen forms) |
 | `audit-docs` | Report bind/server/proxy options missing hover documentation |
@@ -139,7 +140,32 @@ uv run haproxy-schema build \
   --grammar-out /tmp/haproxy-3.2.tmLanguage.json \
   --coverage-out haproxy_schema/coverage-3.2.json \
   --version 3.2
+```
 
+HAPEE LTS **2.6r1–3.2r1** is built as a complete OSS-base overlay: community keywords/actions/sample functions are preserved, the Enterprise manual overrides or extends them, and optional-module syntax that cannot appear in the OSS `-dkall` dump is applied from a versioned overlay. That overlay covers WAF and response-body injection in every supported release, UDP from 2.8r1, SAML/Captcha/Bot Management from 3.0r1, and OIDC/RHI from 3.2r1. The VS Code extension loads `haproxy-X.Yr1` schema, language, and grammar files when `haproxy.edition` is `hapee`. `--grammar-out` should target `haproxy-X.Yr1.tmLanguage.json`, never the community `haproxy-X.Y.tmLanguage.json` files.
+
+| HAPEE | OSS base | Schema / language / grammar files | Docs |
+| ----- | -------- | -------------------------------- | ---- |
+| 2.6r1 | 2.6 | `haproxy-2.6r1.schema.json`, `haproxy-2.6r1.language.json`, `haproxy-2.6r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/2-6r1/` |
+| 2.8r1 | 2.8 | `haproxy-2.8r1.schema.json`, `haproxy-2.8r1.language.json`, `haproxy-2.8r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/2-8r1/` |
+| 3.0r1 | 3.0 | `haproxy-3.0r1.schema.json`, `haproxy-3.0r1.language.json`, `haproxy-3.0r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/3-0r1/` |
+| 3.2r1 | 3.2 | `haproxy-3.2r1.schema.json`, `haproxy-3.2r1.language.json`, `haproxy-3.2r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/3-2r1/` |
+
+Community OSS **3.4** has no HAPEE artifacts (HAPEE 3.4 is not released).
+
+```bash
+uv run haproxy-schema build-hapee \
+  --hapee-version 3.2r1 \
+  --fetch \
+  --dkall haproxy_schema/dkall-3.2.txt \
+  --out ../haproxy-vscode/schemas/haproxy-3.2r1.schema.json \
+  --language-data-out ../haproxy-vscode/schemas/haproxy-3.2r1.language.json \
+  --grammar-out ../haproxy-vscode/syntaxes/haproxy-3.2r1.tmLanguage.json
+```
+
+`--fetch` downloads the HAPEE configuration manual HTML (old dconv renderer, not `/new/`). Its SHA-256 is pinned per release, so an upstream edit fails the build until reviewed; `--allow-unpinned-html` exists only for custom fixtures and parser development. Full HTML is cached locally and not committed. From **haproxy-vscode**, `npm run generate:schema:hapee` rebuilds all four HAPEE schema, language, and grammar files through the locked `uv` environment.
+
+```bash
 uv run haproxy-schema doc-parse-audit \
   --doc ../haproxy_git/haproxy-3.2/doc/configuration.txt \
   --dkall haproxy_schema/dkall-3.2.txt \

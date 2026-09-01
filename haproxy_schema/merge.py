@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from .dkall_parser import DkallParseResult
 from .dkall_supplement import supplement_missing_tls_options
@@ -201,6 +201,12 @@ def _apply_line_option_semantics(
         )
 
 
+def _mark_hapee_sources(schema: HaproxySchema, doc: DocParseResult) -> None:
+    for keyword in doc.hapee_only_keywords:
+        if keyword in schema.keywords:
+            _mark_source(schema, keyword, "hapee")
+
+
 def merge_schema(
     version: str,
     doc: DocParseResult,
@@ -208,6 +214,7 @@ def merge_schema(
     *,
     dkall_package_dir: Path | None = None,
     haproxy_root: Path | None = None,
+    edition: Literal["oss", "hapee"] = "oss",
 ) -> HaproxySchema:
     if dkall_package_dir is not None:
         supplement_missing_tls_options(dkall, dkall_package_dir)
@@ -269,7 +276,7 @@ def merge_schema(
     for section, keywords in dkall.section_keywords.items():
         for keyword in keywords:
             if section in {"defaults", "frontend", "listen", "backend", "global"}:
-                if keyword in schema.keywords:
+                if keyword in schema.keywords and edition != "hapee":
                     _mark_source(schema, keyword, "dkall")
                     continue
             _add_keyword_to_section(schema, section, keyword)
@@ -279,7 +286,10 @@ def merge_schema(
         _ensure_keyword(schema, option_name)
         _mark_source(schema, option_name, "dkall")
 
-    _prune_compile_time_doc_keywords(schema, dkall)
+    if edition != "hapee":
+        _prune_compile_time_doc_keywords(schema, dkall)
+    else:
+        _mark_hapee_sources(schema, doc)
 
     doc_options = _collect_doc_options(doc)
     action_groups = build_action_groups(doc, dkall)
@@ -442,6 +452,8 @@ def merge_schema(
         )
         for name, info in dkall.sample_converters_structured.items()
     }
+    if edition == "hapee":
+        _add_doc_only_sample_functions(schema, doc)
 
     schema.logformat_aliases = {
         name: LogformatAlias(
@@ -477,6 +489,64 @@ def merge_schema(
     apply_built_schema_metadata(schema, metadata_build)
 
     return schema
+
+
+def _args_from_sample_signature(signature: str) -> list[str]:
+    start = signature.find("(")
+    end = signature.rfind(")")
+    if start < 0 or end <= start:
+        return []
+    args: list[str] = []
+    for part in signature[start + 1 : end].split(","):
+        cleaned = part.strip().strip("[]")
+        if cleaned:
+            args.append(cleaned)
+    return args
+
+
+def _add_group_name(schema: HaproxySchema, group: str, name: str) -> None:
+    names = list(schema.keyword_groups.get(group) or [])
+    if name not in names:
+        names.append(name)
+        schema.keyword_groups[group] = sorted(names)
+
+
+def _add_doc_only_sample_functions(schema: HaproxySchema, doc: DocParseResult) -> None:
+    for name, item in doc.sample_reference.converters.items():
+        if name != name.strip() or any(char.isspace() for char in name) or ":" in name:
+            continue
+        if name in schema.sample_converters:
+            continue
+        args = _args_from_sample_signature(item.signature)
+        schema.sample_converters[name] = SampleFunction(
+            name=name,
+            args=args,
+            in_type=item.input_type,
+            out_type=item.output_type,
+            max_args=len(args) if args else None,
+            signature=item.signature or name,
+            description=item.description,
+            chapter=item.chapter or "7.3.1",
+            deprecated=item.deprecated,
+        )
+        _add_group_name(schema, "sample_converters", name)
+    for name, item in doc.sample_reference.fetches.items():
+        if name != name.strip() or any(char.isspace() for char in name) or ":" in name:
+            continue
+        if name in schema.sample_fetches:
+            continue
+        args = _args_from_sample_signature(item.signature)
+        schema.sample_fetches[name] = SampleFunction(
+            name=name,
+            args=args,
+            out_type=item.output_type,
+            max_args=len(args) if args else 0,
+            signature=item.signature or name,
+            description=item.description,
+            chapter=item.chapter,
+            deprecated=item.deprecated,
+        )
+        _add_group_name(schema, "sample_fetches", name)
 
 
 def _prune_compile_time_doc_keywords(schema: HaproxySchema, dkall: DkallParseResult) -> None:

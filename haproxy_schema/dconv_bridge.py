@@ -198,7 +198,7 @@ def is_valid_keyword_name(name: str) -> bool:
         return False
     if not _KEYWORD_NAME_RE.match(cleaned):
         return False
-    if cleaned.lower().startswith(("this ", "the ", "see ", "note ", "using ")):
+    if cleaned.lower().startswith(("this ", "the ", "see ", "note ", "using ", "about ")):
         return False
     return True
 

@@ -10,6 +10,7 @@ from .action_parser import ActionDoc, lookup_action_doc, parse_actions
 from .dkall_parser import DkallParseResult, parse_dkall
 from .dkall_supplement import supplement_missing_tls_options
 from .doc_parser import DocParseResult, SECTIONS_MATRIX, parse_configuration
+from .enterprise_overlays import enterprise_module_docs_url
 from .merge import build_action_groups
 
 
@@ -149,21 +150,28 @@ def docs_anchor(keyword: str, chapter: str = "") -> str:
     return quote(anchor, safe="")
 
 
-def docs_url(version: str, keyword: str, chapter: str = "") -> str:
-    base = f"https://docs.haproxy.org/{version}/configuration.html"
-    return f"{base}#{docs_anchor(keyword, chapter)}"
+def docs_url(version: str, keyword: str, chapter: str = "", *, base: str | None = None) -> str:
+    resolved = (base or f"https://docs.haproxy.org/{version}/configuration.html").rstrip("/")
+    return f"{resolved}#{docs_anchor(keyword, chapter)}"
 
 
-def action_docs_url(version: str, action: ActionDoc | None, default_name: str, default_chapter: str = "") -> str:
+def action_docs_url(
+    version: str,
+    action: ActionDoc | None,
+    default_name: str,
+    default_chapter: str = "",
+    *,
+    base: str | None = None,
+) -> str:
     if action is None:
         if not default_chapter:
             return ""
-        return docs_url(version, default_name, default_chapter)
+        return docs_url(version, default_name, default_chapter, base=base)
     keyword = action.docs_keyword or action.name or default_name
     chapter = action.chapter or default_chapter
     if not keyword or not chapter:
         return ""
-    return docs_url(version, keyword, chapter)
+    return docs_url(version, keyword, chapter, base=base)
 
 
 def _acl_group_items(mapping: dict[str, str], signature_fmt: str = "") -> list[GroupItem]:
@@ -212,9 +220,18 @@ def build_language_data(
     doc: DocParseResult,
     dkall: DkallParseResult,
     actions: dict[str, ActionDoc],
+    *,
+    docs_base: str | None = None,
 ) -> HaproxyLanguageData:
-    docs_base = f"https://docs.haproxy.org/{version}/configuration.html"
-    data = HaproxyLanguageData(version=version, docsBaseUrl=docs_base)
+    resolved_docs_base = (docs_base or f"https://docs.haproxy.org/{version}/configuration.html").rstrip("/")
+    data = HaproxyLanguageData(version=version, docsBaseUrl=resolved_docs_base)
+
+    def href(keyword: str, chapter: str = "") -> str:
+        if chapter == "enterprise-module":
+            module_url = enterprise_module_docs_url(keyword)
+            if module_url:
+                return module_url
+        return docs_url(version, keyword, chapter, base=resolved_docs_base)
 
     def language_arguments(arguments: list[Any]) -> list[LanguageArgumentParam]:
         return [
@@ -241,7 +258,7 @@ def build_language_data(
                 sections=list(variant.sections),
                 signatures=list(variant.signatures) or [name],
                 description=variant.description,
-                docsUrl=docs_url(version, name, variant.chapter),
+                docsUrl=href(name, variant.chapter),
                 arguments=language_arguments(variant.arguments),
                 contexts=list(variant.contexts),
                 examples=_language_examples(variant.examples),
@@ -253,7 +270,7 @@ def build_language_data(
             sections=sections,
             signatures=signatures,
             description=kdoc.description,
-            docsUrl=docs_url(version, name, chapter),
+            docsUrl=href(name, chapter),
             arguments=language_arguments(kdoc.arguments),
             variants=variants,
             examples=_language_examples(kdoc.examples),
@@ -270,7 +287,8 @@ def build_language_data(
         items: list[GroupItem] = []
         for name in names:
             action = lookup_action_doc(actions, name)
-            doc_url = docs_url(version, name, docs_chapter or "") if docs_chapter is not None else ""
+            module_url = enterprise_module_docs_url(name)
+            doc_url = module_url or (href(name, docs_chapter or "") if docs_chapter is not None else "")
             items.append(
                 GroupItem(
                     name=name,
@@ -293,7 +311,11 @@ def build_language_data(
                     description=action.description if action else "",
                     signature=action.signature if action else "",
                     rulesets=list(action.rulesets) if action else [],
-                    docsUrl=action_docs_url(version, action, name, "4.4"),
+                    docsUrl=(
+                        enterprise_module_docs_url(name)
+                        if action and action.chapter == "enterprise-module"
+                        else action_docs_url(version, action, name, "4.4", base=resolved_docs_base)
+                    ),
                     examples=_language_examples(action.examples) if action else [],
                 )
             )
@@ -382,14 +404,14 @@ def build_language_data(
             docs_chapter="7.3.2",
         ),
         "sample_fetches": group_items(
-            sorted(dkall.sample_fetches),
+            sorted(set(dkall.sample_fetches) | set(doc.sample_reference.fetches)),
             {name: item.description for name, item in doc.sample_reference.fetches.items() if item.description},
             {name: _sample_signature(item) for name, item in doc.sample_reference.fetches.items() if item.signature},
             examples=sample_fetch_examples,
             docs_chapter="",
         ),
         "sample_converters": group_items(
-            sorted(dkall.sample_converters),
+            sorted(set(dkall.sample_converters) | set(doc.sample_reference.converters)),
             {name: item.description for name, item in doc.sample_reference.converters.items() if item.description},
             {name: _sample_signature(item) for name, item in doc.sample_reference.converters.items() if item.signature},
             examples=sample_converter_examples,
@@ -409,7 +431,7 @@ def build_language_data(
                 name=item.name,
                 description=_logformat_alias_description(item),
                 signature=item.name,
-                docsUrl=docs_url(version, item.name.lstrip("%"), "8.2.6"),
+                docsUrl=href(item.name.lstrip("%"), "8.2.6"),
             )
             for item in sorted(
                 doc.logformat_reference.aliases.values(),

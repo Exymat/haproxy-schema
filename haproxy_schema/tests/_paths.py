@@ -9,6 +9,9 @@ _SCHEMA_REPO = Path(__file__).resolve().parents[2]
 # HAProxy releases this package builds schemas for (see README).
 SUPPORTED_VERSIONS: tuple[str, ...] = ("2.6", "2.8", "3.0", "3.2", "3.4")
 
+# HAPEE LTS releases (OSS 3.4 has no HAPEE release yet).
+HAPEE_VERSIONS: tuple[str, ...] = ("2.6r1", "2.8r1", "3.0r1", "3.2r1")
+
 # Legacy docs (2.6/2.8) vs modern §4.3/§4.4 reference (3.0+).
 LEGACY_DOC_VERSIONS: frozenset[str] = frozenset({"2.6", "2.8"})
 MODERN_DOC_VERSIONS: frozenset[str] = frozenset({"3.0", "3.2", "3.4"})
@@ -34,6 +37,16 @@ def haproxy_vscode_root() -> Path:
 def hapee_root() -> Path | None:
     path = _SCHEMA_REPO.parent / "HAPEE"
     return path if path.is_dir() else None
+
+
+def hapee_schema(version: str) -> Path:
+    release = version if version.endswith("r1") else f"{version}r1"
+    return haproxy_vscode_root() / "schemas" / f"haproxy-{release}.schema.json"
+
+
+def hapee_language(version: str) -> Path:
+    release = version if version.endswith("r1") else f"{version}r1"
+    return haproxy_vscode_root() / "schemas" / f"haproxy-{release}.language.json"
 
 
 def dkall_dump(version: str) -> Path:

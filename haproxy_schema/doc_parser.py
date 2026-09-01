@@ -116,6 +116,7 @@ class DocParseResult:
     acl_reference: AclReferenceDoc = field(default_factory=AclReferenceDoc)
     sample_reference: SampleReferenceDoc = field(default_factory=SampleReferenceDoc)
     logformat_reference: LogformatReferenceDoc = field(default_factory=LogformatReferenceDoc)
+    hapee_only_keywords: set[str] = field(default_factory=set)
 
 
 def _next_nonblank(lines: list[str], start: int) -> str:
@@ -197,10 +198,14 @@ def _walk_filter_directive_docs(lines: list[str]) -> dict[str, KeywordDoc]:
     }
 
 
-def _walk_chapter3_globals(lines: list[str]) -> dict[str, KeywordDoc]:
-    """Global-section keywords from doc chapters 3.1-3.3, each with its own chapter id."""
+def _walk_chapter3_globals(
+    lines: list[str],
+    *,
+    extra_chapters: tuple[str, ...] = (),
+) -> dict[str, KeywordDoc]:
+    """Global-section keywords from doc chapters 3.1-3.3 (and HAPEE extras), each with its own chapter id."""
     merged: dict[str, KeywordDoc] = {}
-    for section_id in ("3.1", "3.2", "3.3"):
+    for section_id in ("3.1", "3.2", "3.3") + extra_chapters:
         _merge_keyword_docs(merged, _walk_chapter_section(lines, section_id))
     return merged
 
@@ -525,10 +530,12 @@ def _sections_for_variant(
     matrix: dict[str, set[str]],
     section_keywords: dict[str, set[str]] | None = None,
     section_chapters: dict[str, set[str]] | None = None,
+    *,
+    global_doc_chapters: frozenset[str] = GLOBAL_DOC_CHAPTERS,
 ) -> list[str]:
     """Assign config sections to one chapter-specific keyword variant without cross-contamination."""
     sections = list(dict.fromkeys(variant.sections))
-    if variant.chapter in GLOBAL_DOC_CHAPTERS and name in global_keywords:
+    if variant.chapter in global_doc_chapters and name in global_keywords:
         if "global" not in sections:
             sections.insert(0, "global")
     if variant.chapter == "4.2":
@@ -548,7 +555,19 @@ def _sections_for_variant(
 
 def parse_configuration(path: Path) -> DocParseResult:
     text = path.read_text(encoding="utf-8", errors="replace")
-    lines = text.splitlines()
+    return parse_configuration_lines(text.splitlines(), reference_doc_path=path)
+
+
+def parse_configuration_lines(
+    lines: list[str],
+    *,
+    global_doc_chapters: frozenset[str] = GLOBAL_DOC_CHAPTERS,
+    reference_doc_path: Path | None = None,
+) -> DocParseResult:
+    extra_global_chapters = tuple(
+        chapter
+        for chapter in sorted(global_doc_chapters - GLOBAL_DOC_CHAPTERS, key=lambda c: [int(p) for p in c.split(".")])
+    )
 
     section_31 = _find_body_section(lines, "3.1")
     section_34 = _find_body_section(lines, "3.4")
@@ -580,7 +599,7 @@ def parse_configuration(path: Path) -> DocParseResult:
     )
 
     # Only 3.1-3.3 directives belong in the HAProxy "global" section (not peers, userlists, etc.).
-    global_docs = _walk_chapter3_globals(lines)
+    global_docs = _walk_chapter3_globals(lines, extra_chapters=extra_global_chapters)
     other_chapter3_docs = _walk_chapter_section(lines, _httpclient_tuning_section(layout))
     if layout.actions == "modern":
         proxy_docs_end = section_43
@@ -617,6 +636,7 @@ def parse_configuration(path: Path) -> DocParseResult:
                 matrix_41,
                 result.section_keywords,
                 standalone_section_chapters,
+                global_doc_chapters=global_doc_chapters,
             )
         if not doc.sections and " " in name and name in result.proxy_keywords:
             prefix = name.split()[0]
@@ -650,6 +670,7 @@ def parse_configuration(path: Path) -> DocParseResult:
                         matrix_41,
                         result.section_keywords,
                         standalone_section_chapters,
+                        global_doc_chapters=global_doc_chapters,
                     )
                     if not proxy_variant.sections:
                         proxy_variant.sections = list(inherited_sections)
@@ -717,8 +738,10 @@ def parse_configuration(path: Path) -> DocParseResult:
             server_end = section_53
         result.server_option_docs = walk_line_option_docs(lines, section_52, server_end, "5.2")
 
-    result.acl_reference = parse_acl_reference(path)
-    result.sample_reference = parse_sample_reference(path)
-    result.logformat_reference = parse_logformat_reference(path)
+    reference_path = reference_doc_path
+    if reference_path is not None and reference_path.is_file():
+        result.acl_reference = parse_acl_reference(reference_path)
+        result.sample_reference = parse_sample_reference(reference_path)
+        result.logformat_reference = parse_logformat_reference(reference_path)
 
     return result

@@ -102,7 +102,7 @@ def _match_action_header(line: str) -> tuple[str, str] | None:
     if stripped.startswith("/*") or re.match(r"^\d+\.\d+\.", stripped):
         return None
     # Single-token action names without parameters (e.g. "accept", "allow").
-    if re.fullmatch(r"[a-z][a-z0-9_.-]*", stripped):
+    if re.fullmatch(r"[a-z][a-z0-9_-]*", stripped):
         return stripped, stripped
     return None
 
@@ -179,6 +179,9 @@ def parse_actions_lines(lines: list[str], start_idx: int, end_idx: int) -> dict[
             continue
 
         signatures, scan = collect_signature_lines(lines, idx)
+        if not signatures:
+            idx = max(scan, idx + 1)
+            continue
         primary_name = extract_keyword_name(signatures[0])
         usable_in = ""
         rulesets: list[str] = []

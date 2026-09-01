@@ -11,6 +11,14 @@ from .doc_parse_audit import build_doc_parse_audit_report
 from .doc_parser import parse_configuration
 from .grammar_coverage import report_from_paths
 from .grammar_emitter import write_tm_language
+from .hapee_versions import (
+    default_hapee_html_fixture,
+    default_oss_configuration_txt,
+    hapee_release,
+    infer_monorepo_root,
+    verify_hapee_source,
+    verify_hapee_source_text,
+)
 from .io_util import write_text_lf
 from .language_data import build_language_data
 from .doc_audit import build_doc_audit_report
@@ -80,7 +88,15 @@ def _schema_fidelity_audit_cmd(args: argparse.Namespace) -> int:
 def _check_grammar_cmd(args: argparse.Namespace) -> int:
     schema_path = Path(args.schema)
     grammar_path = Path(args.grammar) if args.grammar else None
-    report = report_from_paths(schema_path, grammar_path or schema_path)
+    try:
+        report = report_from_paths(
+            schema_path,
+            grammar_path or schema_path,
+            strict_grammar=grammar_path is not None,
+        )
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        print(f"invalid grammar: {error}")
+        return 1
     if args.report_out:
         write_text_lf(Path(args.report_out), json.dumps(report.to_dict(), indent=2) + "\n")
     if not report.ok:
@@ -105,6 +121,123 @@ def _emit_grammar_cmd(args: argparse.Namespace) -> int:
     schema = HaproxySchema.from_json_dict(json.loads(schema_path.read_text(encoding="utf-8")))
     grammar_path = Path(args.out)
     write_tm_language(schema, grammar_path)
+    return 0
+
+
+def _resolve_hapee_html(args: argparse.Namespace, release) -> Path:
+    from .html_doc_parser import load_hapee_html
+
+    html_path = Path(args.html) if args.html else None
+    if args.fetch:
+        html = load_hapee_html(url=release.doc_url)
+        if not args.allow_unpinned_html:
+            try:
+                html = verify_hapee_source_text(html, release)
+            except ValueError as error:
+                raise SystemExit(str(error)) from error
+        fixture_path = default_hapee_html_fixture(release.version)
+        fixture_path.parent.mkdir(parents=True, exist_ok=True)
+        write_text_lf(fixture_path, html)
+        html_path = fixture_path
+    if html_path is None:
+        html_path = default_hapee_html_fixture(release.version)
+    if not html_path.is_file():
+        raise SystemExit(f"HAPEE HTML not found: {html_path}")
+    if not args.allow_unpinned_html:
+        try:
+            verify_hapee_source(html_path, release)
+        except ValueError as error:
+            raise SystemExit(str(error)) from error
+    return html_path
+
+
+def _reject_hapee_community_output(path: Path | None, release, kind: str) -> None:
+    if path is None:
+        return
+    community_names = {
+        "schema": {f"haproxy-{release.oss_base}.schema.json"},
+        "language data": {f"haproxy-{release.oss_base}.language.json"},
+        "grammar": {
+            "haproxy.tmLanguage.json",
+            f"haproxy-{release.oss_base}.tmLanguage.json",
+        },
+    }
+    if path.name.casefold() in {name.casefold() for name in community_names[kind]}:
+        expected_suffix = {
+            "schema": "schema.json",
+            "language data": "language.json",
+            "grammar": "tmLanguage.json",
+        }[kind]
+        raise SystemExit(
+            f"Refusing to overwrite Community {kind} with HAPEE {release.version}: {path}. "
+            f"Use haproxy-{release.version}.{expected_suffix}."
+        )
+
+
+def _build_hapee_cmd(args: argparse.Namespace) -> int:
+    from .enterprise_overlays import apply_enterprise_module_overlays
+    from .html_doc_parser import load_hapee_html, parse_configuration_html
+
+    release = hapee_release(args.hapee_version)
+    schema_out = Path(args.out)
+    language_out = Path(args.language_data_out) if args.language_data_out else None
+    grammar_out = Path(args.grammar_out) if args.grammar_out else None
+    _reject_hapee_community_output(schema_out, release, "schema")
+    _reject_hapee_community_output(language_out, release, "language data")
+    _reject_hapee_community_output(grammar_out, release, "grammar")
+
+    html_path = _resolve_hapee_html(args, release)
+    monorepo = infer_monorepo_root()
+    oss_doc = Path(args.oss_doc) if args.oss_doc else default_oss_configuration_txt(
+        release.oss_base,
+        monorepo_root=monorepo,
+    )
+    if not oss_doc.is_file():
+        raise SystemExit(f"OSS configuration.txt not found for base {release.oss_base}: {oss_doc}")
+
+    html = load_hapee_html(path=html_path)
+    doc = parse_configuration_html(html, release=release, oss_reference_doc=oss_doc)
+
+    dkall_path = Path(args.dkall)
+    dkall = parse_dkall(dkall_path)
+    apply_enterprise_module_overlays(release.version, doc, dkall)
+    schema = merge_schema(
+        release.oss_base,
+        doc,
+        dkall,
+        dkall_package_dir=dkall_path.parent,
+        haproxy_root=monorepo / f"haproxy_git/haproxy-{release.oss_base}" if monorepo is not None else None,
+        edition="hapee",
+    )
+    schema.version = release.version
+    schema.write(schema_out)
+    print(f"HAPEE schema: {len(schema.keywords)} keywords -> {schema_out}")
+
+    actions = doc.action_reference or parse_actions(oss_doc)
+    language = build_language_data(
+        release.version,
+        doc,
+        dkall,
+        actions,
+        docs_base=release.doc_url,
+    )
+    if language_out is not None:
+        language.write(language_out)
+        print(f"HAPEE language data: {len(language.keywords)} keywords -> {language_out}")
+
+    if grammar_out is not None:
+        write_tm_language(schema, grammar_out)
+        print(f"HAPEE grammar -> {grammar_out}")
+
+    if args.coverage_out:
+        report = build_coverage_report(release.version, doc, dkall, schema, edition="hapee")
+        write_text_lf(Path(args.coverage_out), json.dumps(report.to_dict(), indent=2) + "\n")
+        print(
+            f"Coverage: {len(report.doc_only_keywords)} doc-only keywords, "
+            f"{len(report.dkall_only_keywords)} dkall-only, "
+            f"{len(report.hapee_doc_only_keywords)} hapee-doc-only, "
+            f"{len(report.keywords_without_argument_model)} without argument_model"
+        )
     return 0
 
 
@@ -190,6 +323,42 @@ def make_parser() -> argparse.ArgumentParser:
         help="Path to haproxy-dconv repo (reserved; rules are vendored in dconv_bridge)",
     )
     build.set_defaults(func=_build_cmd)
+
+    build_hapee = sub.add_parser(
+        "build-hapee",
+        help="Build full HAPEE schema and language-data JSON from official HTML documentation",
+    )
+    build_hapee.add_argument("--hapee-version", required=True, help="HAPEE release (e.g. 3.2r1)")
+    build_hapee.add_argument("--html", default="", help="Path to cached HAPEE configuration manual HTML")
+    build_hapee.add_argument(
+        "--fetch",
+        action="store_true",
+        help="Download HTML from haproxy.com (not stored in git; used to regenerate artifacts)",
+    )
+    build_hapee.add_argument(
+        "--allow-unpinned-html",
+        action="store_true",
+        help="Allow a custom HTML fixture whose checksum is not the release pin (tests/development only)",
+    )
+    build_hapee.add_argument(
+        "--oss-doc",
+        default="",
+        help="OSS configuration.txt for ACL/sample/logformat reference chapters",
+    )
+    build_hapee.add_argument("--dkall", required=True, help="Path to OSS dkall dump for the matching base version")
+    build_hapee.add_argument("--out", required=True, help="Output HAPEE schema path (haproxy-X.Yr1.schema.json)")
+    build_hapee.add_argument(
+        "--language-data-out",
+        default="",
+        help="Output HAPEE language-data JSON path (haproxy-X.Yr1.language.json)",
+    )
+    build_hapee.add_argument(
+        "--grammar-out",
+        default="",
+        help="Optional TextMate grammar JSON path (haproxy-X.Yr1.tmLanguage.json; do not overwrite community grammars)",
+    )
+    build_hapee.add_argument("--coverage-out", default="", help="Output coverage report JSON path")
+    build_hapee.set_defaults(func=_build_hapee_cmd)
 
     emit = sub.add_parser("emit-grammar", help="Regenerate TextMate grammar from an existing schema JSON")
     emit.add_argument("--schema", required=True, help="Path to haproxy-X.Y.schema.json")

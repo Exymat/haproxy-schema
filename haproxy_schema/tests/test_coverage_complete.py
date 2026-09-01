@@ -570,7 +570,7 @@ def test_action_parser_dash_line_and_chapter_fill() -> None:
 def test_match_action_header_fallback_and_lookup_prefix() -> None:
     from haproxy_schema.action_parser import _match_action_header, _store_action_doc
 
-    assert _match_action_header("foo.") == ("foo.", "foo.")
+    assert _match_action_header("foo.") is None
     assert _match_action_header("----------------") is None
     actions = {
         "foo bar": ActionDoc("foo bar", "", "", [], "", "", "4.4"),
