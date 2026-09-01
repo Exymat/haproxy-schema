@@ -912,6 +912,7 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                     "end": r"(\]|$)",
                     "endCaptures": {"0": _scope(_MODIFIER)},
                     "patterns": [
+                        {"include": "#sample-expressions"},
                         {"include": "#strings"},
                         {"include": "#sample-function-calls"},
                         {"include": "#sample-fetches"},
@@ -933,6 +934,7 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                     "end": r"(\]|$)",
                     "endCaptures": {"0": _scope(_MODIFIER)},
                     "patterns": [
+                        {"include": "#sample-expressions"},
                         {"include": "#strings"},
                         {"include": "#sample-function-calls"},
                         {"include": "#sample-fetches"},

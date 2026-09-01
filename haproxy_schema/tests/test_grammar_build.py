@@ -180,3 +180,19 @@ def test_generated_grammar_is_line_isolated() -> None:
     schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
     grammar = build_tm_language(schema)
     validate_line_isolated_grammar(grammar)
+
+
+def test_sample_expressions_support_nested_brackets() -> None:
+    """Quoted log-format strings nest [sd-id …] around inner %[…] blocks."""
+    schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
+    grammar = build_tm_language(schema)
+    sample_rules = grammar["repository"]["sample-expressions"]["patterns"]
+    assert len(sample_rules) == 2
+
+    for rule in sample_rules:
+        patterns = rule.get("patterns", [])
+        includes = [entry["include"] for entry in patterns if "include" in entry]
+        assert includes[0] == "#sample-expressions", (
+            f"expected recursive sample-expressions include first in {rule.get('begin')!r}, "
+            f"got {includes[:3]!r}"
+        )
