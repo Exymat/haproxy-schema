@@ -457,18 +457,70 @@ def build_argument_model(
     return merge_argument_models(models)
 
 
-def _enrich_slots_from_doc_enums(model: ArgumentModel, enum_names: list[str], slot_index: int = 0) -> None:
+def _enrich_slots_from_doc_enums(
+    model: ArgumentModel,
+    enum_names: list[str],
+    slot_index: int = 0,
+    *,
+    force: bool = False,
+) -> None:
     if not enum_names or slot_index >= len(model.slots):
         return
-    if model.slots[slot_index].enum:
-        merged = sorted(set(model.slots[slot_index].enum) | {name.lower() for name in enum_names})
-        model.slots[slot_index].enum = merged
+    slot = model.slots[slot_index]
+    if slot.enum:
+        merged = sorted(set(slot.enum) | {name.lower() for name in enum_names})
+        slot.enum = merged
         return
-    if any(slot.enum for slot in model.slots[slot_index + 1 :]):
+    if slot.variadic:
+        # Keep signature catch-alls such as [args...] open for later keyword/value pairs.
+        return
+    if not force and any(later.enum for later in model.slots[slot_index + 1 :]):
         # Keep explicit trailing enum slots (e.g. optional literal modifiers) untouched.
         return
-    model.slots[slot_index].enum = sorted({name.lower() for name in enum_names})
-    model.slots[slot_index].value_kind = "enum"
+    slot.enum = sorted({name.lower() for name in enum_names})
+    slot.value_kind = "enum"
+
+
+def _leading_param_token(parameter: str) -> str:
+    stripped = parameter.strip()
+    if not stripped:
+        return ""
+    return stripped.split()[0].lower()
+
+
+def _doc_enum_names_for_param(param: _ArgumentParamLike) -> list[str]:
+    parameter = getattr(param, "parameter", "").strip().lower()
+    if parameter in {"", "<algorithm>", "<type>"}:
+        names: list[str] = []
+        for value in getattr(param, "values", []) or []:
+            base = value.name.split("(", 1)[0]
+            if base and "<" not in base and ">" not in base:
+                names.append(base)
+        return names
+    key = _leading_param_token(parameter)
+    if not key or key.startswith("<"):
+        return []
+    return [key]
+
+
+def _slot_index_for_doc_param(
+    model: ArgumentModel,
+    parameter: str,
+    argument_index: int,
+    argument_count: int,
+) -> int | None:
+    normalized = parameter.strip().lower()
+    if normalized in {"", "<algorithm>", "<type>"} and argument_index < len(model.slots):
+        return argument_index
+    if argument_count == 1 and len(model.slots) == 1:
+        return 0
+    key = _leading_param_token(normalized)
+    if not key or key.startswith("<"):
+        return None
+    for idx, slot in enumerate(model.slots):
+        if key in {name.lower() for name in slot.enum}:
+            return idx
+    return None
 
 
 _SYSLOG_FACILITIES = (
@@ -589,29 +641,19 @@ def _attach_argument_model_to_target(
         return
     _patch_argument_model(keyword, model)
     arguments = getattr(target, "arguments", None) or []
-    normalized_param_to_slot = {
-        param.parameter.strip().lower(): idx
-        for idx, param in enumerate(arguments)
-        if idx < len(model.slots)
-    }
     for idx, param in enumerate(arguments):
-        doc_enums: list[str] = []
-        for value in getattr(param, "values", []) or []:
-            base = value.name.split("(", 1)[0]
-            if base and "<" not in base and ">" not in base:
-                doc_enums.append(base)
+        parameter = getattr(param, "parameter", "").strip().lower()
+        doc_enums = _doc_enum_names_for_param(param)
         if not doc_enums:
             continue
-        target_idx = None
-        parameter = getattr(param, "parameter", "").strip().lower()
-        if parameter in {"", "<algorithm>"} and idx < len(model.slots):
-            target_idx = idx
-        elif parameter in normalized_param_to_slot:
-            target_idx = normalized_param_to_slot[parameter]
-        elif len(arguments) == 1 and len(model.slots) == 1:
-            target_idx = 0
+        target_idx = _slot_index_for_doc_param(model, parameter, idx, len(arguments))
         if target_idx is not None:
-            _enrich_slots_from_doc_enums(model, doc_enums, target_idx)
+            _enrich_slots_from_doc_enums(
+                model,
+                doc_enums,
+                target_idx,
+                force=parameter == "<type>",
+            )
     target.argument_model = SchemaArgumentModel(
         min_args=model.min_args,
         max_args=model.max_args,

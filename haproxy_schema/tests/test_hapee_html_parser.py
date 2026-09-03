@@ -84,13 +84,62 @@ def test_html_to_configuration_lines_extracts_module_keywords() -> None:
     assert modules_chapter_id(lines) == "3.5"
 
 
-def test_parse_configuration_html_marks_hapee_only_keywords(oss_configuration_txt: Path) -> None:
+def test_parse_configuration_html_keeps_stick_table_key_types(oss_configuration_txt: Path) -> None:
     release = hapee_release("3.2r1")
     doc = parse_configuration_html(_HAPEE_HTML, release=release, oss_reference_doc=oss_configuration_txt)
-    assert "module-load" in doc.global_keywords
-    assert "module-path" in doc.global_keywords
-    assert "module-load" in doc.hapee_only_keywords
-    assert "module-path" in doc.hapee_only_keywords
+    stick = doc.keyword_docs["stick-table type"]
+    values = {value.name for param in stick.arguments for value in param.values}
+    assert {"ip", "ipv4", "ipv6"} <= values
+    for variant in stick.variants:
+        variant_values = {value.name for param in variant.arguments for value in param.values}
+        assert "ip" in variant_values, variant.signatures
+
+
+def test_html_stick_table_declaration_arguments_survive_conversion() -> None:
+    html = """
+    <html><body>
+    <h2 data-target="3.1" id="chapter-3.1">3.1. Process management and security</h2>
+    <div class="text">placeholder</div>
+    <h2 data-target="3.4" id="chapter-3.4">3.4. Userlists</h2>
+    <div class="text">placeholder</div>
+    <h2 data-target="4.1" id="chapter-4.1">4.1. Proxy keywords matrix</h2>
+    <table class="table-bordered">
+      <tr><th>keyword</th><th>defaults</th><th>frontend</th><th>listen</th><th>backend</th></tr>
+      <tr><td>stick-table type</td><td></td><td>X</td><td>X</td><td>X</td></tr>
+    </table>
+    <h2 data-target="4.2" id="chapter-4.2">4.2. Alphabetically sorted keywords reference</h2>
+    <div class="keyword"><b>stick-table</b> type &lt;type&gt; size &lt;size&gt; [expire &lt;expire&gt;] [args...]</div>
+    <div class="text">Please refer to section 11.1 for the complete details.</div>
+    <h3 data-target="11.1" id="chapter-11.1">11.1. Stick-table declaration</h3>
+    <div class="text">In a frontend, backend or listen section:</div>
+    <div class="keyword"><b>stick-table</b> type &lt;type&gt; size &lt;size&gt;</div>
+    <div class="separator"><span>Arguments:</span>
+      <pre class="arguments">  - type &lt;type&gt;
+             This mandatory argument sets the key type to &lt;type&gt;, which
+             usually is a single word but may also have its own arguments:
+     * ip        This type should be avoided in favor of ipv4.
+     * ipv4      A table declared with this type will only store IPv4 addresses.
+  - size &lt;size&gt;
+             This mandatory argument sets maximum number of entries.
+</pre>
+    </div>
+    </body></html>
+    """
+    from haproxy_schema.stick_table_docs import parse_stick_table_declaration_arguments
+
+    lines = html_to_configuration_lines(html)
+    params = parse_stick_table_declaration_arguments(lines)
+    names = {value.name for param in params for value in param.values}
+    assert "ip" in names
+    assert "ipv4" in names
+    ip = next(value for param in params for value in param.values if value.name == "ip")
+    assert "avoided" in ip.description
+
+    release = hapee_release("3.2r1")
+    doc = parse_configuration_html(html, release=release, oss_reference_doc=None)
+    values = {value.name for param in doc.keyword_docs["stick-table type"].arguments for value in param.values}
+    assert "ip" in values
+    assert "ipv4" in values
 
 
 def test_parse_sample_reference_html_extracts_has_ctl() -> None:

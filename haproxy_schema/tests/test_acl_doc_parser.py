@@ -17,6 +17,8 @@ def test_parse_acl_reference_from_configuration_txt() -> None:
     assert "--" in acl.flags
     assert "int" in acl.match_methods
     assert "found" in acl.match_methods
+    assert "compatible with IP address samples only" in acl.match_methods["ip"]
+    assert not acl.match_methods["ip"].endswith("It is compatible")
     assert "eq" in acl.int_operators
     assert "str" in acl.string_match_methods
     assert "sub" in acl.string_match_methods
@@ -39,6 +41,8 @@ def test_parse_acl_reference_preserves_case_sensitive_flag_names() -> None:
                 "The pattern matching method must be one of the following :",
                 "",
                 '   - "found" : only check if the requested sample could be found.',
+                '   - "ip"    : match the value as an IPv4 or IPv6 address. It is compatible',
+                "              with IP address samples only, so it is implied and never needed.",
                 "",
                 "7.1.1. Next section",
                 "-------------------",
@@ -53,3 +57,7 @@ def test_parse_acl_reference_preserves_case_sensitive_flag_names() -> None:
 
     assert acl.flags["-m"] == "use a specific pattern matching method"
     assert acl.flags["-M"] == "load the file pointed by -f like a map."
+    assert acl.match_methods["ip"] == (
+        "match the value as an IPv4 or IPv6 address. It is compatible "
+        "with IP address samples only, so it is implied and never needed."
+    )

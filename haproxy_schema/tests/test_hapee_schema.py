@@ -103,3 +103,9 @@ def test_hapee_language_uses_enterprise_docs_url() -> None:
     assert "3.5-module-load" in module_load["docsUrl"]
     converters = {item["name"] for item in language["groups"]["sample_converters"]}
     assert "has_ctl" in converters
+    stick_values = {
+        value["name"]
+        for param in language["keywords"]["stick-table type"]["arguments"]
+        for value in param["values"]
+    }
+    assert {"ip", "ipv4", "ipv6"} <= stick_values

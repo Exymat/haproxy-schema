@@ -51,21 +51,36 @@ def _section_range(
     return start, end
 
 
+def _append_continued_description(mapping: dict[str, str], key: str | None, text: str) -> None:
+    if not key or key not in mapping:
+        return
+    piece = text.strip()
+    if not piece:
+        return
+    mapping[key] = f"{mapping[key]} {piece}" if mapping[key] else piece
+
+
 def _parse_7_1_flags_and_methods(
     lines: list[str], start: int, end: int, out: AclReferenceDoc
 ) -> None:
     in_flags = False
     in_methods = False
+    last_flag: str | None = None
+    last_method: str | None = None
     for raw in lines[start:end]:
         line = raw.rstrip("\n")
         stripped = line.strip()
         if "following ACL flags are currently supported" in stripped:
             in_flags = True
             in_methods = False
+            last_flag = None
+            last_method = None
             continue
         if "pattern matching method must be one of the following" in stripped:
             in_flags = False
             in_methods = True
+            last_flag = None
+            last_method = None
             continue
         if stripped.startswith("7.1.") and "ACL" not in stripped:
             break
@@ -74,11 +89,17 @@ def _parse_7_1_flags_and_methods(
         if in_flags:
             m = _FLAG_RE.match(line)
             if m:
-                out.flags[m.group(1)] = stripped.split(":", 1)[-1].strip()
+                last_flag = m.group(1)
+                out.flags[last_flag] = stripped.split(":", 1)[-1].strip()
+            elif last_flag and line.startswith(" ") and stripped:
+                _append_continued_description(out.flags, last_flag, stripped)
         elif in_methods:
             m = _QUOTED_METHOD_RE.match(line)
             if m:
-                out.match_methods[m.group(1).lower()] = m.group(2).strip()
+                last_method = m.group(1).lower()
+                out.match_methods[last_method] = m.group(2).strip()
+            elif last_method and line.startswith(" ") and stripped:
+                _append_continued_description(out.match_methods, last_method, stripped)
 
 
 def _parse_7_1_2_operators(

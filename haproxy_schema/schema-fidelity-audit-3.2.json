@@ -5,7 +5,31 @@
   "keywords_without_argument_model": [],
   "keyword_argument_issues": [
     {
+      "keyword": "compression algo",
+      "issues": [
+        "doc_argument_values_not_reflected_in_model"
+      ]
+    },
+    {
+      "keyword": "compression type",
+      "issues": [
+        "doc_argument_values_not_reflected_in_model"
+      ]
+    },
+    {
       "keyword": "external-check command",
+      "issues": [
+        "doc_argument_values_not_reflected_in_model"
+      ]
+    },
+    {
+      "keyword": "format",
+      "issues": [
+        "doc_argument_values_not_reflected_in_model"
+      ]
+    },
+    {
+      "keyword": "hash-type",
       "issues": [
         "doc_argument_values_not_reflected_in_model"
       ]
@@ -34,6 +58,12 @@
       "keyword": "no option redispatch",
       "issues": [
         "doc_arguments_present_but_model_has_no_slots"
+      ]
+    },
+    {
+      "keyword": "retry-on",
+      "issues": [
+        "doc_argument_values_not_reflected_in_model"
       ]
     },
     {
@@ -2013,13 +2043,13 @@
         {
           "optional": false,
           "variadic": true,
-          "enum": [
-            "algo"
-          ],
-          "value_kind": "enum"
+          "enum": [],
+          "value_kind": "generic"
         }
       ],
-      "issues": []
+      "issues": [
+        "doc_argument_values_not_reflected_in_model"
+      ]
     },
     {
       "keyword": "compression algo-req",
@@ -2263,13 +2293,13 @@
         {
           "optional": false,
           "variadic": true,
-          "enum": [
-            "algo"
-          ],
-          "value_kind": "enum"
+          "enum": [],
+          "value_kind": "generic"
         }
       ],
-      "issues": []
+      "issues": [
+        "doc_argument_values_not_reflected_in_model"
+      ]
     },
     {
       "keyword": "contact",
@@ -2376,8 +2406,7 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "indirect",
-            "insert"
+            "indirect"
           ],
           "value_kind": "enum"
         },
@@ -2385,8 +2414,7 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "nocache",
-            "prefix"
+            "nocache"
           ],
           "value_kind": "enum"
         },
@@ -2394,7 +2422,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "indirect",
             "postonly"
           ],
           "value_kind": "enum"
@@ -2403,7 +2430,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "nocache",
             "preserve"
           ],
           "value_kind": "enum"
@@ -5255,19 +5281,13 @@
         {
           "optional": false,
           "variadic": false,
-          "enum": [
-            "iso",
-            "local",
-            "raw",
-            "rfc3164",
-            "rfc5424",
-            "short",
-            "timed"
-          ],
-          "value_kind": "enum"
+          "enum": [],
+          "value_kind": "generic"
         }
       ],
-      "issues": []
+      "issues": [
+        "doc_argument_values_not_reflected_in_model"
+      ]
     },
     {
       "keyword": "fullconn",
@@ -5894,11 +5914,8 @@
         {
           "optional": false,
           "variadic": false,
-          "enum": [
-            "consistent",
-            "map-based"
-          ],
-          "value_kind": "enum"
+          "enum": [],
+          "value_kind": "generic"
         },
         {
           "optional": false,
@@ -5913,7 +5930,9 @@
           "value_kind": "generic"
         }
       ],
-      "issues": []
+      "issues": [
+        "doc_argument_values_not_reflected_in_model"
+      ]
     },
     {
       "keyword": "hold",
@@ -6086,7 +6105,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "comment",
             "default"
           ],
           "value_kind": "enum"
@@ -6095,7 +6113,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "default",
             "port"
           ],
           "value_kind": "enum"
@@ -6124,7 +6141,14 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "send-proxy",
+            "send-proxy"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
             "via-socks4"
           ],
           "value_kind": "enum"
@@ -6133,16 +6157,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "ssl",
-            "via-socks4"
-          ],
-          "value_kind": "enum"
-        },
-        {
-          "optional": true,
-          "variadic": false,
-          "enum": [
-            "sni",
             "ssl"
           ],
           "value_kind": "enum"
@@ -6151,7 +6165,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "alpn",
             "sni"
           ],
           "value_kind": "enum"
@@ -6273,7 +6286,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "comment",
             "min-recv"
           ],
           "value_kind": "enum"
@@ -6288,7 +6300,20 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "comment",
+            "comment"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
             "ok-status"
           ],
           "value_kind": "enum"
@@ -6303,23 +6328,7 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "ok-status",
-            "tout-status"
-          ],
-          "value_kind": "enum"
-        },
-        {
-          "optional": true,
-          "variadic": false,
-          "enum": [],
-          "value_kind": "generic"
-        },
-        {
-          "optional": true,
-          "variadic": false,
-          "enum": [
-            "error-status",
-            "on-error"
+            "error-status"
           ],
           "value_kind": "enum"
         },
@@ -6438,7 +6447,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "comment",
             "meth"
           ],
           "value_kind": "enum"
@@ -6468,7 +6476,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "ver",
             "}"
           ],
           "value_kind": "enum"
@@ -6477,7 +6484,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "hdr",
             "ver"
           ],
           "value_kind": "enum"
@@ -6492,7 +6498,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "body-lf",
             "hdr"
           ],
           "value_kind": "enum"
@@ -6827,8 +6832,7 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "default-errorfiles",
-            "errorfile"
+            "default-errorfiles"
           ],
           "value_kind": "enum"
         },
@@ -6836,7 +6840,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "errorfiles",
             "hdr"
           ],
           "value_kind": "enum"
@@ -6844,18 +6847,14 @@
         {
           "optional": true,
           "variadic": false,
-          "enum": [
-            "file"
-          ],
-          "value_kind": "enum"
+          "enum": [],
+          "value_kind": "name"
         },
         {
           "optional": true,
           "variadic": true,
-          "enum": [
-            "string"
-          ],
-          "value_kind": "enum"
+          "enum": [],
+          "value_kind": "generic"
         }
       ],
       "issues": []
@@ -8115,15 +8114,7 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "iso",
-            "local",
-            "priority",
-            "raw",
-            "rfc3164",
-            "rfc5424",
-            "sample",
-            "short",
-            "timed"
+            "sample"
           ],
           "value_kind": "enum"
         },
@@ -16381,18 +16372,13 @@
         {
           "optional": true,
           "variadic": false,
-          "enum": [
-            "0rtt-rejected",
-            "conn-failure",
-            "empty-response",
-            "junk-response",
-            "none",
-            "response-timeout"
-          ],
-          "value_kind": "enum"
+          "enum": [],
+          "value_kind": "generic"
         }
       ],
-      "issues": []
+      "issues": [
+        "doc_argument_values_not_reflected_in_model"
+      ]
     },
     {
       "keyword": "reuse-key",
@@ -19414,8 +19400,8 @@
       ],
       "signature_count": 1,
       "description_present": true,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
+      "doc_argument_count": 10,
+      "doc_argument_value_count": 41,
       "statement_rule_kind": "",
       "statement_rule_group": "",
       "nested_start_index": null,
@@ -19431,8 +19417,15 @@
         {
           "optional": false,
           "variadic": false,
-          "enum": [],
-          "value_kind": "generic"
+          "enum": [
+            "binary",
+            "integer",
+            "ip",
+            "ipv4",
+            "ipv6",
+            "string"
+          ],
+          "value_kind": "enum"
         },
         {
           "optional": false,
@@ -19587,8 +19580,8 @@
       ],
       "signature_count": 1,
       "description_present": true,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
+      "doc_argument_count": 10,
+      "doc_argument_value_count": 41,
       "statement_rule_kind": "",
       "statement_rule_group": "",
       "nested_start_index": null,
@@ -19604,8 +19597,15 @@
         {
           "optional": false,
           "variadic": false,
-          "enum": [],
-          "value_kind": "generic"
+          "enum": [
+            "binary",
+            "integer",
+            "ip",
+            "ipv4",
+            "ipv6",
+            "string"
+          ],
+          "value_kind": "enum"
         },
         {
           "optional": false,
@@ -19788,7 +19788,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "comment",
             "default"
           ],
           "value_kind": "enum"
@@ -19797,7 +19796,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "default",
             "port"
           ],
           "value_kind": "enum"
@@ -19826,7 +19824,14 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "send-proxy",
+            "send-proxy"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
             "via-socks4"
           ],
           "value_kind": "enum"
@@ -19835,16 +19840,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "ssl",
-            "via-socks4"
-          ],
-          "value_kind": "enum"
-        },
-        {
-          "optional": true,
-          "variadic": false,
-          "enum": [
-            "sni",
             "ssl"
           ],
           "value_kind": "enum"
@@ -19853,7 +19848,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "alpn",
             "sni"
           ],
           "value_kind": "enum"
@@ -19947,7 +19941,6 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "comment",
             "min-recv"
           ],
           "value_kind": "enum"
@@ -19962,7 +19955,20 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "comment",
+            "comment"
+          ],
+          "value_kind": "enum"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [],
+          "value_kind": "generic"
+        },
+        {
+          "optional": true,
+          "variadic": false,
+          "enum": [
             "ok-status"
           ],
           "value_kind": "enum"
@@ -19977,23 +19983,7 @@
           "optional": true,
           "variadic": false,
           "enum": [
-            "ok-status",
-            "tout-status"
-          ],
-          "value_kind": "enum"
-        },
-        {
-          "optional": true,
-          "variadic": false,
-          "enum": [],
-          "value_kind": "generic"
-        },
-        {
-          "optional": true,
-          "variadic": false,
-          "enum": [
-            "error-status",
-            "on-error"
+            "error-status"
           ],
           "value_kind": "enum"
         },

@@ -26,6 +26,7 @@ from .doc_layout import DocLayout, detect_doc_layout
 from .legacy_action_parser import is_legacy_action_doc_keyword, parse_legacy_proxy_actions
 from .line_option_docs import walk_line_option_docs
 from .sample_doc_parser import SampleReferenceDoc, parse_sample_reference
+from .stick_table_docs import supplement_stick_table_docs
 
 SECTIONS_MATRIX = ["defaults", "frontend", "listen", "backend"]
 
@@ -743,5 +744,6 @@ def parse_configuration_lines(
         result.acl_reference = parse_acl_reference(reference_path)
         result.sample_reference = parse_sample_reference(reference_path)
         result.logformat_reference = parse_logformat_reference(reference_path)
+    supplement_stick_table_docs(result.keyword_docs, lines)
 
     return result

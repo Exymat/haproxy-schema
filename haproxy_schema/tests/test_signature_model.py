@@ -130,6 +130,66 @@ def test_doc_enum_enrichment_does_not_pollute_trailing_literal_enum() -> None:
     assert model.slots[1].enum == ["check_post"]
 
 
+def test_doc_enum_force_fills_empty_type_slot_before_trailing_literals() -> None:
+    model = parse_signature_model(
+        "stick-table type <type> size <size> [expire <expire>] [args...]",
+        "stick-table type",
+    )
+    assert model is not None
+    from haproxy_schema.signature_model import _enrich_slots_from_doc_enums
+
+    _enrich_slots_from_doc_enums(model, ["ip", "ipv4"], force=True)
+    assert set(model.slots[0].enum) == {"ip", "ipv4"}
+    assert model.slots[0].value_kind == "enum"
+
+
+def test_stick_table_doc_enums_do_not_close_args_ellipsis() -> None:
+    from haproxy_schema.dconv_bridge import ArgumentParamDoc, ArgumentValueDoc
+    from haproxy_schema.signature_model import attach_argument_models
+
+    target = type(
+        "Kw",
+        (),
+        {
+            "signatures": ["stick-table type <type> size <size> [expire <expire>] [args...]"],
+            "arguments": [
+                ArgumentParamDoc(
+                    parameter="<type>",
+                    values=[ArgumentValueDoc(name="ip"), ArgumentValueDoc(name="ipv4")],
+                ),
+                ArgumentParamDoc(parameter="size <size>", values=[ArgumentValueDoc(name="size")]),
+                ArgumentParamDoc(
+                    parameter="expire <delay>",
+                    values=[ArgumentValueDoc(name="expire")],
+                ),
+                ArgumentParamDoc(parameter="nopurge", values=[ArgumentValueDoc(name="nopurge")]),
+                ArgumentParamDoc(
+                    parameter="recv-only",
+                    values=[ArgumentValueDoc(name="recv-only")],
+                ),
+                ArgumentParamDoc(
+                    parameter="store <data_type>",
+                    values=[
+                        ArgumentValueDoc(name="store"),
+                        ArgumentValueDoc(name="gpc0"),
+                    ],
+                ),
+            ],
+            "argument_model": None,
+        },
+    )()
+    attach_argument_models({"stick-table type": target})
+    slots = target.argument_model.slots
+    assert set(slots[0]["enum"]) == {"ip", "ipv4"}
+    assert slots[-1]["variadic"] is True
+    assert slots[-1]["enum"] == []
+    all_enums = {name for slot in slots for name in slot["enum"]}
+    assert "nopurge" not in all_enums
+    assert "recv-only" not in all_enums
+    assert "gpc0" not in all_enums
+    assert "store" not in all_enums
+
+
 def test_server_signature_keeps_name_and_address_slots() -> None:
     model = build_argument_model(
         "server",

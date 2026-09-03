@@ -20,6 +20,7 @@ from .doc_parser import (
 )
 from .hapee_versions import HapeeRelease, default_oss_configuration_txt, hapee_release
 from .sample_doc_parser import SampleDoc, SampleReferenceDoc
+from .stick_table_docs import supplement_stick_table_docs
 
 _CHAPTER_H2_RE = re.compile(r"^chapter-(\d+(?:\.\d+)*)$")
 _ARGUMENT_LABEL_RE = re.compile(r"^arguments?\s*:?\s*$", re.I)
@@ -117,7 +118,12 @@ def _convert_separator(separator: Tag) -> list[str]:
         pre = separator.find("pre", class_="arguments")
         if pre is not None:
             for line in _pre_lines(pre):
-                lines.append(f"   {line}" if line else "")
+                if not line:
+                    lines.append("")
+                elif line.startswith(" "):
+                    lines.append(line)
+                else:
+                    lines.append(f"   {line}")
     elif _EXAMPLE_LABEL_RE.match(label):
         lines.append("Example:")
         pre = separator.find("pre")
@@ -430,7 +436,13 @@ def parse_configuration_html(
     if oss_reference_doc is not None and oss_reference_doc.is_file():
         oss_doc = parse_configuration(oss_reference_doc)
         enterprise.hapee_only_keywords = _all_doc_keywords(enterprise) - _all_doc_keywords(oss_doc)
-        return _overlay_doc_parse_result(oss_doc, enterprise)
+        result = _overlay_doc_parse_result(oss_doc, enterprise)
+        oss_lines = oss_reference_doc.read_text(encoding="utf-8", errors="replace").splitlines()
+        # Overlay can add HAPEE 4.2 stick-table variants with empty arguments.
+        # Re-apply §11.1 onto the merged docs from OSS text and converted HTML.
+        supplement_stick_table_docs(result.keyword_docs, oss_lines)
+        supplement_stick_table_docs(result.keyword_docs, lines)
+        return result
     return enterprise
 
 
