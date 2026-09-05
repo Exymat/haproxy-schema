@@ -235,6 +235,13 @@ def test_generated_metadata_has_provenance_for_every_supported_version(version: 
     assert len(schema.sample_casts) == len(schema.sample_types)
     assert schema.symbols["proxy_sections"] == ["frontend", "backend", "listen"]
     assert "completion_kind_to_action_group" in schema.semantic_groups
+    assert schema.semantic_groups["acl_ref_groups"] == [
+        "acl_flags",
+        "acl_match_methods",
+        "acl_int_operators",
+        "acl_string_match_methods",
+        "acl_predefined",
+    ]
     assert schema.validation_rules["special_argument_rules"]["cookie"]["modes"]
 
 

@@ -287,7 +287,7 @@ def _derive_semantic_groups(schema: HaproxySchema) -> tuple[dict[str, Any], dict
                 "acl_string_match_methods",
                 "acl_predefined",
             )
-            if group in schema.keyword_groups
+            if schema.tokens.get(group)
         ],
         "use_service": {
             "rule_kinds": sorted(use_service_rule_kinds),

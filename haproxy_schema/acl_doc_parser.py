@@ -51,13 +51,16 @@ def _section_range(
     return start, end
 
 
-def _append_continued_description(mapping: dict[str, str], key: str | None, text: str) -> None:
-    if not key or key not in mapping:
-        return
-    piece = text.strip()
-    if not piece:
-        return
-    mapping[key] = f"{mapping[key]} {piece}" if mapping[key] else piece
+def _is_hanging_wrap(line: str) -> bool:
+    """True for indented wrap lines that continue the current bullet/item."""
+    return bool(line.strip()) and line[:1].isspace()
+
+
+def _append_wrap(store: dict[str, str], key: str | None, line: str) -> str | None:
+    if key is None or not _is_hanging_wrap(line):
+        return None
+    store[key] = f"{store[key]} {line.strip()}".strip()
+    return key
 
 
 def _parse_7_1_flags_and_methods(
@@ -65,22 +68,19 @@ def _parse_7_1_flags_and_methods(
 ) -> None:
     in_flags = False
     in_methods = False
-    last_flag: str | None = None
-    last_method: str | None = None
+    last_key: str | None = None
     for raw in lines[start:end]:
         line = raw.rstrip("\n")
         stripped = line.strip()
         if "following ACL flags are currently supported" in stripped:
             in_flags = True
             in_methods = False
-            last_flag = None
-            last_method = None
+            last_key = None
             continue
         if "pattern matching method must be one of the following" in stripped:
             in_flags = False
             in_methods = True
-            last_flag = None
-            last_method = None
+            last_key = None
             continue
         if stripped.startswith("7.1.") and "ACL" not in stripped:
             break
@@ -89,28 +89,30 @@ def _parse_7_1_flags_and_methods(
         if in_flags:
             m = _FLAG_RE.match(line)
             if m:
-                last_flag = m.group(1)
-                out.flags[last_flag] = stripped.split(":", 1)[-1].strip()
-            elif last_flag and line.startswith(" ") and stripped:
-                _append_continued_description(out.flags, last_flag, stripped)
+                last_key = m.group(1)
+                out.flags[last_key] = stripped.split(":", 1)[-1].strip()
+            else:
+                last_key = _append_wrap(out.flags, last_key, line)
         elif in_methods:
             m = _QUOTED_METHOD_RE.match(line)
             if m:
-                last_method = m.group(1).lower()
-                out.match_methods[last_method] = m.group(2).strip()
-            elif last_method and line.startswith(" ") and stripped:
-                _append_continued_description(out.match_methods, last_method, stripped)
+                last_key = m.group(1).lower()
+                out.match_methods[last_key] = m.group(2).strip()
+            else:
+                last_key = _append_wrap(out.match_methods, last_key, line)
 
 
 def _parse_7_1_2_operators(
     lines: list[str], start: int, end: int, out: AclReferenceDoc
 ) -> None:
     in_ops = False
+    last_key: str | None = None
     for offset, raw in enumerate(lines[start:end]):
         line = raw.rstrip("\n")
         stripped = line.strip()
         if "Available operators for integer matching" in stripped:
             in_ops = True
+            last_key = None
             continue
         if offset > 2 and stripped.startswith("7.1.") and "Matching" in stripped:
             break
@@ -118,17 +120,24 @@ def _parse_7_1_2_operators(
             continue
         m = _INT_OP_RE.match(line)
         if m:
-            out.int_operators[m.group(1).lower()] = m.group(2).strip()
+            last_key = m.group(1).lower()
+            out.int_operators[last_key] = m.group(2).strip()
+        else:
+            last_key = _append_wrap(out.int_operators, last_key, line)
 
 
 def _parse_7_1_3_string_methods(
     lines: list[str], start: int, end: int, out: AclReferenceDoc
 ) -> None:
+    last_key: str | None = None
     for raw in lines[start:end]:
         line = raw.rstrip("\n")
         m = _STRING_MATCH_RE.match(line)
         if m:
-            out.string_match_methods[m.group(1).lower()] = m.group(2).strip()
+            last_key = m.group(1).lower()
+            out.string_match_methods[last_key] = m.group(2).strip()
+        else:
+            last_key = _append_wrap(out.string_match_methods, last_key, line)
 
 
 def _parse_7_4_predefined(

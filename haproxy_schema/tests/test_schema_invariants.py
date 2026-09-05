@@ -117,4 +117,11 @@ def test_schema_has_source_metadata_payloads(schema_dict: dict) -> None:
         "listen",
     ]
     assert "completion_kind_to_action_group" in schema_dict.get("semantic_groups", {})
+    assert schema_dict.get("semantic_groups", {}).get("acl_ref_groups") == [
+        "acl_flags",
+        "acl_match_methods",
+        "acl_int_operators",
+        "acl_string_match_methods",
+        "acl_predefined",
+    ]
     assert "logformat_stop_tokens" in schema_dict.get("validation_rules", {})
