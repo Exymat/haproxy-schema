@@ -15,6 +15,7 @@ concurrency:
 env:
   UV_VERSION: "0.11.19"
   HAPROXY_VERSIONS: "2.6 2.8 3.0 3.2 3.4"
+  HAPEE_VERSIONS: "2.6r1 2.8r1 3.0r1 3.2r1"
 
 jobs:
   build:
@@ -63,11 +64,29 @@ jobs:
             --coverage-out "haproxy_schema/coverage-${VERSION}.json" \
             --version "${VERSION}"
 
+      - name: Build HAPEE schema artifacts
+        if: matrix.haproxy-version != '3.4'
+        run: |
+          VERSION="${{ matrix.haproxy-version }}"
+          RELEASE="${VERSION}r1"
+          uv run haproxy-schema build-hapee \
+            --hapee-version "${RELEASE}" \
+            --fetch \
+            --dkall "haproxy_schema/dkall-${VERSION}.txt" \
+            --oss-doc "../haproxy_git/haproxy-${VERSION}/doc/configuration.txt" \
+            --out "../haproxy-vscode/schemas/haproxy-${RELEASE}.schema.json" \
+            --language-data-out "../haproxy-vscode/schemas/haproxy-${RELEASE}.language.json" \
+            --grammar-out "../haproxy-vscode/syntaxes/haproxy-${RELEASE}.tmLanguage.json"
+
       - name: Check grammar coverage
         run: |
           VERSION="${{ matrix.haproxy-version }}"
           uv run haproxy-schema check-grammar \
             --schema "../haproxy-vscode/schemas/haproxy-${VERSION}.schema.json"
+          if [ "${VERSION}" != "3.4" ]; then
+            uv run haproxy-schema check-grammar \
+              --schema "../haproxy-vscode/schemas/haproxy-${VERSION}r1.schema.json"
+          fi
 
   test:
     name: Tests
@@ -113,6 +132,21 @@ jobs:
               --grammar-out "../haproxy-vscode/syntaxes/haproxy-${version}.tmLanguage.json" \
               --coverage-out "haproxy_schema/coverage-${version}.json" \
               --version "${version}"
+          done
+
+      - name: Build HAPEE schema artifacts
+        run: |
+          mkdir -p ../haproxy-vscode/schemas ../haproxy-vscode/syntaxes
+          for release in ${HAPEE_VERSIONS}; do
+            BASE="${release%r1}"
+            uv run haproxy-schema build-hapee \
+              --hapee-version "${release}" \
+              --fetch \
+              --dkall "haproxy_schema/dkall-${BASE}.txt" \
+              --oss-doc "../haproxy_git/haproxy-${BASE}/doc/configuration.txt" \
+              --out "../haproxy-vscode/schemas/haproxy-${release}.schema.json" \
+              --language-data-out "../haproxy-vscode/schemas/haproxy-${release}.language.json" \
+              --grammar-out "../haproxy-vscode/syntaxes/haproxy-${release}.tmLanguage.json"
           done
 
       - name: Run tests with coverage

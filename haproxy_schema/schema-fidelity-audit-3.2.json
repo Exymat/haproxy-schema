@@ -35373,6 +35373,16 @@
     },
     {
       "group": "sample_converters",
+      "name": "has_ctl",
+      "signature_count": 1,
+      "description_present": true,
+      "contexts": [],
+      "takes_value_expected": false,
+      "in_schema_value_group": false,
+      "issues": []
+    },
+    {
+      "group": "sample_converters",
       "name": "hex",
       "signature_count": 1,
       "description_present": true,
@@ -37133,5 +37143,5 @@
     "missing_structured": []
   },
   "sample_fetch_docs_count": 538,
-  "sample_converter_docs_count": 143
+  "sample_converter_docs_count": 144
 }
