@@ -39,6 +39,52 @@ def test_parse_sample_reference_from_2_6_configuration_txt() -> None:
     assert result.converters["add"].description.startswith("Adds <value>")
 
 
+def test_parse_sample_reference_ignores_example_tables_after_summary(tmp_path: Path) -> None:
+    content = """7.3.1. Converter keywords reference
+----------------------------------
+
+Keyword                                         Input type   Output type
+lower                                           string       string
+-- keyword -------------------------------------+- input type + output type -
+
+The detailed list of converter keywords follows:
+
+lower
+  Converts a string to lower case.
+
+  Example :
+
+     # this is a comment and is ignored
+        2.22.246.0/23    United Kingdom      \\n
+
+    str      | end          | map_end
+   +--------------+---------------------------------------------------------+
+   | ES256        | ECDSA using P-256 and SHA-256                           |
+   +--------------+---------------------------------------------------------+
+
+7.3.2. Fetch keywords reference
+-------------------------------
+
+Keyword   Output type
+src       ip
+
+The detailed list of fetch keywords follows:
+
+src : ip
+  Returns the source address.
+"""
+    path = tmp_path / "configuration.txt"
+    path.write_text(content, encoding="utf-8")
+
+    result = parse_sample_reference(path)
+    assert set(result.converters) == {"lower"}
+    assert "src" in result.fetches
+    assert "|" not in result.converters
+    assert "ES256" not in result.converters
+    assert "str" not in result.converters
+    assert "2.22.246.0/23" not in result.converters
+
+
 def test_parse_sample_reference_keeps_multiple_paragraphs(tmp_path: Path) -> None:
     content = """7.3.1. Converter keywords reference
 ----------------------------------

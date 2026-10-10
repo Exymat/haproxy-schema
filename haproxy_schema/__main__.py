@@ -220,6 +220,7 @@ def _build_hapee_cmd(args: argparse.Namespace) -> int:
         dkall,
         actions,
         docs_base=release.doc_url,
+        include_doc_only_samples=True,
     )
     if language_out is not None:
         language.write(language_out)

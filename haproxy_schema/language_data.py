@@ -12,6 +12,7 @@ from .dkall_supplement import supplement_missing_tls_options
 from .doc_parser import DocParseResult, SECTIONS_MATRIX, parse_configuration
 from .enterprise_overlays import enterprise_module_docs_url
 from .merge import build_action_groups
+from .sample_doc_parser import is_sample_name
 
 
 @dataclass
@@ -222,6 +223,7 @@ def build_language_data(
     actions: dict[str, ActionDoc],
     *,
     docs_base: str | None = None,
+    include_doc_only_samples: bool = False,
 ) -> HaproxyLanguageData:
     resolved_docs_base = (docs_base or f"https://docs.haproxy.org/{version}/configuration.html").rstrip("/")
     data = HaproxyLanguageData(version=version, docsBaseUrl=resolved_docs_base)
@@ -404,14 +406,22 @@ def build_language_data(
             docs_chapter="7.3.2",
         ),
         "sample_fetches": group_items(
-            sorted(set(dkall.sample_fetches) | set(doc.sample_reference.fetches)),
+            sorted(_sample_group_names(
+                dkall.sample_fetches,
+                doc.sample_reference.fetches,
+                include_doc_only=include_doc_only_samples,
+            )),
             {name: item.description for name, item in doc.sample_reference.fetches.items() if item.description},
             {name: _sample_signature(item) for name, item in doc.sample_reference.fetches.items() if item.signature},
             examples=sample_fetch_examples,
             docs_chapter="",
         ),
         "sample_converters": group_items(
-            sorted(set(dkall.sample_converters) | set(doc.sample_reference.converters)),
+            sorted(_sample_group_names(
+                dkall.sample_converters,
+                doc.sample_reference.converters,
+                include_doc_only=include_doc_only_samples,
+            )),
             {name: item.description for name, item in doc.sample_reference.converters.items() if item.description},
             {name: _sample_signature(item) for name, item in doc.sample_reference.converters.items() if item.signature},
             examples=sample_converter_examples,
@@ -443,6 +453,27 @@ def build_language_data(
     data.conditionalDirectives = list(CONDITIONAL_DIRECTIVES)
 
     return data
+
+
+def _sample_group_names(
+    registered: set[str],
+    documented: dict[str, Any],
+    *,
+    include_doc_only: bool,
+) -> set[str]:
+    """Hover names follow registered fetches and converters.
+
+    Community builds stay on the dkall set so example tables and optional modules
+    that the binary did not register cannot show up as sample hover targets.
+    HAPEE builds also keep documented samples that have a real description.
+    """
+    names = set(registered)
+    if not include_doc_only:
+        return names
+    for name, item in documented.items():
+        if getattr(item, "description", "") and is_sample_name(name):
+            names.add(name)
+    return names
 
 
 def _collect_doc_options(doc: DocParseResult) -> set[str]:

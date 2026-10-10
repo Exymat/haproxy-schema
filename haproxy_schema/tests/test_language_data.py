@@ -42,3 +42,11 @@ def test_build_language_data_preserves_distinct_acl_flags() -> None:
     assert flags["-M"].description == "load the file pointed by -f like a map."
     assert flags["-M"].signature == "-M"
     assert flags["--"].signature == "--"
+    fetch_names = {item.name for item in data.groups["sample_fetches"]}
+    converter_names = {item.name for item in data.groups["sample_converters"]}
+    assert "base32+src" in fetch_names
+    assert "url32+src" in fetch_names
+    assert "|" not in converter_names
+    assert "int" not in converter_names
+    assert "http-response set-header bytes_var1_var3" not in converter_names
+    assert all(" " not in name and not name.startswith("|") for name in fetch_names | converter_names)

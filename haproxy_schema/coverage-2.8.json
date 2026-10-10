@@ -88,6 +88,7 @@
     "tcp-response",
     "tune.vars.check-max-size"
   ],
+  "hapee_doc_only_keywords": [],
   "keywords_without_argument_model": [],
   "sections_doc_only": [
     "backend",
@@ -105,7 +106,7 @@
   "sections_dkall_only": [
     "crt-list"
   ],
-  "sample_fetches_count": 370,
+  "sample_fetches_count": 372,
   "sample_converters_count": 132,
   "statement_rules_count": 26
 }

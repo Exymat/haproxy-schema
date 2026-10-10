@@ -35,8 +35,8 @@ class DkallParseResult:
 
 
 _CONTEXT_RE = re.compile(r"^\[\s*([Y.\s]+)\]\s*(.+)$")
-_FETCH_RE = re.compile(r"^([a-zA-Z0-9_.-]+)(?:\(([^)]*)\))?:\s*(\S+)")
-_CONV_RE = re.compile(r"^([a-zA-Z0-9_.-]+)(?:\(([^)]*)\))?:\s*(\S+)\s*=>\s*(\S+)")
+_FETCH_RE = re.compile(r"^([a-zA-Z0-9_.+-]+)(?:\(([^)]*)\))?:\s*(\S+)")
+_CONV_RE = re.compile(r"^([a-zA-Z0-9_.+-]+)(?:\(([^)]*)\))?:\s*(\S+)\s*=>\s*(\S+)")
 
 
 def _parse_blocks(lines: list[str]) -> dict[str, tuple[int, int]]:

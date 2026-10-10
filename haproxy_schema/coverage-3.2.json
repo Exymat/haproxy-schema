@@ -128,6 +128,7 @@
     "tune.vars.check-max-size",
     "verify"
   ],
+  "hapee_doc_only_keywords": [],
   "keywords_without_argument_model": [],
   "sections_doc_only": [
     "backend",
@@ -144,7 +145,7 @@
     "ring"
   ],
   "sections_dkall_only": [],
-  "sample_fetches_count": 539,
+  "sample_fetches_count": 541,
   "sample_converters_count": 170,
   "statement_rules_count": 26
 }

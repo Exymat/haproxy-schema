@@ -29,6 +29,7 @@ bwlim-in
 # List of registered sample fetch functions:
 [ Y Y . . ] hdr([string]): str
 [ Y Y . . ] url: str
+[ Y Y . . ] base32+src: bin
 # List of registered service names:
 prometheus-exporter
 """
@@ -54,4 +55,6 @@ prometheus-exporter
     assert "hdr" in result.acl_criteria
     assert "lower" in result.sample_converters
     assert "hdr" in result.sample_fetches
+    assert "base32+src" in result.sample_fetches
+    assert result.sample_fetches_structured["base32+src"].out_type == "bin"
     assert "bwlim-in" in result.filters

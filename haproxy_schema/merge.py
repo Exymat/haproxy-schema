@@ -7,6 +7,7 @@ from .dkall_parser import DkallParseResult
 from .dkall_supplement import supplement_missing_tls_options
 from .usesrc_supplement import supplement_usesrc_metadata
 from .doc_parser import DocParseResult
+from .sample_doc_parser import is_sample_name
 from .schema import (
     ArgumentParamDoc,
     ArgumentValueDoc,
@@ -511,9 +512,13 @@ def _add_group_name(schema: HaproxySchema, group: str, name: str) -> None:
         schema.keyword_groups[group] = sorted(names)
 
 
+def _doc_only_sample_allowed(name: str, description: str) -> bool:
+    return bool(description) and is_sample_name(name) and ":" not in name
+
+
 def _add_doc_only_sample_functions(schema: HaproxySchema, doc: DocParseResult) -> None:
     for name, item in doc.sample_reference.converters.items():
-        if name != name.strip() or any(char.isspace() for char in name) or ":" in name:
+        if not _doc_only_sample_allowed(name, item.description):
             continue
         if name in schema.sample_converters:
             continue
@@ -531,7 +536,7 @@ def _add_doc_only_sample_functions(schema: HaproxySchema, doc: DocParseResult) -
         )
         _add_group_name(schema, "sample_converters", name)
     for name, item in doc.sample_reference.fetches.items():
-        if name != name.strip() or any(char.isspace() for char in name) or ":" in name:
+        if not _doc_only_sample_allowed(name, item.description):
             continue
         if name in schema.sample_fetches:
             continue

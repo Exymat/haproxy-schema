@@ -53,8 +53,30 @@ def _section_range(lines: list[str], section_id: str, next_id: str | None) -> tu
     return start, end
 
 
+_SAMPLE_NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.+-]*$")
+
+
+def is_sample_name(name: str) -> bool:
+    """Accept registered fetch and converter identifiers, including 51d.* and base32+src."""
+    return bool(_SAMPLE_NAME_RE.match(name))
+
+
 def _sample_name(signature: str) -> str:
-    return extract_keyword_name(signature)
+    name = extract_keyword_name(signature)
+    if not is_sample_name(name):
+        return ""
+    return name
+
+
+def _summary_table_ended(stripped: str) -> bool:
+    # configuration.txt uses "The detailed list of converter keywords follows:"
+    # as well as a bare "Detailed list:" heading.
+    return "detailed list" in stripped.lower()
+
+
+def _is_table_separator(stripped: str) -> bool:
+    compact = stripped.replace("+", "").replace("|", "").replace("-", "").replace(" ", "")
+    return not compact or set(stripped) <= set("-|+ ")
 
 
 def _summary_entries(lines: list[str], start: int, end: int, *, converters: bool) -> dict[str, SampleDoc]:
@@ -65,14 +87,14 @@ def _summary_entries(lines: list[str], start: int, end: int, *, converters: bool
         stripped = line.strip()
         if not stripped:
             continue
-        if stripped.lower().startswith("detailed list"):
+        if _summary_table_ended(stripped):
             break
         if stripped.lower().startswith("keyword") and "type" in stripped.lower():
             in_table = True
             continue
         if not in_table:
             continue
-        if set(stripped.replace("+", "")) <= {"-", "|"}:
+        if _is_table_separator(stripped):
             continue
         parts = re.split(r"\s{2,}", stripped)
         if converters:
@@ -110,12 +132,14 @@ def _summary_entries(lines: list[str], start: int, end: int, *, converters: bool
 
 def _find_detailed_list_start(lines: list[str], start: int, end: int, *, converters: bool) -> int:
     for idx in range(start, end):
-        if lines[idx].strip().lower().startswith("detailed list"):
+        if _summary_table_ended(lines[idx].strip()):
             return idx + 1
     if converters:
         in_table = False
         for idx in range(start, end):
             stripped = lines[idx].strip()
+            if _summary_table_ended(stripped):
+                return idx + 1
             if stripped.lower().startswith("keyword") and "type" in stripped.lower():
                 in_table = True
                 continue
@@ -123,7 +147,7 @@ def _find_detailed_list_start(lines: list[str], start: int, end: int, *, convert
                 continue
             if not stripped:
                 continue
-            if set(stripped.replace("+", "")) <= {"-", "|"}:
+            if _is_table_separator(stripped):
                 continue
             parts = re.split(r"\s{2,}", stripped)
             if len(parts) >= 3:
