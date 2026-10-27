@@ -8,8 +8,7 @@ from pathlib import Path
 
 _HAPEE_DOC_BASE = "https://www.haproxy.com/documentation/haproxy-configuration-manual"
 
-# OSS 3.4 is community-only until HAPEE 3.4 ships.
-HAPEE_OSS_BASES: tuple[str, ...] = ("2.6", "2.8", "3.0", "3.2")
+HAPEE_OSS_BASES: tuple[str, ...] = ("2.6", "2.8", "3.0", "3.2", "3.4")
 
 
 @dataclass(frozen=True)
@@ -19,7 +18,7 @@ class HapeeRelease:
     doc_slug: str
     source_sha256: str
     # HAPEE "Modules" (module-load / module-path) is not at a fixed chapter:
-    # 2.6/2.8 → 3.11, 3.0 → 3.13, 3.2 → 3.5. OSS 3.5 is Peers on older docs.
+    # 2.6/2.8 → 3.11, 3.0 → 3.13, 3.2/3.4 → 3.5. OSS 3.5 is Peers on older docs.
     extra_global_chapters: tuple[str, ...] = ()
 
     @property
@@ -54,6 +53,13 @@ HAPEE_RELEASES: dict[str, HapeeRelease] = {
         oss_base="3.2",
         doc_slug="3-2r1",
         source_sha256="c7c5783c8650e52633a2d48571f8069d55f4b23e34f32d7be8bcba4315543572",
+        extra_global_chapters=("3.5",),
+    ),
+    "3.4r1": HapeeRelease(
+        version="3.4r1",
+        oss_base="3.4",
+        doc_slug="3-4r1",
+        source_sha256="17cae8750888f010eed6c2bcdbbf901e1c7cecff08867cd95f98a4b90f83df20",
         extra_global_chapters=("3.5",),
     ),
 }

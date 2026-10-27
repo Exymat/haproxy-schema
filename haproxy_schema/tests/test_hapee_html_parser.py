@@ -54,12 +54,14 @@ def oss_configuration_txt() -> Path:
 
 
 def test_hapee_releases_cover_lts_and_modules_chapters() -> None:
-    assert set(HAPEE_RELEASES) == {"2.6r1", "2.8r1", "3.0r1", "3.2r1"}
+    assert set(HAPEE_RELEASES) == {"2.6r1", "2.8r1", "3.0r1", "3.2r1", "3.4r1"}
     assert HAPEE_RELEASES["2.6r1"].extra_global_chapters == ("3.11",)
     assert HAPEE_RELEASES["2.8r1"].extra_global_chapters == ("3.11",)
     assert HAPEE_RELEASES["3.0r1"].extra_global_chapters == ("3.13",)
     assert HAPEE_RELEASES["3.2r1"].extra_global_chapters == ("3.5",)
     assert HAPEE_RELEASES["3.2r1"].oss_base == "3.2"
+    assert HAPEE_RELEASES["3.4r1"].extra_global_chapters == ("3.5",)
+    assert HAPEE_RELEASES["3.4r1"].oss_base == "3.4"
 
 
 def test_hapee_source_pin_normalizes_line_endings_and_rejects_changes() -> None:

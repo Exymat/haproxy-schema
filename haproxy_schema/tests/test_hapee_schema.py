@@ -95,6 +95,17 @@ def test_hapee_artifacts_preserve_optional_module_release_boundaries() -> None:
     assert "rhi-bgp" not in schema["sections"]
 
 
+def test_hapee_3_4r1_language_uses_enterprise_docs_url() -> None:
+    language_path = hapee_language("3.4r1")
+    language = _load_json_artifact(language_path, "HAPEE language artifact")
+    assert language["version"] == "3.4r1"
+    assert language["docsBaseUrl"].startswith(
+        "https://www.haproxy.com/documentation/haproxy-configuration-manual/3-4r1"
+    )
+    module_load = language["keywords"]["module-load"]
+    assert "3.5-module-load" in module_load["docsUrl"]
+
+
 def test_hapee_language_uses_enterprise_docs_url() -> None:
     language_path = hapee_language("3.2r1")
     language = _load_json_artifact(language_path, "HAPEE language artifact")

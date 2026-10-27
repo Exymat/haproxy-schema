@@ -9,8 +9,7 @@ _SCHEMA_REPO = Path(__file__).resolve().parents[2]
 # HAProxy releases this package builds schemas for (see README).
 SUPPORTED_VERSIONS: tuple[str, ...] = ("2.6", "2.8", "3.0", "3.2", "3.4")
 
-# HAPEE LTS releases (OSS 3.4 has no HAPEE release yet).
-HAPEE_VERSIONS: tuple[str, ...] = ("2.6r1", "2.8r1", "3.0r1", "3.2r1")
+HAPEE_VERSIONS: tuple[str, ...] = ("2.6r1", "2.8r1", "3.0r1", "3.2r1", "3.4r1")
 
 # Legacy docs (2.6/2.8) vs modern §4.3/§4.4 reference (3.0+).
 LEGACY_DOC_VERSIONS: frozenset[str] = frozenset({"2.6", "2.8"})
