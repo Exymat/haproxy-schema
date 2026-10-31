@@ -47,7 +47,7 @@ Outputs (written by **haproxy-vscode** `npm run generate:schema:<version>` or di
 ```
 haproxy-schema/
   .github/workflows/     # GitHub Actions (build + test per HAProxy release)
-  .python-version        # pinned Python for uv and CI (3.13)
+  .python-version        # pinned Python for uv and CI (3.14)
   uv.lock                # locked dev dependencies (pytest, pytest-cov)
   haproxy_schema/        # importable package (CLI: uv run haproxy-schema)
     dkall-2.6.txt        # checked-in -dKall dumps
