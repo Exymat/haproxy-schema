@@ -46,14 +46,26 @@ def _tag_text(node: Tag | NavigableString | None) -> str:
     return unescape(node.get_text())
 
 
+def _documentation_soup(html: str) -> BeautifulSoup:
+    soup = BeautifulSoup(html, "html.parser")
+    # Reference links contain hidden disambiguation menus. Their labels are UI,
+    # not documentation, even when the menu is nested inside a description.
+    for menu in soup.select(".dropdown-menu"):
+        menu.decompose()
+    return soup
+
+
 def _keyword_signature(keyword_div: Tag) -> str:
-    # dconv splits signatures across inline elements. BeautifulSoup's separator
-    # must preserve a space between config arguments, but must not turn
-    # ``has_ctl([mask])`` into the different keyword ``has_ctl ``.
-    signature = re.sub(r"\s+", " ", unescape(keyword_div.get_text(" ", strip=True))).strip()
-    signature = re.sub(r"\s*\(\s*", "(", signature)
-    signature = re.sub(r"\s*\)\s*", ")", signature)
-    signature = re.sub(r"\s*,\s*", ", ", signature)
+    # Preserve the whitespace rendered by the source HTML. Inserting separators
+    # between every inline tag splits /<path> and function arguments; removing
+    # whitespace after ')' joins the next positional argument to the function.
+    signature = re.sub(r"\s+", " ", unescape(keyword_div.get_text())).strip()
+    signature = re.sub(r"\s+\((?!deprecated\))", "(", signature)
+    # The text parser recognizes parenthesized argument lists as a single token.
+    # Compact only their interior, leaving ') <next-argument>' intact.
+    signature = re.sub(
+        r"\([^()]*\)", lambda match: re.sub(r"\s+", "", match.group()), signature
+    )
     return signature
 
 
@@ -102,6 +114,30 @@ def _matrix_lines_from_table(table: Tag) -> list[str]:
     return lines
 
 
+def _usage_table_lines(node: Tag) -> list[str] | None:
+    label = node.find("p", recursive=False)
+    table = node.find("table", recursive=False)
+    if label is None or table is None:
+        return None
+    title = re.sub(r"\s+", " ", label.get_text()).strip().rstrip(" :").lower()
+    if title not in {"usable in", "may be used in sections"}:
+        return None
+    rows = table.find_all("tr")
+    if len(rows) < 2:
+        return None
+    headings = [_tag_text(cell).strip() for cell in rows[0].find_all(["th", "td"])]
+    marks = [_table_cell_mark(cell).startswith("X") for cell in rows[1].find_all("td")]
+    if title == "usable in":
+        return [
+            "  Usable in: " + " | ".join(headings),
+            "             " + " | ".join("X" if mark else "-" for mark in marks),
+        ]
+    return [
+        "  May be used in sections : " + " | ".join(headings),
+        "                           " + " | ".join("yes" if mark else "no" for mark in marks),
+    ]
+
+
 def _pre_lines(pre: Tag) -> list[str]:
     code = pre.find("code")
     source = code if code is not None else pre
@@ -147,6 +183,10 @@ def _convert_block(node: Tag | NavigableString) -> list[str]:
     if not isinstance(node, Tag):
         return []
 
+    usage = _usage_table_lines(node)
+    if usage is not None:
+        return usage
+
     if node.name == "div" and "keyword" in (node.get("class") or []):
         return [_keyword_signature(node)]
 
@@ -190,14 +230,14 @@ def _chapter_title(heading: Tag) -> tuple[str, str]:
 def _is_chapter_heading(node: Tag | NavigableString | None) -> bool:
     return (
         isinstance(node, Tag)
-        and node.name in {"h2", "h3"}
+        and node.name in {"h1", "h2", "h3"}
         and (node.get("id") or "").startswith("chapter-")
     )
 
 
 def html_to_configuration_lines(html: str) -> list[str]:
-    soup = BeautifulSoup(html, "html.parser")
-    chapters = soup.select('h2[id^="chapter-"], h3[id^="chapter-"]')
+    soup = _documentation_soup(html)
+    chapters = soup.select('h1[id^="chapter-"], h2[id^="chapter-"], h3[id^="chapter-"]')
     lines: list[str] = ["Configuration Manual", "-------------------", "Summary", "-------"]
     for heading in chapters:
         chapter_id, title = _chapter_title(heading)
@@ -263,17 +303,22 @@ def _merge_sample_keyword_div(
     *,
     chapter: str,
 ) -> None:
-    signature = _normalize_sample_signature(_keyword_signature(keyword_div))
+    raw_signature = _keyword_signature(keyword_div)
+    signature = _normalize_sample_signature(raw_signature)
     name = _sample_name(signature)
     # Detailed entries enrich the canonical summary inventory. They must not
     # create new functions from example/prose keyword blocks.
     if not name or name not in bucket:
         return
     item = bucket[name]
+    item.deprecated = item.deprecated or raw_signature.lower().endswith("(deprecated)")
     if signature and (not item.signature or len(signature) > len(item.signature)):
         item.signature = signature
     item.chapter = chapter
     desc_node = keyword_div.find_next_sibling("div")
+    # Consecutive signatures are aliases of the same documentation block.
+    while isinstance(desc_node, Tag) and "keyword" in (desc_node.get("class") or []):
+        desc_node = desc_node.find_next_sibling("div")
     if isinstance(desc_node, Tag) and "text" in (desc_node.get("class") or []):
         description = desc_node.get_text(" ", strip=True)
         if description and not item.description:
@@ -286,7 +331,10 @@ _TRAILING_SAMPLE_TYPE_RE = re.compile(r"\s*:\s*[A-Za-z][A-Za-z0-9_./+ -]*$")
 
 def _normalize_sample_signature(signature: str) -> str:
     signature = re.sub(r"\s+", " ", unescape(signature)).strip()
+    signature = re.sub(r"\s*\(deprecated\)$", "", signature, flags=re.I).strip()
     signature = _TRAILING_SAMPLE_TYPE_RE.sub("", signature).strip()
+    # Some published sample headers omit the colon before their result type.
+    signature = re.sub(r"\s+(?:binary|boolean|integer|string)$", "", signature).strip()
     signature = re.sub(r"\s*\(\s*", "(", signature)
     signature = re.sub(r"\s*\)\s*", ")", signature)
     signature = re.sub(r"\s*,\s*", ", ", signature)
@@ -313,7 +361,7 @@ def _is_sample_summary_table(table: Tag, *, converters: bool) -> bool:
 
 def parse_sample_reference_html(html: str) -> SampleReferenceDoc:
     """Extract converters (7.3.1) and sample fetches (7.3.2–7.3.7) from HAPEE HTML."""
-    soup = BeautifulSoup(html, "html.parser")
+    soup = _documentation_soup(html)
     out = SampleReferenceDoc()
     for heading in soup.select('h3[id^="chapter-7.3."]'):
         chapter_id, _title = _chapter_title(heading)
@@ -384,8 +432,18 @@ def _overlay_doc_parse_result(base: DocParseResult, enterprise: DocParseResult) 
         existing.docs_keyword = action.docs_keyword or existing.docs_keyword
         existing.chapter = action.chapter or existing.chapter
 
-    result.sample_reference.converters.update(deepcopy(enterprise.sample_reference.converters))
-    result.sample_reference.fetches.update(deepcopy(enterprise.sample_reference.fetches))
+    for field_name in ("converters", "fetches"):
+        target = getattr(result.sample_reference, field_name)
+        for name, sample in getattr(enterprise.sample_reference, field_name).items():
+            replacement = deepcopy(sample)
+            existing = target.get(name)
+            if existing is not None:
+                # A summary inventory row may have no detailed Enterprise block.
+                # Keep real reference text instead of replacing it with emptiness.
+                replacement.description = replacement.description or existing.description
+                replacement.examples = replacement.examples or deepcopy(existing.examples)
+                replacement.deprecated = replacement.deprecated or existing.deprecated
+            target[name] = replacement
     result.hapee_only_keywords = set(enterprise.hapee_only_keywords)
     return result
 

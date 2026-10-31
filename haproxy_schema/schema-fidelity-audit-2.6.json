@@ -28182,18 +28182,6 @@
     },
     {
       "group": "sample_converters",
-      "name": "-----------------",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
       "name": "51d.single",
       "signature_count": 1,
       "description_present": true,
@@ -29722,8 +29710,8 @@
     },
     {
       "name": "sample_fetches",
-      "schema_count": 365,
-      "source_count": 365,
+      "schema_count": 367,
+      "source_count": 367,
       "missing_from_schema": [],
       "extra_in_schema": []
     },
@@ -29783,8 +29771,8 @@
   "reference_pattern_gaps": [],
   "consumer_fallback_required": [],
   "sample_fetches": {
-    "total_count": 365,
-    "structured_count": 365,
+    "total_count": 367,
+    "structured_count": 367,
     "missing_structured": []
   },
   "sample_converters": {
@@ -29793,5 +29781,5 @@
     "missing_structured": []
   },
   "sample_fetch_docs_count": 451,
-  "sample_converter_docs_count": 110
+  "sample_converter_docs_count": 109
 }

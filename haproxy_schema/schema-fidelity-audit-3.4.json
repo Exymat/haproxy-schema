@@ -37888,30 +37888,6 @@
     },
     {
       "group": "sample_converters",
-      "name": "#",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "2.22.246.0/23",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
       "name": "51d.single",
       "signature_count": 1,
       "description_present": true,
@@ -38362,18 +38338,6 @@
     },
     {
       "group": "sample_converters",
-      "name": "http-response set-header bytes_var1_var3",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
       "name": "http_date",
       "signature_count": 1,
       "description_present": true,
@@ -38401,30 +38365,6 @@
       "takes_value_expected": false,
       "in_schema_value_group": false,
       "issues": []
-    },
-    {
-      "group": "sample_converters",
-      "name": "int",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "ip",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
     },
     {
       "group": "sample_converters",
@@ -39515,18 +39455,6 @@
     },
     {
       "group": "sample_converters",
-      "name": "str",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
       "name": "strcmp",
       "signature_count": 1,
       "description_present": true,
@@ -40194,198 +40122,6 @@
       "takes_value_expected": false,
       "in_schema_value_group": false,
       "issues": []
-    },
-    {
-      "group": "sample_converters",
-      "name": "|",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| \"alg\" Param",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| ES256",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| ES384",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| ES512",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| HS256",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| HS384",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| HS512",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| PS256",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| PS384",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| PS512",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| RS256",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| RS384",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| RS512",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| Value",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "| none",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
     }
   ],
   "group_sync": [
@@ -40461,8 +40197,8 @@
     },
     {
       "name": "sample_fetches",
-      "schema_count": 557,
-      "source_count": 557,
+      "schema_count": 559,
+      "source_count": 559,
       "missing_from_schema": [],
       "extra_in_schema": []
     },
@@ -40522,8 +40258,8 @@
   "reference_pattern_gaps": [],
   "consumer_fallback_required": [],
   "sample_fetches": {
-    "total_count": 557,
-    "structured_count": 557,
+    "total_count": 559,
+    "structured_count": 559,
     "missing_structured": []
   },
   "sample_converters": {
@@ -40532,5 +40268,5 @@
     "missing_structured": []
   },
   "sample_fetch_docs_count": 556,
-  "sample_converter_docs_count": 197
+  "sample_converter_docs_count": 175
 }

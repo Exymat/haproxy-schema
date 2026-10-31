@@ -7,6 +7,7 @@ import re
 from typing import Protocol
 
 from .dconv_bridge import extract_keyword_name
+from .metadata_contract import ArgumentValueKind
 
 _ENUM_RE = re.compile(r"^\{(.+)\}$")
 _CONDITIONAL_TAIL = re.compile(r"^\[\s*\{\s*if\s*\|\s*unless\s*\}", re.I)
@@ -27,7 +28,7 @@ class ArgSlot:
     optional: bool = False
     variadic: bool = False
     enum: list[str] = field(default_factory=list)
-    value_kind: str = "generic"
+    value_kind: ArgumentValueKind = "generic"
 
 
 @dataclass
@@ -166,7 +167,7 @@ def _parse_enum_values(part: str) -> list[str]:
     return values
 
 
-def _value_kind_from_part(part: str) -> str:
+def _value_kind_from_part(part: str) -> ArgumentValueKind:
     lower = part.lower()
     if part.startswith("{"):
         return "enum"

@@ -5,12 +5,19 @@ import json
 from pathlib import Path
 from typing import Any
 
+from .metadata_contract import (
+    ArgumentSlot,
+    SchemaSemanticGroups,
+    SchemaSymbols,
+    SchemaValidationRules,
+)
+
 
 @dataclass
 class ArgumentModel:
     min_args: int = 0
     max_args: int | None = None
-    slots: list[dict] = field(default_factory=list)
+    slots: list[ArgumentSlot] = field(default_factory=list)
 
 
 @dataclass
@@ -133,9 +140,9 @@ class HaproxySchema:
     address_policies: dict[str, dict[str, bool]] = field(default_factory=dict)
     sample_types: list[str] = field(default_factory=list)
     sample_casts: list[list[bool]] = field(default_factory=list)
-    symbols: dict[str, Any] = field(default_factory=dict)
-    semantic_groups: dict[str, Any] = field(default_factory=dict)
-    validation_rules: dict[str, Any] = field(default_factory=dict)
+    symbols: SchemaSymbols = field(default_factory=dict)
+    semantic_groups: SchemaSemanticGroups = field(default_factory=dict)
+    validation_rules: SchemaValidationRules = field(default_factory=dict)
     keyword_groups: dict[str, list[str]] = field(default_factory=dict)
     keyword_group_contexts: dict[str, dict[str, list[str]]] = field(default_factory=dict)
     statement_rules: list[StatementRule] = field(default_factory=list)

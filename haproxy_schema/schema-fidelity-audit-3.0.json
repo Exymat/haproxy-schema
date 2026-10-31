@@ -32305,18 +32305,6 @@
     },
     {
       "group": "sample_converters",
-      "name": "2.22.246.0/23",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
       "name": "51d.single",
       "signature_count": 1,
       "description_present": true,
@@ -32647,18 +32635,6 @@
     },
     {
       "group": "sample_converters",
-      "name": "http-response set-header bytes_var1_var3",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
       "name": "http_date",
       "signature_count": 1,
       "description_present": true,
@@ -32686,30 +32662,6 @@
       "takes_value_expected": false,
       "in_schema_value_group": false,
       "issues": []
-    },
-    {
-      "group": "sample_converters",
-      "name": "int",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
-      "name": "ip",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
     },
     {
       "group": "sample_converters",
@@ -33600,18 +33552,6 @@
     },
     {
       "group": "sample_converters",
-      "name": "str",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
-    },
-    {
-      "group": "sample_converters",
       "name": "strcmp",
       "signature_count": 1,
       "description_present": true,
@@ -34099,18 +34039,6 @@
       "takes_value_expected": false,
       "in_schema_value_group": false,
       "issues": []
-    },
-    {
-      "group": "sample_converters",
-      "name": "|",
-      "signature_count": 1,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_description"
-      ]
     }
   ],
   "group_sync": [
@@ -34186,8 +34114,8 @@
     },
     {
       "name": "sample_fetches",
-      "schema_count": 522,
-      "source_count": 522,
+      "schema_count": 524,
+      "source_count": 524,
       "missing_from_schema": [],
       "extra_in_schema": []
     },
@@ -34247,8 +34175,8 @@
   "reference_pattern_gaps": [],
   "consumer_fallback_required": [],
   "sample_fetches": {
-    "total_count": 522,
-    "structured_count": 522,
+    "total_count": 524,
+    "structured_count": 524,
     "missing_structured": []
   },
   "sample_converters": {
@@ -34257,5 +34185,5 @@
     "missing_structured": []
   },
   "sample_fetch_docs_count": 522,
-  "sample_converter_docs_count": 131
+  "sample_converter_docs_count": 125
 }
