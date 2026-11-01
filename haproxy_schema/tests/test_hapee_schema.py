@@ -45,7 +45,7 @@ def test_checked_in_hapee_schema_includes_module_keywords(oss_base: str) -> None
         assert all(name == name.strip() and not any(char.isspace() for char in name) for name in schema[group])
 
 
-def test_hapee_3_2r1_includes_has_ctl_converter() -> None:
+def test_hapee_3_2r1_preserves_oss_has_ctl_converter() -> None:
     schema_path = hapee_schema("3.2r1")
     schema = _load_json_artifact(schema_path, "HAPEE schema artifact")
     converters = schema.get("sample_converters") or {}
@@ -54,7 +54,9 @@ def test_hapee_3_2r1_includes_has_ctl_converter() -> None:
     assert "has_ctl" in groups
     oss_path = haproxy_vscode_root() / "schemas" / "haproxy-3.2.schema.json"
     oss = _load_json_artifact(oss_path, "OSS schema")
-    assert "has_ctl" not in (oss.get("sample_converters") or {})
+    # The latest OSS 3.2 releases include this former Enterprise-only converter.
+    assert "has_ctl" in oss["sample_converters"]
+    assert "has_ctl" in oss["keyword_groups"]["sample_converters"]
 
 
 def test_hapee_3_2r1_includes_optional_module_overlays() -> None:

@@ -401,7 +401,9 @@
     },
     {
       "keyword": "allow-0rtt",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -424,7 +426,9 @@
     },
     {
       "keyword": "alpn",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -771,6 +775,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -800,7 +805,9 @@
     },
     {
       "keyword": "ca-file",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -928,7 +935,9 @@
     },
     {
       "keyword": "ca-verify-file",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -1187,28 +1196,6 @@
       "issues": []
     },
     {
-      "keyword": "check-pool-conn-name",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
       "keyword": "check-proto",
       "sections": [],
       "sources": [
@@ -1236,28 +1223,6 @@
           "value_kind": "name"
         }
       ],
-      "issues": []
-    },
-    {
-      "keyword": "check-reuse-pool",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
       "issues": []
     },
     {
@@ -1394,7 +1359,9 @@
     },
     {
       "keyword": "ciphers",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -1424,7 +1391,9 @@
     },
     {
       "keyword": "ciphersuites",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -1454,7 +1423,9 @@
     },
     {
       "keyword": "client-sigalgs",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -2211,7 +2182,9 @@
     },
     {
       "keyword": "crl-file",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -2275,6 +2248,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -2364,7 +2338,9 @@
     },
     {
       "keyword": "curves",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -2524,28 +2500,6 @@
           "value_kind": "generic"
         }
       ],
-      "issues": []
-    },
-    {
-      "keyword": "default-crt",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
       "issues": []
     },
     {
@@ -3054,7 +3008,9 @@
     },
     {
       "keyword": "ecdhe",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -4748,50 +4704,6 @@
       "issues": []
     },
     {
-      "keyword": "guid",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
-      "keyword": "guid-prefix",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
       "keyword": "h1-accept-payload-with-any-method",
       "sections": [
         "global"
@@ -5058,28 +4970,6 @@
           "value_kind": "generic"
         }
       ],
-      "issues": []
-    },
-    {
-      "keyword": "hash-key",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
       "issues": []
     },
     {
@@ -6330,6 +6220,7 @@
       "keyword": "httpclient.ssl.ca-file",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -6361,6 +6252,7 @@
       "keyword": "httpclient.ssl.verify",
       "sections": [],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -6457,28 +6349,6 @@
           "value_kind": "generic"
         }
       ],
-      "issues": []
-    },
-    {
-      "keyword": "idle-ping",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
       "issues": []
     },
     {
@@ -6595,28 +6465,6 @@
           "value_kind": "generic"
         }
       ],
-      "issues": []
-    },
-    {
-      "keyword": "init-state",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
       "issues": []
     },
     {
@@ -6737,6 +6585,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -6762,28 +6611,6 @@
           "value_kind": "generic"
         }
       ],
-      "issues": []
-    },
-    {
-      "keyword": "label",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
       "issues": []
     },
     {
@@ -7095,28 +6922,6 @@
         "doc_argument_values_not_reflected_in_model",
         "doc_arguments_present_but_model_has_no_slots"
       ]
-    },
-    {
-      "keyword": "log-bufsize",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
     },
     {
       "keyword": "log-format",
@@ -8200,6 +8005,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -8619,28 +8425,6 @@
           "value_kind": "name"
         }
       ],
-      "issues": []
-    },
-    {
-      "keyword": "nbconn",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
       "issues": []
     },
     {
@@ -9918,7 +9702,9 @@
     },
     {
       "keyword": "no-alpn",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -9964,7 +9750,9 @@
     },
     {
       "keyword": "no-ca-names",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -10004,28 +9792,6 @@
       "argument_model_present": true,
       "argument_model_min_args": 0,
       "argument_model_max_args": 0,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
-      "keyword": "no-check-reuse-pool",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
       "argument_model_slot_count": 0,
       "argument_model_slots": [],
       "issues": []
@@ -10285,28 +10051,6 @@
       "argument_model_present": true,
       "argument_model_min_args": 0,
       "argument_model_max_args": 0,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
-      "keyword": "no-strict-sni",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
       "argument_model_slot_count": 0,
       "argument_model_slots": [],
       "issues": []
@@ -10711,7 +10455,9 @@
     },
     {
       "keyword": "npn",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -10797,8 +10543,11 @@
     },
     {
       "keyword": "ocsp-update",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13209,28 +12958,6 @@
       "issues": []
     },
     {
-      "keyword": "pool-conn-name",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
       "keyword": "pool-low-conn",
       "sections": [],
       "sources": [
@@ -13698,7 +13425,6 @@
       "keyword": "quic-cc-algo",
       "sections": [],
       "sources": [
-        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13731,7 +13457,6 @@
       "keyword": "quic-force-retry",
       "sections": [],
       "sources": [
-        "dkall",
         "doc"
       ],
       "signature_count": 0,
@@ -13746,28 +13471,6 @@
       "argument_model_present": true,
       "argument_model_min_args": 0,
       "argument_model_max_args": 0,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
-      "keyword": "quic-socket",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
       "argument_model_slot_count": 0,
       "argument_model_slots": [],
       "issues": []
@@ -14821,28 +14524,6 @@
       "issues": []
     },
     {
-      "keyword": "set-proxy-v2-tlv-fmt",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
       "keyword": "set-var",
       "sections": [
         "global"
@@ -15097,7 +14778,9 @@
     },
     {
       "keyword": "sigalgs",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -15505,6 +15188,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15538,6 +15222,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15571,6 +15256,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15604,6 +15290,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15637,6 +15324,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15670,6 +15358,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15703,6 +15392,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15736,6 +15426,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15769,6 +15460,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15802,6 +15494,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15882,6 +15575,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15908,6 +15602,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -15945,7 +15640,9 @@
     },
     {
       "keyword": "ssl-max-ver",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -15981,7 +15678,9 @@
     },
     {
       "keyword": "ssl-min-ver",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -16021,6 +15720,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -16047,6 +15747,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -16080,6 +15781,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -16113,6 +15815,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -16205,6 +15908,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -17179,28 +16883,6 @@
       "argument_model_present": true,
       "argument_model_min_args": 0,
       "argument_model_max_args": 0,
-      "argument_model_slot_count": 0,
-      "argument_model_slots": [],
-      "issues": []
-    },
-    {
-      "keyword": "strict-maxconn",
-      "sections": [],
-      "sources": [
-        "dkall"
-      ],
-      "signature_count": 0,
-      "description_present": false,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [],
-      "argument_model_present": false,
-      "argument_model_min_args": null,
-      "argument_model_max_args": null,
       "argument_model_slot_count": 0,
       "argument_model_slots": [],
       "issues": []
@@ -21053,6 +20735,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21086,6 +20769,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21119,6 +20803,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21152,6 +20837,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21188,6 +20874,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21221,6 +20908,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21247,6 +20935,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21280,6 +20969,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21316,6 +21006,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21349,6 +21040,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21382,6 +21074,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21415,6 +21108,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -21448,6 +21142,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -22330,7 +22025,9 @@
     },
     {
       "keyword": "verify",
-      "sections": [],
+      "sections": [
+        "crt-list"
+      ],
       "sources": [
         "dkall",
         "doc"
@@ -22666,19 +22363,6 @@
     },
     {
       "group": "bind_options",
-      "name": "default-crt",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "bind_options",
       "name": "defer-accept",
       "signature_count": 1,
       "description_present": true,
@@ -22799,19 +22483,6 @@
     },
     {
       "group": "bind_options",
-      "name": "guid-prefix",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "bind_options",
       "name": "id",
       "signature_count": 1,
       "description_present": true,
@@ -22822,19 +22493,6 @@
     },
     {
       "group": "bind_options",
-      "name": "idle-ping",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "bind_options",
       "name": "interface",
       "signature_count": 1,
       "description_present": true,
@@ -22842,19 +22500,6 @@
       "takes_value_expected": true,
       "in_schema_value_group": true,
       "issues": []
-    },
-    {
-      "group": "bind_options",
-      "name": "label",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "bind_options",
@@ -22918,19 +22563,6 @@
     },
     {
       "group": "bind_options",
-      "name": "nbconn",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "bind_options",
       "name": "nice",
       "signature_count": 1,
       "description_present": true,
@@ -22968,19 +22600,6 @@
       "takes_value_expected": false,
       "in_schema_value_group": false,
       "issues": []
-    },
-    {
-      "group": "bind_options",
-      "name": "no-strict-sni",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "bind_options",
@@ -23091,8 +22710,8 @@
       "signature_count": 1,
       "description_present": true,
       "contexts": [],
-      "takes_value_expected": true,
-      "in_schema_value_group": true,
+      "takes_value_expected": false,
+      "in_schema_value_group": false,
       "issues": []
     },
     {
@@ -23104,19 +22723,6 @@
       "takes_value_expected": false,
       "in_schema_value_group": false,
       "issues": []
-    },
-    {
-      "group": "bind_options",
-      "name": "quic-socket",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "bind_options",
@@ -23227,19 +22833,6 @@
       "takes_value_expected": true,
       "in_schema_value_group": true,
       "issues": []
-    },
-    {
-      "group": "bind_options",
-      "name": "tls-tickets",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "bind_options",
@@ -23423,19 +23016,6 @@
     },
     {
       "group": "server_options",
-      "name": "check-pool-conn-name",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "server_options",
       "name": "check-proto",
       "signature_count": 1,
       "description_present": true,
@@ -23443,19 +23023,6 @@
       "takes_value_expected": true,
       "in_schema_value_group": true,
       "issues": []
-    },
-    {
-      "group": "server_options",
-      "name": "check-reuse-pool",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "server_options",
@@ -23519,19 +23086,6 @@
     },
     {
       "group": "server_options",
-      "name": "client-sigalgs",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "server_options",
       "name": "cookie",
       "signature_count": 1,
       "description_present": true,
@@ -23559,19 +23113,6 @@
       "takes_value_expected": true,
       "in_schema_value_group": true,
       "issues": []
-    },
-    {
-      "group": "server_options",
-      "name": "curves",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "server_options",
@@ -23685,32 +23226,6 @@
     },
     {
       "group": "server_options",
-      "name": "guid",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "server_options",
-      "name": "hash-key",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "server_options",
       "name": "id",
       "signature_count": 1,
       "description_present": true,
@@ -23718,19 +23233,6 @@
       "takes_value_expected": true,
       "in_schema_value_group": true,
       "issues": []
-    },
-    {
-      "group": "server_options",
-      "name": "idle-ping",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "server_options",
@@ -23744,19 +23246,6 @@
     },
     {
       "group": "server_options",
-      "name": "init-state",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "server_options",
       "name": "inter",
       "signature_count": 1,
       "description_present": true,
@@ -23764,19 +23253,6 @@
       "takes_value_expected": true,
       "in_schema_value_group": true,
       "issues": []
-    },
-    {
-      "group": "server_options",
-      "name": "log-bufsize",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "server_options",
@@ -23867,19 +23343,6 @@
       "takes_value_expected": false,
       "in_schema_value_group": false,
       "issues": []
-    },
-    {
-      "group": "server_options",
-      "name": "no-check-reuse-pool",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "server_options",
@@ -24106,19 +23569,6 @@
     },
     {
       "group": "server_options",
-      "name": "pool-conn-name",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "server_options",
       "name": "pool-low-conn",
       "signature_count": 1,
       "description_present": true,
@@ -24279,19 +23729,6 @@
     },
     {
       "group": "server_options",
-      "name": "set-proxy-v2-tlv-fmt",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
-    },
-    {
-      "group": "server_options",
       "name": "shard",
       "signature_count": 1,
       "description_present": true,
@@ -24299,19 +23736,6 @@
       "takes_value_expected": true,
       "in_schema_value_group": true,
       "issues": []
-    },
-    {
-      "group": "server_options",
-      "name": "sigalgs",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "server_options",
@@ -24402,19 +23826,6 @@
       "takes_value_expected": false,
       "in_schema_value_group": false,
       "issues": []
-    },
-    {
-      "group": "server_options",
-      "name": "strict-maxconn",
-      "signature_count": 0,
-      "description_present": false,
-      "contexts": [],
-      "takes_value_expected": false,
-      "in_schema_value_group": false,
-      "issues": [
-        "missing_signature",
-        "missing_description"
-      ]
     },
     {
       "group": "server_options",
@@ -29444,6 +28855,84 @@
     },
     {
       "group": "sample_fetches",
+      "name": "ssl_ocsp_certid",
+      "signature_count": 0,
+      "description_present": false,
+      "contexts": [],
+      "takes_value_expected": false,
+      "in_schema_value_group": false,
+      "issues": [
+        "missing_signature",
+        "missing_description"
+      ]
+    },
+    {
+      "group": "sample_fetches",
+      "name": "ssl_ocsp_certname",
+      "signature_count": 0,
+      "description_present": false,
+      "contexts": [],
+      "takes_value_expected": false,
+      "in_schema_value_group": false,
+      "issues": [
+        "missing_signature",
+        "missing_description"
+      ]
+    },
+    {
+      "group": "sample_fetches",
+      "name": "ssl_ocsp_fail_cnt",
+      "signature_count": 0,
+      "description_present": false,
+      "contexts": [],
+      "takes_value_expected": false,
+      "in_schema_value_group": false,
+      "issues": [
+        "missing_signature",
+        "missing_description"
+      ]
+    },
+    {
+      "group": "sample_fetches",
+      "name": "ssl_ocsp_status",
+      "signature_count": 0,
+      "description_present": false,
+      "contexts": [],
+      "takes_value_expected": false,
+      "in_schema_value_group": false,
+      "issues": [
+        "missing_signature",
+        "missing_description"
+      ]
+    },
+    {
+      "group": "sample_fetches",
+      "name": "ssl_ocsp_status_str",
+      "signature_count": 0,
+      "description_present": false,
+      "contexts": [],
+      "takes_value_expected": false,
+      "in_schema_value_group": false,
+      "issues": [
+        "missing_signature",
+        "missing_description"
+      ]
+    },
+    {
+      "group": "sample_fetches",
+      "name": "ssl_ocsp_success_cnt",
+      "signature_count": 0,
+      "description_present": false,
+      "contexts": [],
+      "takes_value_expected": false,
+      "in_schema_value_group": false,
+      "issues": [
+        "missing_signature",
+        "missing_description"
+      ]
+    },
+    {
+      "group": "sample_fetches",
       "name": "ssl_s_chain_der",
       "signature_count": 1,
       "description_present": true,
@@ -31252,15 +30741,15 @@
   "group_sync": [
     {
       "name": "bind_options",
-      "schema_count": 77,
-      "source_count": 77,
+      "schema_count": 67,
+      "source_count": 67,
       "missing_from_schema": [],
       "extra_in_schema": []
     },
     {
       "name": "server_options",
-      "schema_count": 115,
-      "source_count": 115,
+      "schema_count": 101,
+      "source_count": 101,
       "missing_from_schema": [],
       "extra_in_schema": []
     },
@@ -31315,22 +30804,22 @@
     },
     {
       "name": "acl_criteria",
-      "schema_count": 75,
-      "source_count": 75,
+      "schema_count": 77,
+      "source_count": 77,
       "missing_from_schema": [],
       "extra_in_schema": []
     },
     {
       "name": "sample_fetches",
-      "schema_count": 372,
-      "source_count": 372,
+      "schema_count": 465,
+      "source_count": 465,
       "missing_from_schema": [],
       "extra_in_schema": []
     },
     {
       "name": "sample_converters",
-      "schema_count": 132,
-      "source_count": 132,
+      "schema_count": 141,
+      "source_count": 141,
       "missing_from_schema": [],
       "extra_in_schema": []
     },
@@ -31359,8 +30848,8 @@
     },
     {
       "name": "bind_options_with_value",
-      "schema_count": 43,
-      "source_count": 43,
+      "schema_count": 42,
+      "source_count": 42,
       "missing_from_schema": [],
       "extra_in_schema": []
     },
@@ -31383,13 +30872,13 @@
   "reference_pattern_gaps": [],
   "consumer_fallback_required": [],
   "sample_fetches": {
-    "total_count": 372,
-    "structured_count": 372,
+    "total_count": 465,
+    "structured_count": 465,
     "missing_structured": []
   },
   "sample_converters": {
-    "total_count": 132,
-    "structured_count": 132,
+    "total_count": 141,
+    "structured_count": 141,
     "missing_structured": []
   },
   "sample_fetch_docs_count": 457,

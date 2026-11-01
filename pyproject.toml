@@ -1,6 +1,6 @@
 [project]
 name = "haproxy-schema"
-version = "1.0.0"
+version = "1.0.2"
 description = "Build HAProxy schemas, language data, and TextMate grammars from configuration.txt and dkall dumps"
 readme = "README.md"
 license = "Apache-2.0"

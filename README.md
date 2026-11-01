@@ -4,6 +4,14 @@
 
 Python package that builds HAProxy **2.6**, **2.8**, **3.0**, **3.2**, and **3.4** schemas, language data, and TextMate grammars from `configuration.txt` and `haproxy -dKall` keyword dumps.
 
+Documentation and keyword dumps were refreshed on **2026-11-01** from the latest
+stable release of each supported OSS branch: **2.6.35**, **2.8.31**, **3.0.30**,
+**3.2.26**, and **3.4.7**. CI pins these releases in
+[`haproxy-releases.json`](haproxy-releases.json). The official HAPEE **2.6r1**,
+**2.8r1**, **3.0r1**, **3.2r1**, and **3.4r1** manuals were fetched again and
+verified against their pinned checksums. Regenerated artifacts use these manuals
+and the matching OSS documentation; no historical documentation copies are added.
+
 ## What it produces
 
 For each HAProxy release, the `build` command merges two upstream sources:
@@ -33,12 +41,12 @@ reserved because the active rules are vendored in-tree.
 
 Outputs (written by **haproxy-vscode** `npm run generate:schema:<version>` or directly via the CLI):
 
-| Artifact | Purpose |
-| -------- | ------- |
-| `haproxy-X.Y.schema.json` | Section/keyword model, statement rules, argument signatures, **`line_layout`** (prefix families, tcp phases, stats socket levels), **`options_with_value`**, enriched **`argument_model.slots.value_kind`**, **`fixed_slots.address_policy`**, sample **`max_args`** — drives diagnostics |
-| `haproxy-X.Y.language.json` | Completion and hover payloads for the VS Code extension |
-| `haproxy-X.Y.tmLanguage.json` | Fully generated TextMate grammar for syntax highlighting |
-| `coverage-X.Y.json` | Doc vs dkall gap report (keywords missing from either side) |
+| Artifact                      | Purpose                                                                                                                                                                                                                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `haproxy-X.Y.schema.json`     | Section/keyword model, statement rules, argument signatures, **`line_layout`** (prefix families, tcp phases, stats socket levels), **`options_with_value`**, enriched **`argument_model.slots.value_kind`**, **`fixed_slots.address_policy`**, sample **`max_args`** — drives diagnostics |
+| `haproxy-X.Y.language.json`   | Completion and hover payloads for the VS Code extension                                                                                                                                                                                                                                   |
+| `haproxy-X.Y.tmLanguage.json` | Fully generated TextMate grammar for syntax highlighting                                                                                                                                                                                                                                  |
+| `coverage-X.Y.json`           | Doc vs dkall gap report (keywords missing from either side)                                                                                                                                                                                                                               |
 
 **2.6** and **2.8** use the legacy `configuration.txt` layout: rule actions are listed inline under each proxy keyword in §4.2 rather than in the separate §4.3/§4.4 reference used from 3.0 onward. The parser detects this automatically (`doc_layout.py`, `legacy_action_parser.py`).
 
@@ -95,9 +103,9 @@ The suite has **389 tests** covering parsing, schema merge, grammar emission, CL
 
 Full runs expect a **monorepo-style sibling layout** under the same parent directory:
 
-| Path | Purpose |
-| ---- | ------- |
-| `../haproxy_git/haproxy-<version>/` | upstream `configuration.txt` per release |
+| Path                                                      | Purpose                                                        |
+| --------------------------------------------------------- | -------------------------------------------------------------- |
+| `../haproxy_git/haproxy-<version>/`                       | upstream `configuration.txt` per release                       |
 | `../haproxy-vscode/schemas/haproxy-<version>.schema.json` | built schema artifacts consumed by grammar and validator tests |
 
 Tests skip gracefully when a source tree or schema file is missing. To run everything locally, clone [haproxy-vscode](https://github.com/Exymat/haproxy-vscode) and the HAProxy version repos as siblings (see below), build schemas, then run `uv run pytest`.
@@ -108,23 +116,23 @@ From a parent directory that contains both repos, `scripts/test-all.ps1` runs py
 
 GitHub Actions workflow [`.github/workflows/test.yml`](.github/workflows/test.yml) runs on every push and pull request (markdown changes are ignored):
 
-| Job | What it does |
-| --- | ------------ |
+| Job                                         | What it does                                                                                   |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | **Build** (matrix: 2.6, 2.8, 3.0, 3.2, 3.4) | Clones upstream HAProxy source, builds schema/language/grammar artifacts, runs `check-grammar` |
-| **Tests** | Clones all five HAProxy trees, builds schemas, runs the full pytest suite with coverage |
+| **Tests**                                   | Clones all five HAProxy trees, builds schemas, runs the full pytest suite with coverage        |
 
-CI uses [actions/setup-python](https://github.com/actions/setup-python) with `.python-version`, [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) (uv **0.11.19**, locked sync, cache enabled), and uploads `coverage.xml` to Codecov. Upstream HAProxy sources are fetched from `git.haproxy.org` at the release tags in [`haproxy-releases.json`](haproxy-releases.json), so snapshot tests use reproducible inputs instead of moving branch heads. Update these tags and review regenerated audit snapshots together when upgrading upstream documentation. No sibling checkout is required on the runner beyond what the workflow creates under `../haproxy_git/`, `../haproxy-vscode/schemas/`, and `../haproxy-vscode/syntaxes/`.
+CI uses [actions/setup-python](https://github.com/actions/setup-python) with `.python-version`, [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv) (uv **0.13.6**, locked sync, cache enabled), and uploads `coverage.xml` to Codecov. Upstream HAProxy sources are fetched from `git.haproxy.org` at the release tags in [`haproxy-releases.json`](haproxy-releases.json), so snapshot tests use reproducible inputs instead of moving branch heads. Update these tags and review regenerated audit snapshots together when upgrading upstream documentation. No sibling checkout is required on the runner beyond what the workflow creates under `../haproxy_git/`, `../haproxy-vscode/schemas/`, and `../haproxy-vscode/syntaxes/`.
 
 ## CLI
 
-| Command | Description |
-| ------- | ----------- |
-| `build` | Merge `configuration.txt` + dkall dump into schema JSON; optionally emit language data, grammar, and coverage report |
-| `build-hapee` | Parse official HAPEE HTML docs and write full schema/language artifacts (`haproxy-X.Yr1.schema.json`) for LTS 2.6r1–3.4r1 |
-| `emit-grammar` | Regenerate a fully generated TextMate grammar from an existing schema JSON |
-| `check-grammar` | Verify an emitted grammar covers all schema directives (prefix conflicts, missing cache keywords, stale hyphen forms) |
-| `audit-docs` | Report bind/server/proxy options missing hover documentation |
-| `doc-parse-audit` | Audit `configuration.txt` extraction quality for docs, signatures, hover payloads, and action references |
+| Command                 | Description                                                                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `build`                 | Merge `configuration.txt` + dkall dump into schema JSON; optionally emit language data, grammar, and coverage report          |
+| `build-hapee`           | Parse official HAPEE HTML docs and write full schema/language artifacts (`haproxy-X.Yr1.schema.json`) for LTS 2.6r1–3.4r1     |
+| `emit-grammar`          | Regenerate a fully generated TextMate grammar from an existing schema JSON                                                    |
+| `check-grammar`         | Verify an emitted grammar covers all schema directives (prefix conflicts, missing cache keywords, stale hyphen forms)         |
+| `audit-docs`            | Report bind/server/proxy options missing hover documentation                                                                  |
+| `doc-parse-audit`       | Audit `configuration.txt` extraction quality for docs, signatures, hover payloads, and action references                      |
 | `schema-fidelity-audit` | Audit how completely keyword arguments, nested options, sample functions, and value-taking options are modeled in schema JSON |
 
 The grammar generator is self-contained: it does not fetch or patch any upstream tmLanguage template at build time. Generated grammars point `$schema` to a local sidecar file, `./tmlanguage.schema.json`, which is emitted beside each `haproxy-X.Y.tmLanguage.json`.
@@ -144,13 +152,13 @@ uv run haproxy-schema build \
 
 HAPEE LTS **2.6r1–3.4r1** is built as a complete OSS-base overlay: community keywords/actions/sample functions are preserved, the Enterprise manual overrides or extends them, and optional-module syntax that cannot appear in the OSS `-dkall` dump is applied from a versioned overlay. That overlay covers WAF and response-body injection in every supported release, UDP from 2.8r1, SAML/Captcha/Bot Management from 3.0r1, and OIDC/RHI from 3.2r1. The VS Code extension loads `haproxy-X.Yr1` schema, language, and grammar files when `haproxy.edition` is `hapee`. `--grammar-out` should target `haproxy-X.Yr1.tmLanguage.json`, never the community `haproxy-X.Y.tmLanguage.json` files.
 
-| HAPEE | OSS base | Schema / language / grammar files | Docs |
-| ----- | -------- | -------------------------------- | ---- |
-| 2.6r1 | 2.6 | `haproxy-2.6r1.schema.json`, `haproxy-2.6r1.language.json`, `haproxy-2.6r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/2-6r1/` |
-| 2.8r1 | 2.8 | `haproxy-2.8r1.schema.json`, `haproxy-2.8r1.language.json`, `haproxy-2.8r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/2-8r1/` |
-| 3.0r1 | 3.0 | `haproxy-3.0r1.schema.json`, `haproxy-3.0r1.language.json`, `haproxy-3.0r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/3-0r1/` |
-| 3.2r1 | 3.2 | `haproxy-3.2r1.schema.json`, `haproxy-3.2r1.language.json`, `haproxy-3.2r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/3-2r1/` |
-| 3.4r1 | 3.4 | `haproxy-3.4r1.schema.json`, `haproxy-3.4r1.language.json`, `haproxy-3.4r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/3-4r1/` |
+| HAPEE | OSS base | Schema / language / grammar files                                                           | Docs                                                                        |
+| ----- | -------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 2.6r1 | 2.6      | `haproxy-2.6r1.schema.json`, `haproxy-2.6r1.language.json`, `haproxy-2.6r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/2-6r1/` |
+| 2.8r1 | 2.8      | `haproxy-2.8r1.schema.json`, `haproxy-2.8r1.language.json`, `haproxy-2.8r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/2-8r1/` |
+| 3.0r1 | 3.0      | `haproxy-3.0r1.schema.json`, `haproxy-3.0r1.language.json`, `haproxy-3.0r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/3-0r1/` |
+| 3.2r1 | 3.2      | `haproxy-3.2r1.schema.json`, `haproxy-3.2r1.language.json`, `haproxy-3.2r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/3-2r1/` |
+| 3.4r1 | 3.4      | `haproxy-3.4r1.schema.json`, `haproxy-3.4r1.language.json`, `haproxy-3.4r1.tmLanguage.json` | `https://www.haproxy.com/documentation/haproxy-configuration-manual/3-4r1/` |
 
 ```bash
 uv run haproxy-schema build-hapee \
@@ -232,10 +240,10 @@ This runs `uv run pytest` (with coverage), then `check-grammar` for each built s
 
 Build outputs combine factual keyword inventories and documentation excerpts from upstream HAProxy releases:
 
-| Source | Origin | Upstream license |
-| ------ | ------ | ---------------- |
-| `configuration.txt` | Official HAProxy configuration reference per release | GPL-2.0-or-later |
-| `haproxy -dKall` | Keyword dump from a DEBUG-enabled HAProxy binary | GPL-2.0-or-later |
-| Keyword-line parsing | Adapted from [haproxy-dconv](https://github.com/cbonte/haproxy-dconv) (`dconv_bridge.py`) | Apache-2.0 |
+| Source               | Origin                                                                                    | Upstream license |
+| -------------------- | ----------------------------------------------------------------------------------------- | ---------------- |
+| `configuration.txt`  | Official HAProxy configuration reference per release                                      | GPL-2.0-or-later |
+| `haproxy -dKall`     | Keyword dump from a DEBUG-enabled HAProxy binary                                          | GPL-2.0-or-later |
+| Keyword-line parsing | Adapted from [haproxy-dconv](https://github.com/cbonte/haproxy-dconv) (`dconv_bridge.py`) | Apache-2.0       |
 
 This tooling is independent of the HAProxy program itself; it does not link to or embed HAProxy binaries in its source tree.

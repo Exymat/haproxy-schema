@@ -73,20 +73,38 @@
     "wurfl-patch-file"
   ],
   "dkall_only_keywords": [
+    "allow-0rtt",
+    "alpn",
+    "ca-file",
+    "ca-verify-file",
+    "ciphers",
+    "ciphersuites",
+    "client-sigalgs",
     "clitimeout",
     "compression",
     "contimeout",
+    "crl-file",
+    "curves",
     "declare",
+    "ecdhe",
     "http-check",
     "http-error",
+    "no-alpn",
+    "no-ca-names",
+    "npn",
+    "ocsp-update",
     "option",
     "rate-limit",
+    "sigalgs",
     "srvtimeout",
+    "ssl-max-ver",
+    "ssl-min-ver",
     "stats",
     "tcp-check",
     "tcp-request",
     "tcp-response",
-    "tune.vars.check-max-size"
+    "tune.vars.check-max-size",
+    "verify"
   ],
   "hapee_doc_only_keywords": [],
   "keywords_without_argument_model": [],
@@ -106,7 +124,7 @@
   "sections_dkall_only": [
     "crt-list"
   ],
-  "sample_fetches_count": 372,
-  "sample_converters_count": 132,
+  "sample_fetches_count": 465,
+  "sample_converters_count": 141,
   "statement_rules_count": 26
 }

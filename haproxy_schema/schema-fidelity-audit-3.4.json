@@ -865,6 +865,7 @@
         "listen"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -5471,51 +5472,6 @@
       "issues": []
     },
     {
-      "keyword": "filter-sequence",
-      "sections": [
-        "backend",
-        "frontend",
-        "listen"
-      ],
-      "sources": [
-        "dkall",
-        "doc"
-      ],
-      "signature_count": 1,
-      "description_present": true,
-      "doc_argument_count": 0,
-      "doc_argument_value_count": 0,
-      "statement_rule_kind": "",
-      "statement_rule_group": "",
-      "nested_start_index": null,
-      "fixed_slots": [],
-      "signatures": [
-        "filter-sequence { request | response } <filter_list>"
-      ],
-      "argument_model_present": true,
-      "argument_model_min_args": 2,
-      "argument_model_max_args": 2,
-      "argument_model_slot_count": 2,
-      "argument_model_slots": [
-        {
-          "optional": false,
-          "variadic": false,
-          "enum": [
-            "request",
-            "response"
-          ],
-          "value_kind": "enum"
-        },
-        {
-          "optional": false,
-          "variadic": false,
-          "enum": [],
-          "value_kind": "generic"
-        }
-      ],
-      "issues": []
-    },
-    {
       "keyword": "force-be-switch",
       "sections": [
         "frontend",
@@ -8379,6 +8335,33 @@
           "value_kind": "enum"
         }
       ],
+      "issues": []
+    },
+    {
+      "keyword": "jwt.allow_none_alg",
+      "sections": [
+        "global"
+      ],
+      "sources": [
+        "dkall",
+        "doc"
+      ],
+      "signature_count": 1,
+      "description_present": true,
+      "doc_argument_count": 0,
+      "doc_argument_value_count": 0,
+      "statement_rule_kind": "",
+      "statement_rule_group": "",
+      "nested_start_index": null,
+      "fixed_slots": [],
+      "signatures": [
+        "jwt.allow_none_alg"
+      ],
+      "argument_model_present": true,
+      "argument_model_min_args": 0,
+      "argument_model_max_args": 0,
+      "argument_model_slot_count": 0,
+      "argument_model_slots": [],
       "issues": []
     },
     {
@@ -27442,6 +27425,7 @@
         "global"
       ],
       "sources": [
+        "dkall",
         "doc"
       ],
       "signature_count": 1,
@@ -40204,8 +40188,8 @@
     },
     {
       "name": "sample_converters",
-      "schema_count": 207,
-      "source_count": 207,
+      "schema_count": 208,
+      "source_count": 208,
       "missing_from_schema": [],
       "extra_in_schema": []
     },
@@ -40263,8 +40247,8 @@
     "missing_structured": []
   },
   "sample_converters": {
-    "total_count": 207,
-    "structured_count": 207,
+    "total_count": 208,
+    "structured_count": 208,
     "missing_structured": []
   },
   "sample_fetch_docs_count": 556,
