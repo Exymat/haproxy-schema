@@ -46,7 +46,9 @@ jobs:
       - name: Clone upstream HAProxy source
         run: |
           mkdir -p ../haproxy_git
-          git clone --depth 1 \
+          VERSION="${{ matrix.haproxy-version }}"
+          REF=$(python -c "import json; print(json.load(open('haproxy-releases.json'))['${VERSION}'])")
+          git clone --depth 1 --branch "${REF}" \
             "http://git.haproxy.org/git/haproxy-${{ matrix.haproxy-version }}.git" \
             "../haproxy_git/haproxy-${{ matrix.haproxy-version }}"
 
@@ -111,7 +113,8 @@ jobs:
         run: |
           mkdir -p ../haproxy_git
           for version in ${HAPROXY_VERSIONS}; do
-            git clone --depth 1 \
+            REF=$(python -c "import json; print(json.load(open('haproxy-releases.json'))['${version}'])")
+            git clone --depth 1 --branch "${REF}" \
               "http://git.haproxy.org/git/haproxy-${version}.git" \
               "../haproxy_git/haproxy-${version}"
           done
