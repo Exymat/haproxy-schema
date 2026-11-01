@@ -247,7 +247,7 @@ def _boundary_alt(words: list[str], limit: int = 5000) -> str:
         return "(?!)never-match"
     # Reject prefix matches before a hyphen so e.g. "cache" does not match inside
     # "cache-use" / "cache-store" (those are rule actions matched later).
-    return rf"\b{alt_pattern(words, limit=limit)}(?!-)\b"
+    return rf"(?<![\w./:@$-])\b{alt_pattern(words, limit=limit)}(?!-)\b(?![\w./:@-])"
 
 
 def _option_token(opt: str) -> str:
@@ -441,7 +441,7 @@ def _build_directives_with_values(schema: HaproxySchema) -> dict[str, Any]:
         },
         {
             "match": r"\b(acl)\s+(\S+)\s+([\w.-]+)",
-            "captures": _captures(_DIRECTIVE, _ACL_NAME, _STORAGE),
+            "captures": _captures(_DIRECTIVE, _ACL_NAME, "support.variable.fetch.haproxy"),
         },
         {
             "match": r"\b(cookie)\s+(\S+)",
@@ -503,7 +503,7 @@ def _build_rule_actions(schema: HaproxySchema) -> dict[str, Any]:
     if filters:
         patterns.append(
             {
-                "match": rf"\b(filter)\s+({alt_pattern(filters, limit=200)})\b",
+                "match": rf"^[ \t]*\b(filter)\s+({alt_pattern(filters, limit=200)})\b",
                 "captures": _captures(_DIRECTIVE, _DIRECTIVE),
             }
         )
@@ -520,7 +520,7 @@ def _build_rule_actions(schema: HaproxySchema) -> dict[str, Any]:
         act_alt = alt_pattern(actions, limit=500)
         patterns.append(
             {
-                "match": rf"\b({re.escape(rule_kw)})\s+({act_alt})\b",
+                "match": rf"^[ \t]*\b({re.escape(rule_kw)})\s+({act_alt})\b",
                 "captures": _captures(_DIRECTIVE, _DIRECTIVE),
             }
         )
@@ -535,31 +535,14 @@ def _build_rule_actions(schema: HaproxySchema) -> dict[str, Any]:
         act_alt = alt_pattern(actions, limit=200)
         patterns.append(
             {
-                "match": rf"\b({re.escape(rule_kw)})\s+({phase_alt})\s+({act_alt})\b",
+                "match": rf"^[ \t]*\b({re.escape(rule_kw)})\s+({phase_alt})\s+({act_alt})\b",
                 "captures": _captures(_DIRECTIVE, _DIRECTIVE, _DIRECTIVE),
             }
         )
         patterns.append(
             {
-                "match": rf"\b({re.escape(rule_kw)})\s+({phase_alt})\b",
+                "match": rf"^[ \t]*\b({re.escape(rule_kw)})\s+({phase_alt})\b",
                 "captures": _captures(_DIRECTIVE, _DIRECTIVE),
-            }
-        )
-
-    header_alt = alt_pattern(list(_HEADER_ACTIONS))
-    patterns.append(
-        {
-            "match": rf"\b({header_alt})\s+(\S+)",
-            "captures": _captures(_DIRECTIVE, _STRING),
-        }
-    )
-
-    standalone_actions = canonical_pattern_words(action_words(schema) - set(_RULE_KEYWORDS))
-    if standalone_actions:
-        patterns.append(
-            {
-                "name": _DIRECTIVE,
-                "match": _boundary_alt(standalone_actions, limit=500),
             }
         )
 
@@ -577,15 +560,15 @@ def _build_check_actions(schema: HaproxySchema) -> dict[str, Any]:
         step_alt = alt_pattern(step_list, limit=200)
         patterns.append(
             {
-                "match": rf"\b({re.escape(check_kw)})\s+({step_alt})\b",
+                "match": rf"^[ \t]*\b({re.escape(check_kw)})\s+({step_alt})\b",
                 "captures": _captures(_DIRECTIVE, _DIRECTIVE),
             }
         )
 
     patterns.append(
         {
-            "match": rf"\b(expect)\s+(!)?\s*({expect_alt})\b",
-            "captures": _captures(_DIRECTIVE, _MODIFIER, _DIRECTIVE),
+            "match": rf"^[ \t]*(http-check|tcp-check)\s+\b(expect)\s+(!)?\s*({expect_alt})\b",
+            "captures": _captures(_DIRECTIVE, _DIRECTIVE, _MODIFIER, _DIRECTIVE),
         }
     )
     return {"patterns": patterns}
@@ -734,34 +717,35 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
     cache_words = collect_cache_keywords(schema)
     single_arg = _collect_single_arg_directives(schema)
     enums = _collect_enum_words(schema)
-    sample_words = _collect_sample_words(schema)
-    fetches = [f for f in sample_words if "." in f and is_directive_token(f.split(".")[0])]
-    fetch_sample_pat = (
-        rf"\b{alt_pattern(fetches, limit=500)}\b"
-        if fetches
-        else r"\b(?!)never-match"
-    )
-    sample_word_pat = (
-        rf"\b(?:{alt_pattern(sample_words, limit=3000)})\b"
-        if sample_words
-        else r"\b(?!)never-match"
-    )
-    sample_call_pat = (
-        rf"\b({alt_pattern(sample_words, limit=3000)})\s*(\()"
-        if sample_words
-        else r"(?!)never-match"
-    )
-
     single_arg_pat = (
-        rf"\b(?:{alt_pattern(single_arg, limit=1000)})\s+(\S+)"
+        rf"\b({alt_pattern(single_arg, limit=1000)})\s+(\S+)"
         if single_arg
         else r"(?!)never-match"
     )
 
     return {
-        "comments": {"patterns": [{"name": _COMMENT, "match": "#.*$"}]},
+        "comments": {"patterns": [{"name": _COMMENT, "match": r"(?<!\\)#.*$"}]},
+        "environment-variables": {
+            "patterns": [{"name": "variable.other.environment.haproxy",
+                          "match": r"\$(?:\{[A-Za-z_]\w*[^}]*\}|[A-Za-z_]\w*)"}]
+        },
+        "escapes": {"patterns": [{"name": "constant.character.escape.haproxy", "match": r"\\."}]},
         "preprocessor-directives": {
             "patterns": [
+                {
+                    "begin": r"^\s*(\.(?:if|elif))\b",
+                    "beginCaptures": {"1": {"name": _PREPROCESSOR}},
+                    "end": r"(?=$)",
+                    "patterns": [
+                        {"include": "#comments"},
+                        {"include": "#strings"},
+                        {"include": "#environment-variables"},
+                        {"name": "support.function.builtin.haproxy",
+                         "match": r"\b(?:defined|feature|streq|strneq|strstr|version_atleast|version_before|enabled)(?=\()"},
+                        {"name": "keyword.operator.logical.haproxy", "match": r"&&|\|\||!"},
+                        {"include": "#numbers"},
+                    ],
+                },
                 {
                     "name": _PREPROCESSOR,
                     "match": r"^\s*\.(?:if|elif|else|endif|diag|notice|warning|alert)\b",
@@ -775,8 +759,9 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                     "begin": '"',
                     "end": r'("|$)',
                     "patterns": [
+                        {"include": "#escapes"},
+                        {"include": "#environment-variables"},
                         {"include": "#log-format-content"},
-                        {"name": "constant.character.escape.haproxy", "match": r"\\."},
                     ],
                 },
                 {
@@ -785,33 +770,45 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
                     "end": r"('|$)",
                     "patterns": [
                         {"include": "#log-format-content"},
-                        {"name": "constant.character.escape.haproxy", "match": r"\\."},
                     ],
                 },
             ]
         },
         "sections": _build_sections(schema),
-        "cache-keywords": {
+        "cache-keywords": _line_rules({
             "patterns": [{"name": _DIRECTIVE, "match": _boundary_alt(cache_words, limit=100)}]
-        },
-        "schema-directives": {
+        }),
+        "schema-directives": _line_rules({
             "patterns": [{"name": _DIRECTIVE, "match": _boundary_alt(directives, limit=5000)}]
-        },
-        "directives-with-values": _build_directives_with_values(schema),
-        "directives-multiword": _build_directives_multiword(schema),
-        "rule-actions": _build_rule_actions(schema),
-        "check-actions": _build_check_actions(schema),
+        }),
+        "directives-with-values": _line_rules(_build_directives_with_values(schema)),
+        "directives-multiword": _line_rules(_build_directives_multiword(schema)),
+        "rule-actions": _statement_arguments(_build_rule_actions(schema), "#rule-arguments"),
+        "check-actions": _statement_arguments(_build_check_actions(schema), "#rule-arguments"),
         "log-format-content": _build_log_format_content(schema),
         "log-format-prefixes": _build_log_format_prefix_patterns(schema),
-        "log-line": _build_log_line(schema),
-        "single-arg-directives": {
+        "log-line": _line_rules(_build_log_line(schema)),
+        "single-arg-directives": _line_rules({
             "patterns": [
                 {
                     "match": single_arg_pat,
                     "captures": {"1": _scope(_DIRECTIVE), "2": _scope(_STRING)},
                 }
             ]
-        },
+        }),
+        "rule-arguments": {"patterns": [
+            {"include": "#comments"}, {"include": "#escapes"}, {"include": "#strings"},
+            {"include": "#sample-expressions"}, {"include": "#sample-function-calls"},
+            {"include": "#acl-expressions"}, {"include": "#condition-keywords"},
+            {"include": "#redirect-keywords"}, {"include": "#addresses"}, {"include": "#acl-flags"},
+            {"include": "#comparison-operators"}, {"include": "#numbers"},
+            {"include": "#punctuation"}, {"include": "#identifiers"},
+        ]},
+        "server-statement": {"patterns": [{
+            "begin": r"^[ \t]*(server|server-template)\s+(\S+)\s+(\S+)",
+            "beginCaptures": _captures(_DIRECTIVE, _PROXY, _STRING),
+            "end": r"$", "patterns": _BIND_TAIL_INCLUDES + [{"include": "#punctuation"}, {"include": "#identifiers"}],
+        }]},
         "redirect-keywords": {
             "patterns": [{"name": _DIRECTIVE, "match": _boundary_alt(list(_REDIRECT_WORDS), limit=50)}]
         },
@@ -842,38 +839,31 @@ def build_repository(schema: HaproxySchema) -> dict[str, Any]:
         "versions": {
             "patterns": [{"name": _NUMBER, "match": r"\b\d+\.\d+(?:-\d+\.\d+)?\b"}]
         },
-        "sample-fetches": {
-            "patterns": [
-                {"name": _STORAGE, "match": fetch_sample_pat},
-                {"name": _STORAGE, "match": sample_word_pat},
-                {"name": _STORAGE, "match": r"(?<=,)\s*[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]+)*\b"},
-                {"name": _STORAGE, "match": r"\b[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]+)+\b"},
-            ]
-        },
-        "sample-function-calls": {
-            "patterns": [
-                {
-                    "begin": sample_call_pat,
-                    "beginCaptures": {"1": _scope(_STORAGE), "2": _scope(_MODIFIER)},
-                    "end": r"(\)|$)",
-                    "endCaptures": {"0": _scope(_MODIFIER)},
-                    "patterns": [
-                        {"include": "#strings"},
-                        {"include": "#sample-function-calls"},
-                        {"include": "#sample-fetches"},
-                        {"include": "#acl-flags"},
-                        {"include": "#comparison-operators"},
-                        {"include": "#condition-keywords"},
-                        {"include": "#boolean-literals"},
-                        {"include": "#numbers"},
-                        {"include": "#enums"},
-                        {"include": "#filenames"},
-                        {"include": "#punctuation"},
-                        {"include": "#identifiers"},
-                    ],
-                }
-            ]
-        },
+        "sample-fetches": {"patterns": [
+            {"name": "support.variable.fetch.haproxy", "match": _boundary_alt(list(schema.sample_fetches))},
+        ]},
+        "sample-function-calls": {"patterns": [
+            {"include": "#converters"},
+            {"name": "meta.function-call.haproxy",
+             "begin": rf"(?<![\w./:@$-])({alt_pattern(list(schema.sample_fetches), limit=5000)})(\()",
+             "beginCaptures": {"1": _scope("support.variable.fetch.haproxy"), "2": _scope(_MODIFIER)},
+             "end": r"\)|$", "patterns": [{"include": "#call-arguments"}]},
+        ]},
+        "converters": {"patterns": [
+            {"name": "meta.function-call.converter.haproxy",
+             "begin": rf"(?<=[\w)\]])(,)({alt_pattern(list(schema.sample_converters), limit=5000)})(\()",
+             "beginCaptures": {"1": _scope(_MODIFIER), "2": _scope("support.function.converter.haproxy"), "3": _scope(_MODIFIER)},
+             "end": r"\)|$", "patterns": [{"include": "#call-arguments"}]},
+            {"match": rf"(?<=[\w)\]])(,)({alt_pattern(list(schema.sample_converters), limit=5000)})(?![\w.(])",
+             "captures": {"1": _scope(_MODIFIER), "2": _scope("support.function.converter.haproxy")}},
+        ]},
+        "call-arguments": {"patterns": [
+            {"include": "#escapes"}, {"include": "#strings"},
+            {"include": "#sample-function-calls"},
+            {"name": "variable.other.haproxy", "match": r"\b(?:proc|sess|txn|req|res|check)\.[\w.-]+"},
+            {"include": "#numbers"}, {"include": "#punctuation"},
+            {"include": "#identifiers"},
+        ]},
         "numbers": {
             "patterns": [
                 {"name": _NUMBER, "match": r"\b[0-9A-Fa-f]*[0-9][0-9A-Fa-f]*\b"},
@@ -1020,6 +1010,28 @@ def validate_line_isolated_grammar(grammar: dict[str, Any]) -> None:
         raise ValueError("Grammar is not line-isolated:\n" + "\n".join(violations))
 
 
+def _statement_arguments(group: dict[str, Any], include: str) -> dict[str, Any]:
+    """Retokenize a statement's tail using only its argument vocabulary."""
+    for rule in group["patterns"]:
+        pattern = rule["match"]
+        tail = str(re.compile(pattern).groups + 1)
+        rule["match"] = pattern + r"(?:\s+(.*))?$"
+        rule.setdefault("captures", {})[tail] = {"patterns": [{"include": include}]}
+    return group
+
+
+def _line_rules(group: dict[str, Any]) -> dict[str, Any]:
+    """Build statement-head rules without changing capture numbering."""
+    for rule in group["patterns"]:
+        field = "match" if "match" in rule else "begin"
+        pattern = rule[field]
+        if "name" in rule and field == "match":
+            rule["captures"] = {"1": _scope(rule.pop("name"))}
+            pattern = "(" + pattern + ")"
+        rule[field] = r"^[ \t]*(?:(?:no|default)\s+)?" + pattern
+    return group
+
+
 def build_tm_language(schema: HaproxySchema) -> dict[str, Any]:
     grammar = {
         "$schema": TM_LANGUAGE_SCHEMA_REF,
@@ -1028,27 +1040,26 @@ def build_tm_language(schema: HaproxySchema) -> dict[str, Any]:
         "patterns": [
             {"include": "#comments"},
             {"include": "#preprocessor-directives"},
+            {"include": "#escapes"},
             {"include": "#strings"},
             {"include": "#sections"},
+            {"include": "#sample-function-calls"},
+            {"include": "#rule-actions"},
+            {"include": "#check-actions"},
+            {"include": "#server-statement"},
             {"include": "#directives-with-values"},
             {"include": "#directives-multiword"},
             {"include": "#cache-keywords"},
             {"include": "#schema-directives"},
             {"include": "#sample-fetches"},
-            {"include": "#sample-function-calls"},
             {"include": "#acl-expressions"},
             {"include": "#sample-expressions"},
-            {"include": "#rule-actions"},
-            {"include": "#check-actions"},
             {"include": "#log-format-prefixes"},
             {"include": "#log-line"},
-            {"include": "#bind-param-pairs"},
             {"include": "#single-arg-directives"},
-            {"include": "#redirect-keywords"},
             {"include": "#addresses"},
             {"include": "#http-methods"},
             {"include": "#versions"},
-            {"include": "#sample-fetches"},
             {"include": "#numbers"},
             {"include": "#acl-flags"},
             {"include": "#comparison-operators"},

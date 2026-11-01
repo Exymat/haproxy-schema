@@ -196,3 +196,22 @@ def test_sample_expressions_support_nested_brackets() -> None:
             f"expected recursive sample-expressions include first in {rule.get('begin')!r}, "
             f"got {includes[:3]!r}"
         )
+
+
+def test_directive_value_and_escaped_comment_regressions() -> None:
+    schema = HaproxySchema.from_json(SCHEMA_PATH.read_text(encoding="utf-8"))
+    repo = build_tm_language(schema)["repository"]
+    comment = repo["comments"]["patterns"][0]["match"]
+    assert re.search(comment, "value # comment")
+    assert not re.search(comment, r"value \# literal")
+    directive = repo["schema-directives"]["patterns"][0]["match"]
+    assert re.search(directive, "    timeout client 5s")
+    assert re.search(directive, "http-request set-header X-Label timeout").group(0) == "http-request"
+    assert not re.search(directive, "timeout.example.com")
+    double, single = repo["strings"]["patterns"]
+    assert {"include": "#environment-variables"} in double["patterns"]
+    assert {"include": "#escapes"} in double["patterns"]
+    assert {"include": "#escapes"} not in single["patterns"]
+    env = repo["environment-variables"]["patterns"][0]["match"]
+    assert re.fullmatch(env, "$CONFIG_DIR")
+    assert re.fullmatch(env, "${CONFIG_DIR}")
